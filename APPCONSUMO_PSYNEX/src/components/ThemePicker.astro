@@ -1,0 +1,138 @@
+---
+// src/components/ThemePicker.astro
+// Botón flotante para elegir el tema, entre los 20 de colores-globales.css.
+// Muestra 5 destacados y una flecha que despliega los otros 15.
+const favoritos = [
+  { id: "mono", nombre: "Negro", color: "#2a2a2d" },
+  { id: "blue", nombre: "Azul", color: "#417ac9" },
+  { id: "green", nombre: "Verde", color: "#378758" },
+  { id: "pink", nombre: "Rosado", color: "#c44e78" },
+  { id: "purple", nombre: "Morado", color: "#915fd8" },
+];
+
+const mas = [
+  { id: "beige", nombre: "Beige", color: "#9c6e37" },
+  { id: "verde-blanco", nombre: "Verde y blanco", color: "#16a34a" },
+  { id: "azul-blanco", nombre: "Azul y blanco", color: "#2563eb" },
+  { id: "slate", nombre: "Pizarra", color: "#566375" },
+  { id: "teal", nombre: "Verde azulado", color: "#319393" },
+  { id: "indigo", nombre: "Índigo", color: "#625aca" },
+  { id: "sky", nombre: "Cielo", color: "#1b95d0" },
+  { id: "azul-rey", nombre: "Azul rey", color: "#374ba4" },
+  { id: "petroleo", nombre: "Petróleo", color: "#2a5767" },
+  { id: "burgundy", nombre: "Burdeos", color: "#a1384b" },
+  { id: "vino", nombre: "Vino", color: "#74283b" },
+  { id: "fucsia", nombre: "Fucsia", color: "#b834a2" },
+  { id: "olive", nombre: "Oliva", color: "#719049" },
+  { id: "musgo", nombre: "Musgo", color: "#496237" },
+  { id: "malva", nombre: "Malva", color: "#91647a" },
+];
+---
+<div class="theme-container">
+  <button class="toggle" type="button" aria-label="Cambiar colores" aria-expanded="false" data-tema-toggle>
+    <i class="bi bi-palette-fill"></i>
+  </button>
+
+  <div class="panel" hidden data-tema-panel>
+    <div class="fila">
+      <div class="swatches">
+        {favoritos.map((t) => (
+          <button class="swatch" type="button" data-tema={t.id} title={t.nombre} aria-label={t.nombre} style={`background:${t.color}`}></button>
+        ))}
+      </div>
+
+      <button class="expandir" type="button" data-tema-expandir aria-expanded="false" aria-label="Ver más colores">
+        <i class="bi bi-chevron-down"></i>
+      </button>
+    </div>
+
+    <div class="swatches swatches-extra" hidden data-tema-extra>
+      {mas.map((t) => (
+        <button class="swatch" type="button" data-tema={t.id} title={t.nombre} aria-label={t.nombre} style={`background:${t.color}`}></button>
+      ))}
+    </div>
+  </div>
+</div>
+
+<style>
+  .theme-container { position: fixed; right: 20px; bottom: 20px; z-index: 9999; }
+
+  .toggle {
+    display: grid; place-items: center; width: 52px; height: 52px;
+    border: none; border-radius: 50%; cursor: pointer; font-size: 1.3rem;
+    background: var(--primary); color: var(--on-primary);
+    box-shadow: 0 8px 22px rgb(0 0 0 / 0.18); transition: transform 0.2s;
+  }
+  .toggle:hover { transform: scale(1.08); }
+
+  .panel {
+    position: absolute; right: 0; bottom: 64px; width: 216px;
+    padding: 14px; border-radius: 22px;
+    background: var(--surface); border: 1px solid var(--border);
+    box-shadow: 0 14px 34px rgb(0 0 0 / 0.16);
+    animation: aparecer 0.18s ease-out;
+  }
+  .panel[hidden] { display: none; }
+  @keyframes aparecer { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .fila { display: flex; align-items: center; gap: 8px; }
+  .swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; flex: 1; }
+  .swatches-extra { margin-top: 10px; }
+  .swatches-extra[hidden] { display: none; }
+
+  .swatch {
+    width: 26px; height: 26px; border: none; border-radius: 50%; cursor: pointer;
+    transition: transform 0.15s; position: relative;
+  }
+  .swatch:hover { transform: scale(1.15); }
+  .swatch.activo::after {
+    content: ""; position: absolute; inset: -3px; border-radius: 50%;
+    border: 2px solid var(--text);
+  }
+
+  .expandir {
+    display: grid; place-items: center; width: 26px; height: 26px; flex-shrink: 0;
+    border: none; background: none; color: var(--primary); cursor: pointer;
+  }
+  .expandir i { font-size: 0.85rem; transition: transform 0.2s; }
+  .expandir[aria-expanded="true"] i { transform: rotate(180deg); }
+</style>
+
+<script>
+  const raiz = document.documentElement;
+  const toggle = document.querySelector<HTMLButtonElement>("[data-tema-toggle]");
+  const panel = document.querySelector<HTMLElement>("[data-tema-panel]");
+  const expandirBtn = document.querySelector<HTMLButtonElement>("[data-tema-expandir]");
+  const extra = document.querySelector<HTMLElement>("[data-tema-extra]");
+  const botones = document.querySelectorAll<HTMLButtonElement>("[data-tema]");
+
+  const marcarActivo = () =>
+    botones.forEach((b) => b.classList.toggle("activo", b.dataset.tema === raiz.dataset.theme));
+
+  toggle?.addEventListener("click", () => {
+    if (!panel) return;
+    panel.hidden = !panel.hidden;
+    toggle.setAttribute("aria-expanded", String(!panel.hidden));
+  });
+
+  expandirBtn?.addEventListener("click", () => {
+    if (!extra) return;
+    extra.hidden = !extra.hidden;
+    expandirBtn.setAttribute("aria-expanded", String(!extra.hidden));
+  });
+
+  botones.forEach((b) =>
+    b.addEventListener("click", () => {
+      const tema = b.dataset.tema!;
+      raiz.dataset.theme = tema;
+      try { localStorage.setItem("theme", tema); } catch {}
+      marcarActivo();
+    })
+  );
+
+  document.addEventListener("click", (e) => {
+    if (panel && !(e.target as HTMLElement).closest(".theme-container")) panel.hidden = true;
+  });
+
+  marcarActivo();
+</script>

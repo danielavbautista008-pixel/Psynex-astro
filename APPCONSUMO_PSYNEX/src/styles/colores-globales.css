@@ -1,0 +1,77 @@
+/* src/styles/colores-globales.css
+   Colores globales de Psynex. Se importa UNA sola vez en BaseLayout.astro.
+   El tema activo se elige con <html data-theme="blue">.
+
+   20 temas en total. Se quitaron el naranja y el coral (tonos rojo/naranja)
+   y se agregaron 2 nuevos: verde sobre fondo blanco y azul sobre fondo
+   blanco, más vivos que los pasteles "green" y "blue" que ya existían.
+
+   Cada tema define solo 4 colores:
+     --bg       fondo de la pagina
+     --surface  fondo de tarjetas y tablas
+     --primary  color principal (botones, iconos, barras de progreso, títulos con color)
+     --text     color del texto
+   Todo lo demas se calcula solo abajo (seccion 3). */
+
+
+/* ---------- 1. Colores fijos (no cambian con el tema) ---------- */
+:root {
+  --on-primary: #ffffff;   /* texto sobre botones de color */
+
+  /* Estados: badges, alertas, validacion de formularios */
+  --success-bg: #d1fae5;   --success-fg: #065f46;
+  --warning-bg: #fef3c7;   --warning-fg: #92400e;
+  --danger-bg:  #fee2e2;   --danger-fg:  #991b1b;
+}
+
+
+/* ---------- 2. Los 20 temas ---------- */
+
+/* Favoritos: negro, azul, verde, rosado, morado (beige es el tema por defecto) */
+:root,
+[data-theme="beige"]  { --bg: #f8f3ed; --surface: #ffffff; --primary: #9c6e37; --text: #2e221d; }
+[data-theme="mono"]   { --bg: #f4f4f5; --surface: #ffffff; --primary: #2a2a2d; --text: #1c1c1e; }
+[data-theme="blue"]   { --bg: #eef6ff; --surface: #ffffff; --primary: #417ac9; --text: #173b67; }
+[data-theme="green"]  { --bg: #edf8f0; --surface: #ffffff; --primary: #378758; --text: #1f4d34; }
+[data-theme="pink"]   { --bg: #fff0f5; --surface: #ffffff; --primary: #c44e78; --text: #6b2d47; }
+[data-theme="purple"] { --bg: #f3ecff; --surface: #ffffff; --primary: #915fd8; --text: #4d2c73; }
+
+/* Nuevos: sobre fondo casi blanco, título en verde o en azul */
+[data-theme="verde-blanco"] { --bg: #fafffb; --surface: #ffffff; --primary: #16a34a; --text: #14532d; }
+[data-theme="azul-blanco"]  { --bg: #fafbff; --surface: #ffffff; --primary: #2563eb; --text: #1e3a72; }
+
+/* Neutros */
+[data-theme="slate"]    { --bg: #f1f5f9; --surface: #ffffff; --primary: #566375; --text: #1e293b; }
+
+/* Fríos */
+[data-theme="teal"]     { --bg: #ecf7f6; --surface: #ffffff; --primary: #319393; --text: #14494a; }
+[data-theme="indigo"]   { --bg: #eef0fb; --surface: #ffffff; --primary: #625aca; --text: #232c66; }
+[data-theme="sky"]      { --bg: #eaf5fc; --surface: #ffffff; --primary: #1b95d0; --text: #0c3a57; }
+[data-theme="azul-rey"] { --bg: #eaedfa; --surface: #ffffff; --primary: #374ba4; --text: #16204f; }
+[data-theme="petroleo"] { --bg: #eaf1f3; --surface: #ffffff; --primary: #2a5767; --text: #102730; }
+
+/* Cálidos (sin naranja ni coral) */
+[data-theme="burgundy"] { --bg: #faeff1; --surface: #ffffff; --primary: #a1384b; --text: #4a1621; }
+[data-theme="vino"]     { --bg: #f7ecee; --surface: #ffffff; --primary: #74283b; --text: #3a0f1a; }
+
+/* Vibrante y natural */
+[data-theme="fucsia"]   { --bg: #fbeef8; --surface: #ffffff; --primary: #b834a2; --text: #4f1046; }
+[data-theme="olive"]    { --bg: #f3f6ec; --surface: #ffffff; --primary: #719049; --text: #33421e; }
+[data-theme="musgo"]    { --bg: #f0f3ea; --surface: #ffffff; --primary: #496237; --text: #202e16; }
+[data-theme="malva"]    { --bg: #f6eef1; --surface: #ffffff; --primary: #91647a; --text: #452d39; }
+
+
+/* ---------- 3. Colores derivados (se ajustan solos a cada tema) ---------- */
+:root {
+  --primary-hover: color-mix(in srgb, var(--primary) 85%, black);
+  --primary-soft:  color-mix(in srgb, var(--primary) 12%, var(--surface));
+  --text-muted:    color-mix(in srgb, var(--text) 65%, var(--surface));
+  --border:        color-mix(in srgb, var(--text) 12%, var(--surface));
+}
+
+
+/* ---------- 4. Aplicacion base ---------- */
+html {
+  background: var(--bg);
+  color: var(--text);
+}

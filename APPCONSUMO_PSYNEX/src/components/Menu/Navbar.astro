@@ -1,0 +1,60 @@
+---
+/**
+ * Navbar.astro
+ * -------------------------------------------------------------------------
+ * Menú superior reutilizable de Psynex.
+ * Uso desde cualquier página: import Navbar from "../Menu/Navbar.astro";
+ * luego <Navbar /> en el HTML.
+ *
+ * Los colores (--primary, --bg, --surface, --text, --border) vienen de
+ * colores-globales.css, así que el menú cambia solo con el tema activo.
+ */
+
+export interface Props {
+  logoSrc?: string;
+  siteName?: string;
+  loginHref?: string;
+  loginLabel?: string;
+  menuItems?: { label: string; href: string }[];
+}
+
+const {
+  logoSrc = "/Imagenes/logo.png",
+  siteName = "PSYNEX",
+  loginHref = "/login",
+  loginLabel = "Iniciar sesión",
+  menuItems = [
+    { label: "Inicio", href: "/" },
+    { label: "Explorar", href: "/dashboard-publico" },
+    { label: "Nosotros", href: "/sobre-nosotros" },
+  ],
+} = Astro.props;
+
+import "./navbar.css";
+---
+
+<nav class="sticky-nav">
+  <a href="/" class="nav-logo-area">
+    <img src={logoSrc} alt={siteName} class="nav-logo-img" />
+    <span class="nav-logo-text">{siteName}</span>
+  </a>
+
+  <ul class="nav-menu">
+    {menuItems.map((item: { label: string; href: string }) => (
+      <li>
+        <a href={item.href}>{item.label}</a>
+      </li>
+    ))}
+  </ul>
+
+  <a href={loginHref} class="nav-btn-login">
+    {loginLabel}
+  </a>
+</nav>
+
+<!--
+  Este div vacío es necesario porque el nav de arriba es "fixed"
+  (sale del flujo normal). Sin esto, el contenido de tu página
+  quedaría tapado detrás del menú al cargar.
+-->
+<div class="nav-spacer"></div>

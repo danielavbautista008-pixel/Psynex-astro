@@ -1,0 +1,199 @@
+---
+// src/components/Inicio/landing.astro  (equivale a Landing.razor)
+// HTML y datos aquí; los estilos están en landing.css (misma carpeta).
+import "./landing.css";
+import "../Menu/Navbar.astro";
+import Navbar from "../Menu/Navbar.astro";
+
+const beneficios = [
+  { icono: "bi-shield-check", titulo: "Espacio seguro", texto: "Tu bienestar es nuestra prioridad." },
+  { icono: "bi-person-heart", titulo: "Profesionales certificados", texto: "Psicólogos expertos para ayudarte." },
+  { icono: "bi-clock-history", titulo: "Atención rápida", texto: "Agenda fácil y sin complicaciones." },
+  { icono: "bi-lock", titulo: "Confidencialidad", texto: "Toda tu información protegida." },
+];
+
+const servicios = [
+  { icono: "bi-heart-pulse", titulo: "Ansiedad", texto: "Aprende a manejar tus pensamientos y recuperar la calma." },
+  { icono: "bi-flower1", titulo: "Estrés", texto: "Reduce el estrés y mejora tu bienestar diario." },
+  { icono: "bi-cloud-drizzle", titulo: "Depresión", texto: "Te acompañamos a recuperar tu bienestar emocional." },
+];
+
+const redes = [
+  { icono: "bi-instagram", nombre: "Instagram", url: "#" },
+  { icono: "bi-whatsapp", nombre: "WhatsApp", url: "#" },
+  { icono: "bi-facebook", nombre: "Facebook", url: "#" },
+  { icono: "bi-envelope", nombre: "Correo", url: "#" },
+];
+
+// Las 3 tarjetas rotan juntas cada 10 segundos (script al final).
+const frases = {
+  motivacion: [
+    "Sanar también es avanzar.",
+    "Cada pequeño paso cuenta.",
+    "Hoy es una nueva oportunidad.",
+    "Tu progreso importa.",
+    "Cree en tu capacidad de crecer.",
+    "Lo mejor está por venir.",
+    "Avanza a tu propio ritmo.",
+    "Nunca es tarde para empezar.",
+    "Tu esfuerzo vale la pena.",
+    "Confía en tu proceso.",
+    "Cada día trae una nueva posibilidad.",
+    "Eres más fuerte de lo que crees.",
+    "El cambio comienza con una decisión.",
+    "Sigue adelante, incluso despacio.",
+    "Todo avance merece celebrarse.",
+  ],
+  emocionales: [
+    "Tus emociones son válidas.",
+    "Está bien pedir ayuda.",
+    "No tienes que cargar con todo.",
+    "La calma también se aprende.",
+    "Escucha lo que sientes.",
+    "Tu bienestar es importante.",
+    "Mereces descansar.",
+    "Ser sensible es una fortaleza.",
+    "Date permiso para sentir.",
+    "Está bien tener días difíciles.",
+    "Tu paz es una prioridad.",
+    "Cuidarte es una necesidad.",
+    "No ignores tus emociones.",
+    "La sanación requiere paciencia.",
+    "Mereces comprensión y respeto.",
+  ],
+  amorPropio: [
+    "Trátate con la misma amabilidad que ofreces a otros.",
+    "Mereces amor y respeto.",
+    "Eres suficiente tal como eres.",
+    "Cuida de ti con paciencia.",
+    "Tu valor no depende de la opinión de otros.",
+    "Aprende a hablarte con cariño.",
+    "Descansar también es productividad.",
+    "Tu mente merece paz.",
+    "Tu corazón merece tranquilidad.",
+    "Celebra tus logros.",
+    "Agradece tus avances.",
+    "La perfección no es necesaria.",
+    "Tu bienestar es una inversión.",
+    "Eres digno de felicidad.",
+    "El amor propio se construye día a día.",
+  ],
+};
+
+const tarjetas = [
+  { titulo: "Motivación", clave: "motivacion" },
+  { titulo: "Bienestar emocional", clave: "emocionales" },
+  { titulo: "Amor propio", clave: "amorPropio" },
+] as const;
+const total = frases.motivacion.length;
+---
+
+<div class="landing">
+   <Navbar/>
+  <main class="wrap">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div>
+        <div class="badge"><i class="bi bi-heart-pulse-fill"></i> Tu bienestar, nuestra prioridad</div>
+        <h1>Tu bienestar empieza <em>contigo.</em></h1>
+        <p>
+          En Psicología Psynex te acompañamos con profesionalismo, empatía y
+          dedicación en cada paso de tu proceso.
+        </p>
+        <div class="acciones">
+          <a class="btn fill" href="/psicologos"><i class="bi bi-calendar-heart"></i> Agenda tu cita</a>
+          <a class="btn ghost" href="/dashboard-publico"><i class="bi bi-arrow-right-circle"></i> Conoce más</a>
+        </div>
+      </div>
+      <div class="hero-img">
+        <img src="/Imagenes/imagen2deregistro.jpeg" alt="Psynex" />
+      </div>
+    </section>
+
+    <!-- BENEFICIOS -->
+    <section class="beneficios">
+      {beneficios.map((b) => (
+        <div class="beneficio">
+          <div class="icono"><i class={`bi ${b.icono}`}></i></div>
+          <div>
+            <h4>{b.titulo}</h4>
+            <p>{b.texto}</p>
+          </div>
+        </div>
+      ))}
+    </section>
+
+    <!-- SERVICIOS -->
+    <section class="seccion">
+      <h2>¿En qué podemos ayudarte?</h2>
+      <div class="servicios">
+        {servicios.map((s) => (
+          <article class="servicio">
+            <div class="icono"><i class={`bi ${s.icono}`}></i></div>
+            <h3>{s.titulo}</h3>
+            <p>{s.texto}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <!-- FRASES -->
+    <section class="seccion" data-frases={JSON.stringify(frases)}>
+      <h2>Frases para tu bienestar</h2>
+      <div class="frases">
+        {tarjetas.map((t) => (
+          <div class="frase">
+            <h3>{t.titulo}</h3>
+            <p data-clave={t.clave}>{frases[t.clave][0]}</p>
+          </div>
+        ))}
+      </div>
+      <div class="dots">
+        {Array.from({ length: total }, (_, i) => (
+          <span class:list={["dot", { active: i === 0 }]}></span>
+        ))}
+      </div>
+    </section>
+
+    <!-- INFORMACIÓN FINAL -->
+    <footer>
+      <div class="info">
+        <div class="marca">
+          <img src="/Imagenes/logo.png" alt="Logo de Psynex" />
+          <div>
+            <p>Acompañamiento psicológico profesional para tu bienestar emocional.</p>
+            <div class="redes">
+              {redes.map((r) => (
+                <a href={r.url} aria-label={r.nombre}><i class={`bi ${r.icono}`}></i></a>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div class="cita">
+          <i class="bi bi-quote"></i>
+          <p>Tu bienestar es nuestra prioridad.</p>
+        </div>
+      </div>
+      <div class="copyright">© 2026 Psicología Mente &amp; Corazón.</div>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  const contenedor = document.querySelector<HTMLElement>("[data-frases]");
+  if (contenedor) {
+    const datos = JSON.parse(contenedor.dataset.frases!) as Record<string, string[]>;
+    const textos = contenedor.querySelectorAll<HTMLElement>("[data-clave]");
+    const puntos = contenedor.querySelectorAll(".dot");
+    let i = 0;
+
+    setInterval(() => {
+      puntos[i].classList.remove("active");
+      i = (i + 1) % puntos.length;
+      puntos[i].classList.add("active");
+      textos.forEach((t) => (t.textContent = datos[t.dataset.clave!][i]));
+    }, 10000);
+  }
+</script>

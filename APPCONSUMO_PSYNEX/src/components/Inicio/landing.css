@@ -1,0 +1,166 @@
+/* src/components/Inicio/landing.css
+   Estilos de la landing. Los colores salen de colores-globales.css. */
+
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:ital,wght@0,600;0,700;1,600&display=swap");
+
+/* Base de la página */
+.landing {
+  font-family: "DM Sans", system-ui, sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  background:
+    linear-gradient(color-mix(in srgb, var(--bg) 95%, transparent), color-mix(in srgb, var(--bg) 95%, transparent)),
+    url("/imagenes/fondo.jpeg") center / cover;
+}
+.landing h1, .landing h2, .landing h3, .landing h4 { font-family: "Fraunces", Georgia, serif; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+.seccion { padding: 40px 0; }
+.seccion h2 { text-align: center; font-size: clamp(1.5rem, 3vw, 2rem); margin-bottom: 28px; }
+
+/* Botones */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 26px; border-radius: 999px; border: 2px solid var(--primary);
+  font-size: 0.95rem; font-weight: 600; text-decoration: none;
+  transition: transform 0.2s, background 0.2s, color 0.2s;
+}
+.btn:hover { transform: translateY(-2px); }
+.fill { background: var(--primary); color: var(--on-primary); }
+.fill:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+.ghost { background: transparent; color: var(--primary); }
+.ghost:hover { background: var(--primary); color: var(--on-primary); }
+
+/* Icono circular (beneficios y servicios) */
+.icono {
+  display: grid; place-items: center; flex-shrink: 0;
+  width: 48px; height: 48px; border-radius: 50%; font-size: 1.25rem;
+  background: var(--primary-soft); color: var(--primary);
+}
+
+/* Hero */
+.hero { display: grid; grid-template-columns: 1.2fr 1fr; align-items: center; gap: 40px; padding: 48px 0 32px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; margin-bottom: 16px; border-radius: 999px;
+  background: var(--primary-soft); border: 1px solid var(--primary);
+  color: var(--primary); font-size: 0.8rem; font-weight: 600;
+}
+.hero h1 { font-size: clamp(2rem, 4.5vw, 3.1rem); line-height: 1.15; margin-bottom: 16px; }
+.hero h1 em { color: var(--primary); }
+.hero p { max-width: 46ch; margin-bottom: 24px; font-size: 1.05rem; line-height: 1.7; color: var(--text-muted); }
+.acciones { display: flex; flex-wrap: wrap; gap: 12px; }
+.hero-img { display: flex; justify-content: center; }
+.hero-img img { width: 100%; max-width: 300px; border-radius: 28px; box-shadow: 0 12px 30px rgb(0 0 0 / 0.08); }
+
+/* Beneficios */
+.beneficios {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+  padding: 24px; border-radius: 24px;
+  background: var(--surface); box-shadow: 0 6px 20px rgb(0 0 0 / 0.05);
+}
+.beneficio { display: flex; align-items: center; gap: 12px; }
+.beneficio h4 { font-size: 0.95rem; margin-bottom: 2px; }
+.beneficio p { font-size: 0.85rem; color: var(--text-muted); }
+
+/* Servicios */
+.servicios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.servicio {
+  padding: 28px 22px; border-radius: 20px; text-align: center;
+  background: var(--surface); box-shadow: 0 6px 20px rgb(0 0 0 / 0.05);
+  transition: transform 0.25s;
+}
+.servicio:hover { transform: translateY(-4px); }
+.servicio .icono { width: 60px; height: 60px; margin: 0 auto 14px; font-size: 1.6rem; }
+.servicio h3 { font-size: 1.15rem; margin-bottom: 8px; }
+.servicio p { font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); }
+
+/* Frases */
+.frases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.frase {
+  padding: 24px; border-radius: 20px; text-align: center;
+  background: var(--surface); box-shadow: 0 6px 20px rgb(0 0 0 / 0.05);
+}
+.frase h3 { margin-bottom: 12px; font-size: 0.9rem; color: var(--primary); }
+.frase p { min-height: 3.6em; font-family: "Fraunces", Georgia, serif; font-size: 1.15rem; font-style: italic; line-height: 1.4; }
+.dots { display: flex; justify-content: center; gap: 8px; margin-top: 20px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: 0.3s; }
+.dot.active { background: var(--primary); transform: scale(1.3); }
+
+/* Información final */
+.info {
+  display: flex; justify-content: space-between; align-items: center; gap: 32px;
+  padding: 32px 40px; border-radius: 28px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+.marca { display: flex; align-items: center; gap: 24px; }
+.marca img { width: 96px; height: 96px; object-fit: cover; border-radius: 50%; border: 3px solid var(--primary); }
+.marca p { max-width: 34ch; margin-bottom: 14px; font-size: 1.1rem; line-height: 1.5; }
+.redes { display: flex; gap: 10px; }
+.redes a {
+  display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%;
+  border: 2px solid var(--primary); color: var(--primary); font-size: 1.05rem;
+  text-decoration: none; transition: 0.2s;
+}
+.redes a:hover { background: var(--primary); color: var(--on-primary); }
+.cita { max-width: 300px; padding: 24px; border-radius: 20px; text-align: center; background: var(--primary-soft); }
+.cita i { font-size: 2rem; color: var(--primary); }
+.cita p { margin-top: 8px; font-size: 1.05rem; font-style: italic; line-height: 1.5; }
+.copyright { margin-top: 32px; padding: 20px 0; border-top: 1px solid var(--border); text-align: center; font-size: 0.85rem; color: var(--text-muted); }
+
+/* ==========================================================
+   RESPONSIVE — de más ancha a más angosta.
+   Cada bloque hereda lo del bloque anterior y solo agrega
+   o corrige lo que hace falta en esa pantalla más chica.
+   ========================================================== */
+
+/* Tablets y pantallas medianas (900px y menos) */
+@media (max-width: 900px) {
+  .wrap { padding: 0 20px; }
+
+  .hero { grid-template-columns: 1fr; text-align: center; padding: 32px 0 24px; gap: 28px; }
+  .hero p { margin-inline: auto; }
+  .acciones { justify-content: center; }
+  .hero-img { order: -1; }
+  .hero-img img { max-width: 220px; }
+
+  .beneficios { grid-template-columns: repeat(2, 1fr); }
+
+  .servicios, .frases { grid-template-columns: 1fr; }
+
+  .info, .marca { flex-direction: column; text-align: center; }
+  .redes { justify-content: center; }
+}
+
+/* Celulares (600px y menos) */
+@media (max-width: 600px) {
+  .wrap { padding: 0 16px; }
+  .seccion { padding: 28px 0; }
+
+  /* Textos: bajan un poco más de lo que ya hace el clamp() */
+  .hero h1 { font-size: 2rem; }
+  .hero p { font-size: 0.98rem; }
+  .seccion h2 { font-size: 1.4rem; }
+
+  /* Botones a lo ancho, uno debajo del otro, más fáciles de tocar */
+  .acciones { flex-direction: column; width: 100%; }
+  .btn { justify-content: center; width: 100%; padding: 13px 20px; }
+
+  .beneficios { grid-template-columns: 1fr; padding: 16px; gap: 18px; }
+  .beneficio { text-align: left; align-items: flex-start; }
+
+  .servicio, .frase { padding: 22px 18px; }
+  .frase p { font-size: 1.02rem; min-height: 0; }
+
+  .info { padding: 24px 18px; gap: 20px; }
+  .marca { gap: 16px; }
+  .marca img { width: 76px; height: 76px; }
+  .marca p { font-size: 1rem; }
+  .cita { width: 100%; max-width: none; padding: 20px; }
+}
+
+/* Celulares chicos (380px y menos) */
+@media (max-width: 380px) {
+  .hero h1 { font-size: 1.7rem; }
+  .badge { font-size: 0.72rem; padding: 5px 12px; }
+  .marca img { width: 64px; height: 64px; }
+}

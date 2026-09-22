@@ -1,0 +1,179 @@
+/* =========================================================================
+   navbar.css
+   Estilos exclusivos del componente Navbar.astro.
+
+   IMPORTANTE: este archivo NO define colores propios (nada de #hex fijos
+   para fondos o textos). Todo se apoya en las variables que ya vienen de
+   colores-globales.css (--primary, --bg, --surface, --text, --border,
+   --primary-hover, etc). Así, cuando el usuario cambia de tema con el
+   ThemePicker (data-theme="blue", "verde-blanco", etc.), el navbar
+   cambia de color solo, sin tocar este archivo.
+   ========================================================================= */
+
+
+/* -------------------------------------------------------------------------
+   1. CONTENEDOR PRINCIPAL DEL MENÚ
+   ------------------------------------------------------------------------- */
+.sticky-nav {
+  /* Usamos "fixed" en vez de "sticky": sticky depende de que NINGÚN
+     contenedor padre tenga overflow-x/overflow-y distinto de "visible"
+     (body, .landing, .wrap, etc.) — si alguno lo tiene, sticky se rompe
+     y el menú "desaparece" al hacer scroll, que es justo lo que te
+     estaba pasando. "fixed" siempre queda pegado a la ventana, sin
+     importar lo que hagan los contenedores de alrededor. */
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000; /* se mantiene por encima del resto del contenido */
+
+  width: 100%;
+
+  /* Más delgado que el original (18px 80px): reducimos el padding
+     vertical para que el menú pese menos visualmente. */
+  padding: 10px 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  /* --- Efecto "vidrio" (glassmorphism) como en la imagen 3 --- */
+  /* Fondo blanco semitransparente: deja pasar un poco del contenido
+     de atrás en lugar de taparlo por completo. Solo se nota bien
+     cuando hay algo (una foto, un color fuerte) detrás para difuminar;
+     sobre fondo blanco liso casi no se percibe, y eso es normal. */
+  background: rgba(255, 255, 255, 0.55);
+
+  /* Difumina lo que hay detrás del navbar (el verdadero efecto vidrio). */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px); /* soporte Safari */
+
+  /* Borde inferior sutil, tomado del color de texto/tema, no un gris fijo. */
+  border-bottom: 1px solid var(--border);
+
+  /* Sombra ligera para separarlo del contenido cuando hace scroll. */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+
+  /* Transición suave por si luego animas su tamaño al hacer scroll. */
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+
+/* -------------------------------------------------------------------------
+   2. LOGO + NOMBRE
+   ------------------------------------------------------------------------- */
+.nav-logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none; /* quita el subrayado del <a> que envuelve el logo */
+}
+
+.nav-logo-img {
+  /* Logo más pequeño que el original (85px -> 40px) para que el
+     menú se vea "menos grueso". */
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 50%;
+
+  background: var(--primary);
+  padding: 3px;
+  border: 1.5px solid var(--primary);
+}
+
+.nav-logo-text {
+  font-family: "Gravitas One", serif;
+  font-size: 15px;
+  color: var(--text); /* se adapta al tema activo */
+  letter-spacing: 0.5px;
+}
+
+
+/* -------------------------------------------------------------------------
+   3. LINKS DEL MENÚ
+   ------------------------------------------------------------------------- */
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+
+  list-style: none; /* quita los puntos de la lista <ul><li> */
+  margin: 0;
+  padding: 0;
+}
+
+.nav-menu a {
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 500;
+  font-size: 15px;
+  transition: color 0.25s ease;
+}
+
+.nav-menu a:hover {
+  color: var(--primary);
+}
+
+
+/* -------------------------------------------------------------------------
+   4. BOTÓN "INICIAR SESIÓN"
+   ------------------------------------------------------------------------- */
+.nav-btn-login {
+  background: var(--primary);
+  color: var(--on-primary); /* variable fija: texto blanco sobre color */
+  text-decoration: none;
+
+  /* Botón más compacto que el original (14px 30px -> 9px 22px). */
+  padding: 9px 22px;
+  border-radius: 40px;
+  font-weight: 600;
+  font-size: 14px;
+
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+  transition: transform 0.25s ease, background 0.25s ease;
+  white-space: nowrap; /* evita que el texto del botón se parta en 2 líneas */
+}
+
+.nav-btn-login:hover {
+  background: var(--primary-hover); /* variable ya calculada en tu tema */
+  transform: translateY(-2px);
+}
+
+
+/* -------------------------------------------------------------------------
+   5. RESPONSIVE (pantallas pequeñas)
+   ------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .sticky-nav {
+    padding: 10px 20px;
+  }
+
+  /* Ocultamos los links de texto en móvil para mantenerlo delgado;
+     aquí normalmente se conectaría un botón "hamburguesa", pero eso
+     ya implicaría JS/interactividad (otro componente aparte). */
+  .nav-menu {
+    display: none;
+  }
+}
+
+
+/* -------------------------------------------------------------------------
+   6. ESPACIADOR (OBLIGATORIO al usar position: fixed)
+   ------------------------------------------------------------------------- */
+/* Como el navbar ahora es "fixed", sale del flujo normal del documento:
+   el contenido de la página no "sabe" que el navbar existe y se dibuja
+   empezando desde arriba de todo, quedando TAPADO debajo del menú.
+
+   Solución: agregamos esta clase a un <div> vacío justo después de
+   </nav> en Navbar.astro. Su única función es "empujar" el contenido
+   real hacia abajo, dejando el hueco exacto de la altura del navbar. */
+.nav-spacer {
+  height: 64px; /* ajusta este número si cambias el padding del navbar */
+}
+
+@media (max-width: 768px) {
+  .nav-spacer {
+    height: 56px;
+  }
+}
