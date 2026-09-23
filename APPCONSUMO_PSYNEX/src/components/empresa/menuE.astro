@@ -1,0 +1,126 @@
+---
+/**
+ * MenuEmpresa.astro
+ * -------------------------------------------------------------------------
+ * Menú superior interactivo para el panel de Empresas.
+ *
+ * Los colores (--primary, --bg, --surface, --text, --border) provienen de
+ * colores-globales.css para responder al ThemePicker automáticamente.
+ */
+
+export interface Props {
+  logoDefault?: string;
+  nombreDefault?: string;
+}
+
+const {
+  logoDefault = "/Imagenes/logo.png",
+  nombreDefault = "PSYNEX", // nombre de la base de datos de la empresa
+} = Astro.props;
+
+import "./menuE.css";
+---
+
+<nav class="sticky-nav">
+  <!-- Logo + Nombre -->
+  <a href="/Empresa/dashboard" class="nav-logo-area">
+    <img 
+      id="nav-logo-img"
+      src={logoDefault} 
+      alt="Logo Empresa" 
+      class="nav-logo-img" 
+    />
+    <span id="nav-logo-text" class="nav-logo-text">
+      {nombreDefault}
+    </span>
+  </a>
+
+  <!-- Menú Central (Íconos arriba, texto abajo) -->
+  <ul class="nav-menu">
+    <li>
+      <a href="/Empresa/dashboard">
+        <i class="bi bi-grid-1x2-fill"></i>
+        <span>Inicio</span>
+      </a>
+    </li>
+    <li>
+      <a href="/Empresa/Buscar_Psicologo">
+        <i class="bi bi-search-heart"></i>
+        <span>Buscar Psicólogo</span>
+      </a>
+    </li>
+    <li>
+      <a href="/Empresa/Gestion/de/ofertas">
+        <i class="bi bi-file-earmark-plus"></i>
+        <span>Publicar Ofertas</span>
+      </a>
+    </li>
+    <li>
+      <a href="/Empresa/Favoritos">
+        <i class="bi bi-heart-fill"></i>
+        <span>Favoritos</span>
+      </a>
+    </li>
+    <li>
+      <a href="/Empresa/Chats">
+        <i class="bi bi-chat-left-dots-fill"></i>
+        <span>Chats</span>
+      </a>
+    </li>
+  </ul>
+
+  <!-- Perfil Desplegable -->
+  <div class="menu-perfil-container">
+    <button type="button" id="perfil-trigger" class="nav-btn-perfil" aria-haspopup="true" aria-expanded="false">
+      <img 
+        id="nav-perfil-img"
+        src="/Imagenes/logo.png" 
+        alt="Mi Perfil" 
+        class="perfil-foto-nav" 
+      />
+      <span>Mi Perfil</span>
+      <i class="bi bi-chevron-down"></i>
+    </button>
+
+    <div id="dropdown-perfil" class="dropdown-perfil hidden">
+      <a href="/Empresa/Perfil" class="dropdown-item">
+        <i class="bi bi-person"></i>
+        <span>Mi Perfil</span>
+      </a>
+      <button type="button" id="btn-logout" class="dropdown-item btn-logout">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Cerrar sesión</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="nav-spacer"></div>
+
+<!-- <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const trigger = document.getElementById('perfil-trigger');
+    const dropdown = document.getElementById('dropdown-perfil');
+    const btnLogout = document.getElementById('btn-logout');
+
+    if (trigger && dropdown) {
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('hidden');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target as Node) && !trigger.contains(e.target as Node)) {
+          dropdown.classList.add('hidden');
+        }
+      });
+    }
+
+    if (btnLogout) {
+      btnLogout.addEventListener('click', () => {
+        sessionStorage.removeItem('usuarioId');
+        window.location.href = '/login';
+      });
+    }
+  });
+</script> -->
