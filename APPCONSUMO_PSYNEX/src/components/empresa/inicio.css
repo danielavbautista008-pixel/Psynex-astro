@@ -1,0 +1,274 @@
+/* ==========================================================================
+     DASHBOARD SECTION (Adaptado para Astro)
+     ========================================================================== */
+  .Bienvenida-Em {
+    font-family: "Roboto", sans-serif;
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  @media (max-width: 768px) {
+    .Bienvenida-Em {
+      padding: 0 20px;
+      margin: 20px auto;
+    }
+  }
+
+  /* Encabezado */
+  .dashboard-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text, #4b3425);
+    margin-bottom: 6px;
+  }
+
+  .dashboard-header p {
+    font-size: 13px;
+    color: var(--text, #3d3028);
+    opacity: 0.8;
+  }
+
+  /* 1. Grid de Tarjetas de Métricas */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+  }
+
+  .metric-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    box-shadow: 0 4px 15px rgba(75, 52, 37, 0.04);
+  }
+
+  .metric-icon-circle {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background-color: #fcf8f4;
+    color: var(--primary, #c69a63);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .ofertas {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .metric-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text, #4b3425);
+    line-height: 1.1;
+  }
+
+  .metric-label {
+    font-size: 12px;
+    color: var(--text, #3d3028);
+    font-weight: 500;
+    margin-top: 2px;
+    margin-bottom: 12px;
+    opacity: 0.8;
+  }
+
+  .metric-link {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary, #c69a63);
+    text-decoration: none;
+    transition: 0.3s;
+  }
+
+  .metric-link:hover {
+    color: var(--text, #4b3425);
+  }
+
+  /* 2. Grid de Acciones Rápidas */
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 24px;
+  }
+
+  @media (max-width: 768px) {
+    .actions-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .action-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 4px 20px rgba(75, 52, 37, 0.04);
+    transition: transform 0.3s ease;
+  }
+
+  .action-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .action-icon-bg {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background-color: #fcf8f4;
+    color: var(--primary, #c69a63);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .action-details {
+    flex-grow: 1;
+  }
+
+  .action-details h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text, #4b3425);
+    margin-bottom: 4px;
+  }
+
+  .action-details p {
+    font-size: 11px;
+    color: var(--text, #3d3028);
+    opacity: 0.7;
+    margin: 0;
+  }
+
+  .action-btn-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary, #c69a63);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    text-decoration: none;
+    transition: 0.3s;
+  }
+
+  .action-card:hover .action-btn-circle {
+    background: var(--text, #4b3425);
+  }
+
+  /* 3. Estilos de la Tabla */
+  .table-card-container {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 4px 20px rgba(75, 52, 37, 0.04);
+  }
+
+  .table-card-container h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text, #4b3425);
+    margin-bottom: 20px;
+  }
+
+  .responsive-table-holder {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .custom-table th {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text, #3d3028);
+    opacity: 0.6;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f5ede4;
+  }
+
+  .custom-table td {
+    padding: 16px;
+    border-bottom: 1px solid #fcfaf7;
+    font-size: 12px;
+    color: var(--text, #3d3028);
+    vertical-align: middle;
+  }
+
+  .table-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+  }
+
+  .table-user img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  /* Estados (Badges) */
+  .status-badge {
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 10px;
+    font-weight: 600;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+  }
+
+  .status-badge.pending {
+    background-color: #fdf5eb;
+    color: #d79a4a;
+  }
+
+  .status-badge.reviewed {
+    background-color: #ebf3fc;
+    color: #4a8cd8;
+  }
+
+  .status-badge:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+
+  /* Footer de la tabla */
+  .table-action-footer {
+    margin-top: 24px;
+    text-align: right;
+  }
+
+  .view-more-btn {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary, #c69a63);
+    text-decoration: none;
+    transition: 0.3s;
+  }
+
+  .view-more-btn:hover {
+    color: var(--text, #4b3425);
+  }
