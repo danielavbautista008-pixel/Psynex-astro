@@ -1,0 +1,225 @@
+---
+
+
+export interface Props {
+  // Arreglo de rutas de imágenes del carrusel.
+  // Se escriben a mano (no se generan solas) porque no todas tienen
+  // la misma extensión — algunas son .jpg y otras .jpeg, y el navegador
+  // necesita la extensión EXACTA del archivo o no la va a encontrar.
+  images?: string[];
+}
+
+const {
+  images = [
+    "/Imagenes/carrucelinicio.1.jpeg",
+    "/Imagenes/carrucelinicio.11.jpg",
+    "/Imagenes/carrucelinicio.3.jpeg",
+    "/Imagenes/carrucelinicio.4.jpg",
+    "/Imagenes/carrucelinicio.5.jpg",
+    "/Imagenes/carrucelinicio.6.jpeg",
+    "/Imagenes/carrucelinicio.7.jpeg",
+    "/Imagenes/carrucelinicio.8.jpeg",
+    "/Imagenes/carrucelinicio.9.jpg",
+    "/Imagenes/carrucelinicio.10.jpg",
+    "/Imagenes/carrucelinicio.2.jpg",
+  ],
+} = Astro.props;
+
+import "./login.css";
+---
+
+<div class="login-page">
+
+  <!-- MITAD IZQUIERDA: CARRUSEL -->
+  <div class="login-carousel">
+
+    <div
+      id="carruselLogin"
+      class="carousel slide carousel-fade h-100"
+      data-bs-ride="carousel"
+      data-bs-interval="3500"
+    >
+      <div class="carousel-inner h-100">
+        {images.map((src, i) => (
+          <div class:list={["carousel-item", "h-100", { active: i === 0 }]}>
+            <img src={src} alt={`Psynex - imagen ${i + 1}`} />
+          </div>
+        ))}
+      </div>
+
+      <!-- Degradado sutil sobre las fotos, igual que tu overlay-premium -->
+      <div class="carousel-overlay"></div>
+
+      <!-- Punticos de navegación del carrusel -->
+      <div class="carousel-indicators login-dots">
+        {images.map((_, i) => (
+          <button
+            type="button"
+            data-bs-target="#carruselLogin"
+            data-bs-slide-to={i}
+            class:list={[{ active: i === 0 }]}
+            aria-current={i === 0 ? "true" : undefined}
+            aria-label={`Ir a la imagen ${i + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+
+    <!-- Botón para volver al inicio.
+         Usamos Font Awesome (fas fa-home), igual que en tu versión de C#
+         (<i class="fas fa-home"></i>), no un ícono de Bootstrap Icons. -->
+    <a href="/" class="login-home-btn" aria-label="Volver al inicio">
+      <i class="fas fa-home"></i>
+    </a>
+  </div>
+
+  <!-- MITAD DERECHA: FORMULARIO -->
+  <div class="login-form-side">
+    <div class="login-card">
+
+      <p class="login-kicker">Plataforma de Salud Mental</p>
+      <h1 class="login-title">Bienvenido a</h1>
+      <h1 class="login-brand">Psynex</h1>
+
+      <!-- Mensajes de error / éxito: ocultos por defecto (hidden),
+           se muestran quitando ese atributo desde JS cuando conectes
+           el login real. Equivalen a tus @if (!string.IsNullOrEmpty(...)) -->
+      <div id="loginError" class="login-alert login-alert-error" hidden></div>
+      <div id="loginSuccess" class="login-alert login-alert-success" hidden></div>
+
+      <form id="loginForm" class="login-form">
+
+        <div class="login-field">
+          <label for="email">Correo electrónico</label>
+          <input type="email" id="email" name="email" placeholder="Ingresa tu correo" required />
+        </div>
+
+        <div class="login-field login-field-password">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" required />
+
+          <!-- Ojito para mostrar/ocultar contraseña.
+               Empieza "hidden": en tu C# solo aparecía dentro de
+               @if (!string.IsNullOrWhiteSpace(password)); aquí lo
+               replicamos mostrándolo/ocultándolo desde el <script>
+               de abajo cada vez que el usuario escribe. -->
+          <button type="button" id="togglePassword" class="login-eye" aria-label="Mostrar contraseña" hidden>
+            <i class="bi bi-eye"></i>
+          </button>
+        </div>
+
+        <div class="login-forgot">
+          <a href="/recuperar">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <div class="login-remember">
+          <input type="checkbox" id="recordar" name="recordar" />
+          <label for="recordar">Recuérdame</label>
+        </div>
+
+        <button type="submit" id="loginSubmit" class="login-submit">
+          Iniciar sesión →
+        </button>
+      </form>
+
+      <p class="login-register">
+        ¿No tienes cuenta? <a href="/registro">Regístrate aquí</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------------------------------------------------------------------
+  // Mostrar / ocultar contraseña.
+  // Equivale a tu "private void TogglePassword() => mostrarPassword = !mostrarPassword;"
+  // pero aquí no hay estado de C#: solo cambiamos el atributo "type" del
+  // input directamente en el DOM con JS normal.
+  //
+  // Además, el botón del ojito solo se muestra si hay texto escrito
+  // (igual que tu @if (!string.IsNullOrWhiteSpace(password))): lo
+  // controlamos escuchando el evento "input" del campo de contraseña.
+  // ---------------------------------------------------------------------
+  const toggleBtn = document.getElementById("togglePassword");
+  const passwordInput = document.getElementById("password") as HTMLInputElement | null;
+
+  passwordInput?.addEventListener("input", () => {
+    if (!toggleBtn) return;
+    toggleBtn.hidden = passwordInput.value.trim().length === 0;
+  });
+
+  toggleBtn?.addEventListener("click", () => {
+    if (!passwordInput) return;
+    const estaOculta = passwordInput.type === "password";
+    passwordInput.type = estaOculta ? "text" : "password";
+    toggleBtn.innerHTML = estaOculta
+      ? '<i class="bi bi-eye-slash"></i>'
+      : '<i class="bi bi-eye"></i>';
+  });
+
+  // ---------------------------------------------------------------------
+  // TODO: conectar con tu servicio de autenticación real (el reemplazo
+  // en Deno de tu AuthService.LoginAsync). Por ahora solo evita que el
+  // formulario recargue la página al enviarlo.
+  // ---------------------------------------------------------------------
+    const form = document.getElementById("loginForm") as HTMLFormElement | null;
+  const submitBtn = document.getElementById("loginSubmit") as HTMLButtonElement | null;
+  const errorBox = document.getElementById("loginError") as HTMLElement | null;
+  const successBox = document.getElementById("loginSuccess") as HTMLElement | null;
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // Ocultamos mensajes anteriores antes de intentar de nuevo
+    if (errorBox) { errorBox.hidden = true; errorBox.textContent = ""; }
+    if (successBox) { successBox.hidden = true; }
+
+    const datos = {
+      email: (document.getElementById("email") as HTMLInputElement).value,
+      password: (document.getElementById("password") as HTMLInputElement).value,
+    };
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Ingresando...";
+    }
+
+    try {
+      const res = await fetch("http://localhost:8001/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // sin esto el navegador no guarda la cookie
+        body: JSON.stringify(datos),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (errorBox) {
+          errorBox.textContent = Array.isArray(data.error) ? data.error.join(", ") : data.error;
+          errorBox.hidden = false;
+        }
+        return;
+      }
+
+      if (successBox) {
+        successBox.textContent = "Sesión iniciada, redirigiendo...";
+        successBox.hidden = false;
+      }
+
+      // Por ahora mandamos siempre a "/". Cuando tengas vistas por rol
+      // (Paciente / Empresa), aquí va el switch según data.usuario.Rol.
+      window.location.href = "/";
+    } catch (err) {
+      if (errorBox) {
+        errorBox.textContent = "No se pudo conectar con el servidor";
+        errorBox.hidden = false;
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Iniciar sesión →";
+      }
+    }
+  });
+</script>

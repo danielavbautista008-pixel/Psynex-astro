@@ -12,6 +12,7 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/node": "^11.1.6",
     "@popperjs/core": "^2.11.8",
     "ag-grid-enterprise": "^36.2.0",
     "astro": "^7.3.3",

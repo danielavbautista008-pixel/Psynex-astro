@@ -1,0 +1,335 @@
+/* =========================================================================
+   login.css
+   Estilos exclusivos de la página de login.
+
+   Igual que en navbar.css: nada de colores fijos en hex para fondos o
+   textos importantes — todo usa las variables de colores-globales.css
+   (--bg, --surface, --primary, --text, --border, --on-primary,
+   --success-bg/fg, --danger-bg/fg) para que la tarjeta cambie sola con
+   el tema activo.
+   ========================================================================= */
+
+
+/* -------------------------------------------------------------------------
+   1. CONTENEDOR GENERAL (las 2 mitades de la pantalla)
+   ------------------------------------------------------------------------- */
+.login-page {
+  display: flex;
+  height: 100vh;
+  font-family: "Poppins", sans-serif;
+}
+
+
+/* -------------------------------------------------------------------------
+   2. MITAD IZQUIERDA: CARRUSEL
+   ------------------------------------------------------------------------- */
+.login-carousel {
+  width: 50%;
+  position: relative;
+  overflow: hidden; /* aquí SÍ es seguro usar overflow: hidden, porque
+                        este div no contiene el navbar ni nada "sticky/fixed" */
+  background: var(--surface);
+}
+
+/* Cada foto del carrusel ocupa toda la mitad izquierda */
+.login-carousel .carousel-item img {
+  width: 100%;
+  height: 100vh;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Degradado oscuro + color del tema por encima de las fotos, para que
+   el texto y los punticos se lean bien sin importar la foto de fondo.
+   color-mix() toma tu --primary (que puede ser cualquier hex del tema)
+   y lo mezcla con transparencia, sin necesidad de definir un --primary-rgb. */
+.carousel-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    rgba(0, 0, 0, 0.1),
+    color-mix(in srgb, var(--primary) 18%, transparent)
+  );
+  z-index: 2;
+  pointer-events: none; /* deja pasar los clics hacia el carrusel de abajo */
+}
+
+/* Indicadores de navegación (los <button data-bs-slide-to>).
+   Rediseñados como líneas delgadas horizontales (estilo "stories" de
+   Instagram) en vez de los puntos/barras anchas que trae Bootstrap
+   por defecto. Como también importas bootstrap.min.css, sus reglas
+   para .carousel-indicators pueden ganarle a las tuyas por
+   especificidad — por eso aquí repetimos el selector completo
+   ".login-dots.carousel-indicators button" (más específico que el
+   ".carousel-indicators [data-bs-target]" de Bootstrap) en vez de
+   depender de !important. */
+.login-dots.carousel-indicators {
+  bottom: 22px;
+  margin: 0; /* Bootstrap trae margin-inline por defecto, lo quitamos */
+}
+
+.login-dots.carousel-indicators button {
+  /* Línea delgada, no círculo: ancho fijo, muy poca altura */
+  width: 26px;
+  height: 3px;
+  border-radius: 2px; /* apenas redondeada en las puntas, no un óvalo */
+
+  margin: 0 4px;
+  padding: 0;
+  border: none;
+
+  background-color: rgba(255, 255, 255, 0.45);
+  opacity: 1; /* Bootstrap baja la opacidad de las inactivas; la manejamos nosotros */
+
+  transition: background-color 0.4s ease, transform 0.3s ease;
+}
+
+.login-dots.carousel-indicators button.active {
+  /* La línea activa se "llena" de color, sin agrandarse como antes */
+  background-color: var(--primary);
+}
+
+/* Botón redondo para volver al inicio, arriba a la izquierda */
+.login-home-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--primary);
+  color: var(--on-primary);
+  text-decoration: none;
+
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.login-home-btn:hover {
+  transform: translateY(-2px);
+}
+
+
+/* -------------------------------------------------------------------------
+   3. MITAD DERECHA: FORMULARIO
+   ------------------------------------------------------------------------- */
+.login-form-side {
+  width: 50%;
+  background: var(--bg);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+}
+
+/* La tarjeta con efecto vidrio (igual concepto que el navbar, pero
+   pensado para leerse bien encima de var(--bg) en vez de una foto). */
+.login-card {
+  width: 100%;
+
+  /* MÁS COMPACTA que el original: 500px -> 400px de ancho máximo,
+     y bastante menos padding (70px 55px -> 40px 36px) para que no
+     se vea "basta". */
+  max-width: 400px;
+  padding: 40px 36px;
+
+  background: color-mix(in srgb, var(--surface) 75%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  border: 1px solid color-mix(in srgb, var(--surface) 40%, transparent);
+  border-radius: 28px; /* antes 40px */
+
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.08);
+  transition: transform 0.4s ease;
+}
+
+.login-card:hover {
+  transform: translateY(-5px);
+}
+
+/* --- Encabezado de la tarjeta --- */
+.login-kicker {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--primary);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.login-title {
+  font-family: "Playfair Display", serif;
+  font-size: 28px; /* antes 42px */
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+.login-brand {
+  font-family: "Playfair Display", serif;
+  font-size: 40px; /* antes 62px */
+  font-weight: 300;
+  color: var(--primary);
+  margin-bottom: 28px; /* antes 45px */
+  line-height: 1;
+  text-align: center;
+}
+
+/* --- Mensajes de error / éxito --- */
+/* Usan los colores de "estado" fijos que ya definiste en la sección 1
+   de colores-globales.css (--success-bg/fg, --danger-bg/fg), así que
+   no dependen del tema y siempre se ven igual (rojo = error, verde = éxito). */
+.login-alert {
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  border-left: 3px solid;
+}
+
+.login-alert-error {
+  background: var(--danger-bg);
+  color: var(--danger-fg);
+  border-left-color: var(--danger-fg);
+}
+
+.login-alert-success {
+  background: var(--success-bg);
+  color: var(--success-fg);
+  border-left-color: var(--success-fg);
+}
+
+/* --- Campos del formulario --- */
+.login-field {
+  margin-bottom: 18px; /* antes 25px */
+  position: relative;
+}
+
+.login-field label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-muted); /* variable derivada, ya calculada en tu tema */
+  text-transform: uppercase;
+}
+
+.login-field input {
+  width: 100%;
+  border: none;
+  border-bottom: 1.5px solid var(--border);
+  padding: 8px 30px 8px 0;
+  font-size: 15px;
+  background: transparent;
+  outline: none;
+  color: var(--text);
+}
+
+/* El botón del ojito va dentro del campo de contraseña, posicionado
+   sobre la línea de abajo del input. */
+.login-field-password .login-eye {
+  position: absolute;
+  right: 0;
+  bottom: 8px;
+
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--primary);
+}
+
+.login-forgot {
+  text-align: right;
+  margin-bottom: 18px; /* antes 25px */
+}
+
+.login-forgot a {
+  font-size: 12px;
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.login-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 22px; /* antes 30px */
+}
+
+.login-remember label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* --- Botón de enviar --- */
+.login-submit {
+  width: 100%;
+  padding: 13px; /* antes 16px */
+  background: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  border-radius: 50px;
+  font-size: 15px; /* antes 17px */
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.login-submit:hover {
+  background: var(--primary-hover);
+}
+
+.login-register {
+  text-align: center;
+  margin-top: 20px; /* antes 25px */
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.login-register a {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+
+/* -------------------------------------------------------------------------
+   4. RESPONSIVE (pantallas pequeñas)
+   ------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  /* En móvil, las 2 mitades se apilan una encima de la otra en vez
+     de quedar lado a lado. */
+  .login-page {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .login-carousel,
+  .login-form-side {
+    width: 100%;
+  }
+
+  .login-carousel {
+    height: 260px;
+  }
+
+  .login-carousel .carousel-item img {
+    height: 260px;
+  }
+
+  .login-form-side {
+    padding: 24px;
+  }
+}

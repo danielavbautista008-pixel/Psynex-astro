@@ -1,0 +1,199 @@
+
+/* -------------------------------------------------------------------------
+   1. CONTENEDOR — panel lateral flotante con efecto vidrio (glassmorphism)
+   ------------------------------------------------------------------------- */
+.sidebar-vidrio {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  bottom: 16px;
+  width: 252px;
+
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+
+  border-radius: 22px;
+
+  /* Fondo semitransparente apoyado en --surface (no un blanco fijo),
+     igual que .sticky-nav en navbar.css. Solo se nota bien cuando hay
+     algo detrás para difuminar; sobre un fondo liso casi no se percibe,
+     y eso es normal. */
+  background: color-mix(in srgb, var(--surface) 62%, transparent);
+
+  /* Difumina lo que hay detrás del panel (el verdadero efecto vidrio). */
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px); /* soporte Safari */
+
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.07);
+
+  padding: 18px 12px;
+  overflow-y: auto;
+
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+
+/* -------------------------------------------------------------------------
+   2. LOGO + NOMBRE — mismo tratamiento tipográfico que Navbar.astro
+   ------------------------------------------------------------------------- */
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 6px 8px 18px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+
+  text-decoration: none;
+}
+
+.marca img {
+  width: 34px;
+  height: 34px;
+  object-fit: cover;
+  border-radius: 50%;
+
+  background: var(--primary);
+  padding: 3px;
+  border: 1.5px solid var(--primary);
+}
+
+.marca span {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--text);
+}
+
+.marca em {
+  font-style: normal;
+  color: var(--primary);
+}
+
+
+/* -------------------------------------------------------------------------
+   3. ENLACES DEL MENÚ — pastilla activa + transición suave al pasar el mouse
+   ------------------------------------------------------------------------- */
+nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 9px 12px;
+  border-radius: 12px;
+
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.item i {
+  font-size: 1rem;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.item:hover {
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--text);
+  transform: translateX(2px);
+}
+
+.item.activo {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+
+/* -------------------------------------------------------------------------
+   4. SALIR — enlace secundario, discreto, al fondo del panel
+   ------------------------------------------------------------------------- */
+.salir {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 9px 12px;
+  margin-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 12.5px;
+
+  transition: color 0.2s ease;
+}
+
+.salir:hover {
+  color: var(--primary);
+}
+
+
+/* -------------------------------------------------------------------------
+   5. RESPONSIVE — pasa a barra horizontal compacta en pantallas angostas,
+      mismo criterio que navbar.css: prioriza que quepa, no la densidad
+      de texto.
+   ------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .sidebar-vidrio {
+    position: static;
+    width: auto;
+    margin: 10px;
+    border-radius: 18px;
+
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 6px 10px;
+  }
+
+  .marca {
+    border-bottom: none;
+    padding: 4px 8px;
+    margin-bottom: 0;
+  }
+
+  nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex: none;
+  }
+
+  .item span {
+    display: none;
+  }
+
+  .item {
+    padding: 8px;
+  }
+
+  .item:hover {
+    transform: none;
+  }
+
+  .salir {
+    margin-top: 0;
+    border-top: none;
+    padding: 8px;
+  }
+
+  .salir span {
+    display: none;
+  }
+}

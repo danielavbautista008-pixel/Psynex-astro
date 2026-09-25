@@ -83,7 +83,7 @@
 }
 
 .nav-logo-text {
-  font-family: "Gravitas One", serif;
+  font-family:"Fraunces", Georgia, serif;
   font-size: 15px;
   color: var(--text); /* se adapta al tema activo */
   letter-spacing: 0.5px;
