@@ -1,0 +1,375 @@
+---
+export interface Props {
+  logoDefault?: string;
+  nombreDefault?: string;
+}
+
+const {
+  logoDefault = "/Imagenes/logo.png",
+  nombreDefault = "PSYNEX", // nombre de la base de datos de la empresa
+} = Astro.props;
+
+import MenuE from "./menuE.astro";
+import "./buscarPs.css";
+---
+
+<div class="landing-container">
+  <MenuE />
+
+  <main class="Bienvenida-Em">
+    <!-- Encabezado unificado con la página de inicio -->
+    <header class="dashboard-header">
+      <h1>Buscar Psicólogos</h1>
+      <p>Encuentra profesionales certificados para tu organización.</p>
+    </header>
+
+    <!-- Sección de Búsqueda y Filtros -->
+    <section class="search-filter-section">
+      <div class="main-search-bar">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          id="input-busqueda"
+          placeholder="Buscar por nombre o especialidad..."
+        />
+      </div>
+
+      <div class="filters-container">
+        <div class="filters-row">
+          <select class="filter-dropdown" id="filter-especialidad">
+            <option value="">Especialidad</option>
+          </select>
+          <select class="filter-dropdown" id="filter-modalidad">
+            <option value="">Modalidad</option>
+          </select>
+          <select class="filter-dropdown" id="filter-precio">
+            <option value="">Precio</option>
+          </select>
+          <select class="filter-dropdown" id="filter-sector">
+            <option value="">Sector</option>
+          </select>
+        </div>
+        <button id="btn-limpiar-filtros" class="clear-filters-link">
+          <i class="bi bi-trash3"></i> Limpiar filtros
+        </button>
+      </div>
+    </section>
+
+    <!-- Grid de Tarjetas de Perfiles -->
+    <!-- <section class="profile-grid" id="profile-grid"> -->
+    <!-- <p style="grid-column: 1 / -1; text-align: center; color: var(--text, #3d3028);"> -->
+    <!-- Cargando psicólogos registrados... -->
+    <!-- </p> -->
+    <!-- </section> -->
+
+    <!-- Paginación con estilo unificado  -->
+    <!-- <nav class="pagination-wrapper" id="pagination-wrapper" style="display: none;"> -->
+    <!-- Paginación dinámica por JS -->
+    <!-- </nav> -->
+
+    <!-- Grid de Tarjetas de Perfiles -->
+    <section class="profile-grid" id="profile-grid">
+      <!-- Ejemplo de Tarjeta Dinámica -->
+      <article class="profile-card">
+        <div class="verified-badge">
+          <i class="bi bi-check-lg"></i> Verificado
+        </div>
+
+        <div class="avatar-holder">
+          <img
+            id="nav-logo-img"
+            src={logoDefault}
+            alt="Nombre de Psicólogo"
+            class="profile-photo"
+          />
+        </div>
+
+        <h2>Dra. Ana María Gómez</h2>
+
+        <!-- Especialidades con tamaño de texto reducido -->
+        <p class="profile-specialties">
+          Psicología Clínica • Terapia Cognitivo Conductual
+        </p>
+
+        <div class="profile-meta">
+          <span class="Subtitulo"
+            ><i class="bi bi-briefcase"></i> 8 años de experiencia</span
+          >
+          <!-- Modalidad sola en su propia línea -->
+          <span class="Subtitulo"> Virtual / Presencial</span>
+        </div>
+
+        <p class="price">Desde $120.000 / sesión</p>
+
+        <div class="card-actions">
+          <button class="view-profile-btn">Ver perfil</button>
+          <button class="action-icon-btn" title="Enviar mensaje">
+            <i class="bi bi-chat-left"></i>
+          </button>
+          <button class="action-icon-btn" title="Guardar favorito">
+            <i class="bi bi-heart"></i>
+          </button>
+        </div>
+      </article>
+
+      <!-- Ejemplo de Tarjeta Dinámica -->
+      <article class="profile-card">
+        <div class="verified-badge">
+          <i class="bi bi-check-lg"></i> Verificado
+        </div>
+
+        <div class="avatar-holder">
+          <img
+            id="nav-logo-img"
+            src={logoDefault}
+            alt="Nombre de Psicólogo"
+            class="profile-photo"
+          />
+        </div>
+
+        <h2>Dra. Ana María Gómez</h2>
+
+        <!-- Especialidades con tamaño de texto reducido -->
+        <p class="profile-specialties">
+          Psicología Clínica • Terapia Cognitivo Conductual
+        </p>
+
+        <div class="profile-meta">
+          <span class="Subtitulo"
+            ><i class="bi bi-briefcase"></i> 8 años de experiencia</span
+          >
+          <!-- Modalidad sola en su propia línea -->
+          <span class="Subtitulo"> Virtual / Presencial</span>
+        </div>
+
+        <p class="price">Desde $120.000 / sesión</p>
+
+        <div class="card-actions">
+          <button class="view-profile-btn">Ver perfil</button>
+          <button class="action-icon-btn" title="Enviar mensaje">
+            <i class="bi bi-chat-left"></i>
+          </button>
+          <button class="action-icon-btn" title="Guardar favorito">
+            <i class="bi bi-heart"></i>
+          </button>
+        </div>
+      </article>
+
+      <!-- Ejemplo de Tarjeta Dinámica -->
+      <article class="profile-card">
+        <div class="verified-badge">
+          <i class="bi bi-check-lg"></i> Verificado
+        </div>
+
+        <div class="avatar-holder">
+          <img
+            id="nav-logo-img"
+            src={logoDefault}
+            alt="Nombre de Psicólogo"
+            class="profile-photo"
+          />
+        </div>
+
+        <h2>Dra. Ana María Gómez</h2>
+
+        <!-- Especialidades con tamaño de texto reducido -->
+        <p class="profile-specialties">
+          Psicología Clínica • Terapia Cognitivo Conductual
+        </p>
+
+        <div class="profile-meta">
+          <span class="Subtitulo"
+            ><i class="bi bi-briefcase"></i> 8 años de experiencia</span
+          >
+          <!-- Modalidad sola en su propia línea -->
+          <span class="Subtitulo"> Virtual / Presencial</span>
+        </div>
+
+        <p class="price">Desde $120.000 / sesión</p>
+
+        <div class="card-actions">
+          <button class="view-profile-btn">Ver perfil</button>
+          <button class="action-icon-btn" title="Enviar mensaje">
+            <i class="bi bi-chat-left"></i>
+          </button>
+          <button class="action-icon-btn" title="Guardar favorito">
+            <i class="bi bi-heart"></i>
+          </button>
+        </div>
+      </article>
+    </section>
+
+    <!-- Paginación con estilo unificado -->
+    <nav class="pagination-wrapper" id="pagination-wrapper">
+      <button class="page-arrow" disabled>
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <button class="page-num active">1</button>
+      <button class="page-num">2</button>
+      <button class="page-num">3</button>
+      <button class="page-arrow">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </nav>
+  </main>
+</div>
+
+<!-- <script>
+  const API_URL = "http://localhost:8000/api";
+
+  interface Psicologo {
+    id: string | number;
+    nombreCompleto: string;
+    foto?: string;
+    especialidades?: string[];
+    precioPorHora: number;
+  }
+
+  let listaPsicologos: Psicologo[] = [];
+  let listaFiltrada: Psicologo[] = [];
+  let paginaActual = 1;
+  const tarjetasPorPagina = 4;
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const gridEl = document.getElementById("profile-grid");
+    const inputBusqueda = document.getElementById("input-busqueda") as HTMLInputElement;
+    const btnLimpiar = document.getElementById("btn-limpiar-filtros");
+
+    try {
+      const res = await fetch(`${API_URL}/psicologos/nombres`);
+      if (!res.ok) throw new Error("Error al obtener la lista de psicólogos");
+
+      listaPsicologos = await res.json();
+      listaFiltrada = [...listaPsicologos];
+
+      renderizarVista();
+    } catch (error) {
+      console.error(error);
+      if (gridEl) {
+        gridEl.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--text, #4b3425);">
+          No se pudieron cargar los psicólogos. Verifique la conexión con el servidor.
+        </p>`;
+      }
+    }
+
+    if (inputBusqueda) {
+      inputBusqueda.addEventListener("input", (e) => {
+        const query = (e.target as HTMLInputElement).value.toLowerCase();
+        listaFiltrada = listaPsicologos.filter(
+          (p) =>
+            p.nombreCompleto.toLowerCase().includes(query) ||
+            (p.especialidades && p.especialidades.some((esp) => esp.toLowerCase().includes(query)))
+        );
+        paginaActual = 1;
+        renderizarVista();
+      });
+    }
+
+    if (btnLimpiar) {
+      btnLimpiar.addEventListener("click", () => {
+        if (inputBusqueda) inputBusqueda.value = "";
+        listaFiltrada = [...listaPsicologos];
+        paginaActual = 1;
+        renderizarVista();
+      });
+    }
+  });
+
+  function renderizarVista() {
+    const gridEl = document.getElementById("profile-grid");
+    const paginationEl = document.getElementById("pagination-wrapper");
+
+    if (!gridEl || !paginationEl) return;
+
+    if (listaFiltrada.length === 0) {
+      gridEl.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--text, #3d3028);">
+        No se encontraron psicólogos que coincidan con la búsqueda.
+      </p>`;
+      paginationEl.style.display = "none";
+      return;
+    }
+
+    const totalPaginas = Math.ceil(listaFiltrada.length / tarjetasPorPagina);
+    const inicio = (paginaActual - 1) * tarjetasPorPagina;
+    const fin = inicio + tarjetasPorPagina;
+    const psicologosPagina = listaFiltrada.slice(inicio, fin);
+
+    gridEl.innerHTML = psicologosPagina
+      .map((p) => {
+        const fotoUrl =
+          !p.foto || p.foto === "sin-foto.jpg" ? "https://via.placeholder.com/90" : p.foto;
+        const especialidadesHtml =
+          p.especialidades && p.especialidades.length > 0
+            ? p.especialidades.join("<br>")
+            : "Sin especialidades registradas";
+        const precioFormateado = (p.precioPorHora || 0).toLocaleString("es-CO");
+
+        return `
+        <article class="profile-card">
+          <div class="verified-badge"><i class="bi bi-check-lg"></i> Verificado</div>
+          <div class="avatar-holder">
+            <img src="${fotoUrl}" alt="${p.nombreCompleto}" class="profile-photo">
+          </div>
+          <h2>${p.nombreCompleto}</h2>
+          <p class="profile-details">${especialidadesHtml}</p>
+          <p class="price">Desde $${precioFormateado} / sesión</p>
+          <div class="card-actions">
+            <button class="view-profile-btn" data-id="${p.id}">Ver perfil</button>
+            <button class="action-icon-btn" title="Enviar mensaje"><i class="bi bi-chat-left"></i></button>
+            <button class="action-icon-btn" title="Guardar favorito"><i class="bi bi-heart"></i></button>
+          </div>
+        </article>
+      `;
+      })
+      .join("");
+
+    if (totalPaginas > 1) {
+      paginationEl.style.display = "flex";
+      let botonesPag = `
+        <button class="page-arrow" id="btn-prev" ${paginaActual === 1 ? "disabled" : ""}>
+          <i class="bi bi-chevron-left"></i>
+        </button>
+      `;
+
+      for (let i = 1; i <= totalPaginas; i++) {
+        botonesPag += `
+          <button class="page-num ${i === paginaActual ? "active" : ""}" data-page="${i}">
+            ${i}
+          </button>
+        `;
+      }
+
+      botonesPag += `
+        <button class="page-arrow" id="btn-next" ${paginaActual === totalPaginas ? "disabled" : ""}>
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      `;
+
+      paginationEl.innerHTML = botonesPag;
+
+      document.getElementById("btn-prev")?.addEventListener("click", () => {
+        if (paginaActual > 1) {
+          paginaActual--;
+          renderizarVista();
+        }
+      });
+
+      document.getElementById("btn-next")?.addEventListener("click", () => {
+        if (paginaActual < totalPaginas) {
+          paginaActual++;
+          renderizarVista();
+        }
+      });
+
+      document.querySelectorAll(".page-num").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const target = e.currentTarget as HTMLElement;
+          paginaActual = Number(target.getAttribute("data-page"));
+          renderizarVista();
+        });
+      });
+    } else {
+      paginationEl.style.display = "none";
+    }
+  }
+</script> -->
