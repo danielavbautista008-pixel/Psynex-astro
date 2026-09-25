@@ -1,0 +1,99 @@
+---
+export interface Props {
+  logoDefault?: string;
+  nombreDefault?: string;
+}
+
+const {
+  logoDefault = "/Imagenes/logo.png",
+  nombreDefault = "PSYNEX", // nombre de la base de datos de la empresa
+} = Astro.props;
+
+
+import MenuE from "./menuE.astro";
+import "./favoritos.css";
+---
+<div class="landing-container">
+  <MenuE />
+
+  <main class="Bienvenida-Em">
+    <!-- Encabezado unificado con la página de inicio -->
+    <header class="dashboard-header">
+      <h1>Mis Favoritos</h1>
+      <!-- <p>Encuentra profesionales certificados para tu organización.</p> -->
+    </header>
+
+    <!-- Grid de Tarjetas de Perfiles -->
+    <!-- <section class="profile-grid" id="profile-grid"> -->
+    <!-- <p style="grid-column: 1 / -1; text-align: center; color: var(--text, #3d3028);"> -->
+    <!-- Cargando psicólogos registrados... -->
+    <!-- </p> -->
+    <!-- </section> -->
+
+    <!-- Paginación con estilo unificado  -->
+    <!-- <nav class="pagination-wrapper" id="pagination-wrapper" style="display: none;"> -->
+    <!-- Paginación dinámica por JS -->
+    <!-- </nav> -->
+
+    <!-- Grid de Tarjetas de Perfiles -->
+    <section class="profile-grid" id="profile-grid">
+      <!-- Ejemplo de Tarjeta Dinámica -->
+      <article class="profile-card">
+        <div class="verified-badge">
+          <i class="bi bi-check-lg"></i> Verificado
+        </div>
+
+        <div class="avatar-holder">
+          <img
+            id="nav-logo-img"
+            src={logoDefault}
+            alt="Nombre de Psicólogo"
+            class="profile-photo"
+          />
+        </div>
+
+        <h2>Dra. Ana María Gómez</h2>
+
+        <!-- Especialidades con tamaño de texto reducido -->
+        <p class="profile-specialties">
+          Psicología Clínica • Terapia Cognitivo Conductual
+        </p>
+
+        <div class="profile-meta">
+          <span class="Subtitulo"
+            ><i class="bi bi-briefcase"></i> 8 años de experiencia</span
+          >
+          <!-- Modalidad sola en su propia línea -->
+          <span class="Subtitulo"> Virtual / Presencial</span>
+        </div>
+
+        <p class="price">Desde $120.000 / sesión</p>
+
+        <div class="card-actions">
+          <button class="view-profile-btn">Ver perfil</button>
+          <button class="action-icon-btn" title="Enviar mensaje">
+            <i class="bi bi-chat-left"></i>
+          </button>
+          <button class="action-icon-btn" title="Guardar favorito">
+            <i class="bi bi-heart"></i>
+          </button>
+        </div>
+      </article>
+
+      
+    </section>
+
+    <!-- Paginación con estilo unificado -->
+    <nav class="pagination-wrapper" id="pagination-wrapper">
+      <button class="page-arrow" disabled>
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <button class="page-num active">1</button>
+      <button class="page-num">2</button>
+      <button class="page-num">3</button>
+      <button class="page-arrow">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </nav>
+  </main>
+</div>
