@@ -1,0 +1,205 @@
+---
+import MenuE  from "./menuE.astro";
+import "./inicio.css"
+
+---
+
+<div class="landing-container">
+    <MenuE/>
+<main class="Bienvenida-Em">
+    <!-- Encabezado reactivo dinámico -->
+    <header class="dashboard-header">
+      <h1 id="titulo-bienvenida">¡Bienvenida! Cargando...</h1>
+      <p>Aquí tienes un resumen de tu actividad.</p>
+    </header>
+
+    <!-- Grid de Métricas -->
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon-circle">
+          <i class="bi bi-briefcase-fill"></i>
+        </div>
+        <div class="ofertas">
+          <span class="metric-number" id="cant-ofertas">--</span>
+          <span class="metric-label">Ofertas activas</span>
+          <a href="/Empresa/Gestion/de/ofertas" class="metric-link">Ver ofertas &rarr;</a>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon-circle">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="ofertas">
+          <span class="metric-number" id="cant-postulaciones">48</span>
+          <span class="metric-label">Postulaciones recibidas</span>
+          <a href="/Empresa/Postulaciones" class="metric-link">Ver postulaciones &rarr;</a>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon-circle">
+          <i class="bi bi-star-fill"></i>
+        </div>
+        <div class="ofertas">
+          <span class="metric-number" id="cant-favoritos">7</span>
+          <span class="metric-label">Psicólogos favoritos</span>
+          <a href="/Empresa/Favoritos" class="metric-link">Ver favoritos &rarr;</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Grid de Acciones Rápidas -->
+    <section class="actions-grid">
+      <div class="action-card">
+        <div class="action-icon-bg">
+          <i class="bi bi-search"></i>
+        </div>
+        <div class="action-details">
+          <h3>Buscar Psicólogos</h3>
+          <p>Encuentra profesionales verificados para tu empresa.</p>
+        </div>
+        <a href="/Empresa/Buscar_Psicologo" class="action-btn-circle">
+          <i class="bi bi-arrow-right-short"></i>
+        </a>
+      </div>
+
+      <div class="action-card">
+        <div class="action-icon-bg">
+          <i class="bi bi-plus-lg"></i>
+        </div>
+        <div class="action-details">
+          <h3>Publicar Oferta</h3>
+          <p>Publica vacantes y recibe postulaciones.</p>
+        </div>
+        <a href="/Empresa/Gestion/de/ofertas" class="action-btn-circle">
+          <i class="bi bi-arrow-right-short"></i>
+        </a>
+      </div>
+    </section>
+
+    <!-- Tabla de Postulaciones Recientes -->
+    <section class="table-card-container">
+      <h2>Últimas postulaciones recibidas</h2>
+
+      <div class="responsive-table-holder">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Psicólogo</th>
+              <th>Oferta</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="table-user">
+                  <img src="https://via.placeholder.com/40" alt="Ana Martínez" />
+                  <span>Ana Martínez</span>
+                </div>
+              </td>
+              <td>Psicólogo Clínico</td>
+              <td>10/05/2025</td>
+              <td>
+                <button class="status-badge pending" data-estado="pending">Pendiente</button>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="table-user">
+                  <img src="https://via.placeholder.com/40" alt="Juan Gómez" />
+                  <span>Juan Gómez</span>
+                </div>
+              </td>
+              <td>Psicólogo Organizacional</td>
+              <td>09/05/2025</td>
+              <td>
+                <button class="status-badge reviewed" data-estado="reviewed">Revisado</button>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="table-user">
+                  <img src="https://via.placeholder.com/40" alt="María López" />
+                  <span>María López</span>
+                </div>
+              </td>
+              <td>Psicólogo Educativo</td>
+              <td>08/05/2025</td>
+              <td>
+                <button class="status-badge pending" data-estado="pending">Pendiente</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-action-footer">
+        <a href="/Empresa/Postulaciones" class="view-more-btn">Ver todas las postulaciones &rarr;</a>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Script para consumo de Backend Deno.js y manejo del DOM -->
+<!-- <script>
+  // Cambia según el puerto donde esté corriendo tu backend Deno
+  const API_URL = "http://localhost:8000/api";
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const titulo = document.getElementById("titulo-bienvenida");
+    const cantOfertasEl = document.getElementById("cant-ofertas");
+    
+    // 1. Obtener usuarioId de sessionStorage
+    const usuarioId = sessionStorage.getItem("usuarioId");
+
+    if (!usuarioId) {
+      if (titulo) titulo.textContent = "No se detectó una sesión activa.";
+      return;
+    }
+
+    try {
+      // 2. Traer perfil de la empresa desde el servidor Deno
+      const resEmpresa = await fetch(`${API_URL}/empresa/usuario/${usuarioId}`);
+      if (!resEmpresa.ok) throw new Error("No se pudo obtener el perfil");
+      
+      const empresa = await resEmpresa.json();
+
+      if (empresa && empresa.nombreEmpresa) {
+        if (titulo) titulo.textContent = `¡Bienvenida, ${empresa.nombreEmpresa}!`;
+      }
+
+      // 3. Traer conteo de ofertas activas mediante el PerfileId recuperado
+      const perfilId = empresa.perfileId || empresa.id;
+      if (perfilId) {
+        const resOfertas = await fetch(`${API_URL}/ofertas/empresa/${perfilId}/contar`);
+        if (resOfertas.ok) {
+          const data = await resOfertas.json();
+          if (cantOfertasEl) cantOfertasEl.textContent = data.cantidad ?? data;
+        }
+      }
+    } catch (err) {
+      console.error("Error cargando datos del dashboard:", err);
+      if (titulo) titulo.textContent = "Error al cargar la información de la empresa.";
+      if (cantOfertasEl) cantOfertasEl.textContent = "0";
+    }
+
+    // Evento interactivo para alternar el estado del botón en la tabla
+    const botonesEstado = document.querySelectorAll(".status-badge");
+    botonesEstado.forEach((boton) => {
+      boton.addEventListener("click", () => {
+        if (boton.classList.contains("pending")) {
+          boton.classList.remove("pending");
+          boton.classList.add("reviewed");
+          boton.textContent = "Revisado";
+        } else {
+          boton.classList.remove("reviewed");
+          boton.classList.add("pending");
+          boton.textContent = "Pendiente";
+        }
+      });
+    });
+  });
+</script> -->
