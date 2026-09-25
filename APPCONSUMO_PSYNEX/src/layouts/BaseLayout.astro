@@ -3,6 +3,7 @@
 // Se importa UNA vez aquí; todas las páginas que usen este layout heredan colores, iconos y el selector de temas.
 import "../styles/colores-globales.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import "bootstrap/dist/css/bootstrap.min.css";
 import ThemePicker from "../components/ThemePicker.astro";
 
 interface Props {
@@ -17,6 +18,9 @@ const { title = "Psynex" } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="generator" content={Astro.generator} />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -34,6 +38,9 @@ const { title = "Psynex" } = Astro.props;
         if (t) document.documentElement.dataset.theme = t;
       } catch {}
     </script>
+      <script>
+    import "bootstrap/dist/js/bootstrap.bundle.min.js";
+  </script>
   </head>
   <body>
     <slot />

@@ -1,0 +1,67 @@
+---
+/**
+ * MenuAdmin.astro
+ * -------------------------------------------------------------------------
+ * Menú lateral del panel de administrador, hermano de Navbar.astro.
+ * Mismo patrón: props configurables, colores desde colores-globales.css,
+ * CSS en un archivo aparte (menuadmin.css).
+ *
+ * Uso desde cualquier vista de admin:
+ * import MenuAdmin from "../components/Menu/MenuAdmin.astro";
+ * luego <MenuAdmin /> en el HTML.
+ */
+
+export interface Props {
+  logoSrc?: string;
+  siteName?: string;
+  salirHref?: string;
+  salirLabel?: string;
+  items?: { label: string; href: string; icono: string }[];
+}
+
+const {
+  logoSrc = "/Imagenes/logo.png",
+  siteName = "PSYNEX",
+  salirHref = "/",
+  salirLabel = "Volver al sitio",
+  items = [
+    { label: "Inicio", href: "/admin", icono: "bi-house" },
+    { label: "Estadísticas", href: "/admin/estadisticas", icono: "bi-bar-chart" },
+    { label: "Gestionar cuestionarios", href: "/admin/cuestionarios", icono: "bi-clipboard-check" },
+    { label: "Historial de citas", href: "/admin/citas", icono: "bi-calendar-week" },
+    { label: "Usuarios con roles", href: "/admin/usuarios", icono: "bi-people" },
+    { label: "Finanzas", href: "/admin/finanzas", icono: "bi-cash-coin" },
+    { label: "Verificar psicólogos", href: "/admin/verificar-psicologos", icono: "bi-patch-check" },
+    { label: "Verificar empresas", href: "/admin/verificar-empresas", icono: "bi-building-check" },
+    { label: "Publicar planes", href: "/admin/planes", icono: "bi-box-seam" },
+    { label: "Métodos de pago", href: "/admin/pagos", icono: "bi-credit-card" },
+    { label: "Blog", href: "/admin/blog", icono: "bi-journal-text" },
+  ],
+} = Astro.props;
+
+import "./menuadmin.css";
+
+// Marca como activo el enlace de la vista actual, quitando la barra final
+// para que "/admin/" y "/admin" cuenten como la misma ruta.
+const ruta = Astro.url.pathname.replace(/\/$/, "") || "/admin";
+---
+<aside class="sidebar-vidrio">
+  <a href="/admin" class="marca">
+    <img src={logoSrc} alt={siteName} />
+    <span>{siteName} <em> </em></span>
+  </a>
+
+  <nav>
+    {items.map((item) => (
+      <a href={item.href} class:list={["item", { activo: ruta === item.href }]}>
+        <i class={`bi ${item.icono}`}></i>
+        <span>{item.label}</span>
+      </a>
+    ))}
+  </nav>
+
+  <a href={salirHref} class="salir">
+    <i class="bi bi-box-arrow-left"></i>
+    <span>{salirLabel}</span>
+  </a>
+</aside>
