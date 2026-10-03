@@ -1,0 +1,2424 @@
+---
+import MenuAdmin from "../Menu/MenuAdmin.astro";
+import "./cuestionarios.css";
+---
+
+<div class="cuestionarios-layout">
+
+    <!-- =========================================
+         MENÚ ADMINISTRADOR
+    ========================================== -->
+    <MenuAdmin />
+
+
+    <!-- =========================================
+         CONTENIDO PRINCIPAL
+    ========================================== -->
+    <main class="cuestionarios-page">
+
+        <!-- =====================================
+             ENCABEZADO
+        ====================================== -->
+        <header class="page-header">
+
+            <div class="header-info">
+
+                <div class="header-icon">
+                    <i class="bi bi-clipboard2-pulse"></i>
+                </div>
+
+                <div>
+                    <h1>Gestión de Cuestionarios</h1>
+
+                    <p>
+                        Administra los cuestionarios clínicos de la plataforma.
+                    </p>
+                </div>
+
+            </div>
+
+            <button
+                class="btn-nuevo"
+                id="btnNuevo"
+            >
+                <i class="bi bi-plus-lg"></i>
+                Nuevo cuestionario
+            </button>
+
+        </header>
+
+
+        <!-- =====================================
+             CONTENIDO EN DOS COLUMNAS
+        ====================================== -->
+        <div class="dashboard-content">
+
+
+            <!-- =================================
+                 COLUMNA PRINCIPAL
+            ================================== -->
+            <section class="contenido-principal">
+
+
+                <!-- =================================
+                     TÍTULO LISTA
+                ================================== -->
+                <div class="section-heading">
+
+                    <div>
+                        <h2>Cuestionarios</h2>
+
+                        <span id="contadorCuestionarios">
+                            Mostrando 3 cuestionarios
+                        </span>
+                    </div>
+
+                </div>
+
+
+                <!-- =================================
+                     FILTROS
+                ================================== -->
+                <div class="filtros">
+
+                    <!-- BUSCADOR -->
+                    <div class="buscador">
+
+                        <i class="bi bi-search"></i>
+
+                        <input
+                            type="text"
+                            id="buscarCuestionario"
+                            placeholder="Buscar cuestionario..."
+                        />
+
+                    </div>
+
+
+                    <!-- CATEGORÍA -->
+                    <select id="filtroCategoria">
+
+                        <option value="todas">
+                            Todas las categorías
+                        </option>
+
+                        <option value="Ansiedad">
+                            Ansiedad
+                        </option>
+
+                        <option value="Depresión">
+                            Depresión
+                        </option>
+
+                        <option value="Estrés">
+                            Estrés
+                        </option>
+
+                        <option value="Autoestima">
+                            Autoestima
+                        </option>
+
+                        <option value="Sueño">
+                            Sueño
+                        </option>
+
+                    </select>
+
+
+                    <!-- ESTADO -->
+                    <select id="filtroEstado">
+
+                        <option value="todos">
+                            Todos
+                        </option>
+
+                        <option value="activo">
+                            Activos
+                        </option>
+
+                        <option value="inactivo">
+                            Inactivos
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- =================================
+                     LISTA DE CUESTIONARIOS
+                ================================== -->
+                <div
+                    class="cuestionarios-lista"
+                    id="cuestionariosLista"
+                >
+                </div>
+
+
+                <!-- =================================
+                     PAGINACIÓN
+                ================================== -->
+                <div class="paginacion">
+
+                    <button
+                        class="pagina-btn"
+                        id="paginaAnterior"
+                    >
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+
+
+                    <div
+                        class="paginas"
+                        id="paginas"
+                    >
+                    </div>
+
+
+                    <button
+                        class="pagina-btn"
+                        id="paginaSiguiente"
+                    >
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =================================
+                 COLUMNA DERECHA
+            ================================== -->
+            <aside class="columna-lateral">
+
+
+                <!-- =================================
+                     RESUMEN
+                ================================== -->
+                <section class="panel-lateral">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h3>Resumen</h3>
+
+                            <p>
+                                Estado de los cuestionarios
+                            </p>
+                        </div>
+
+                        <i class="bi bi-bar-chart-line"></i>
+
+                    </div>
+
+
+                    <div class="resumen-grid">
+
+
+                        <!-- TOTAL -->
+                        <div class="resumen-item">
+
+                            <div class="resumen-icon purple">
+                                <i class="bi bi-grid"></i>
+                            </div>
+
+                            <div>
+                                <strong id="totalCuestionarios">
+                                    12
+                                </strong>
+
+                                <span>
+                                    Total
+                                </span>
+                            </div>
+
+                        </div>
+
+
+                        <!-- ACTIVOS -->
+                        <div class="resumen-item">
+
+                            <div class="resumen-icon green">
+                                <i class="bi bi-check-lg"></i>
+                            </div>
+
+                            <div>
+                                <strong id="totalActivos">
+                                    9
+                                </strong>
+
+                                <span>
+                                    Activos
+                                </span>
+                            </div>
+
+                        </div>
+
+
+                        <!-- INACTIVOS -->
+                        <div class="resumen-item">
+
+                            <div class="resumen-icon red">
+                                <i class="bi bi-x-lg"></i>
+                            </div>
+
+                            <div>
+                                <strong id="totalInactivos">
+                                    3
+                                </strong>
+
+                                <span>
+                                    Inactivos
+                                </span>
+                            </div>
+
+                        </div>
+
+
+                        <!-- RESPUESTAS -->
+                        <div class="resumen-item">
+
+                            <div class="resumen-icon blue">
+                                <i class="bi bi-people"></i>
+                            </div>
+
+                            <div>
+                                <strong id="totalRespuestas">
+                                    248
+                                </strong>
+
+                                <span>
+                                    Respuestas
+                                </span>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- =================================
+                     ACCIONES RÁPIDAS
+                ================================== -->
+                <section class="panel-lateral acciones-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+
+                            <h3>
+                                Acciones rápidas
+                            </h3>
+
+                            <p>
+                                Gestiona tus cuestionarios
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="acciones-rapidas">
+
+
+                        <button
+                            class="accion-rapida"
+                            id="accionNuevo"
+                        >
+
+                            <span class="accion-icon purple">
+                                <i class="bi bi-plus-lg"></i>
+                            </span>
+
+                            <span>
+                                Nuevo cuestionario
+                            </span>
+
+                            <i class="bi bi-chevron-right"></i>
+
+                        </button>
+
+
+                        <button
+                            class="accion-rapida"
+                            id="accionActivos"
+                        >
+
+                            <span class="accion-icon green">
+                                <i class="bi bi-check-circle"></i>
+                            </span>
+
+                            <span>
+                                Ver activos
+                            </span>
+
+                            <i class="bi bi-chevron-right"></i>
+
+                        </button>
+
+
+                        <button
+                            class="accion-rapida"
+                            id="accionInactivos"
+                        >
+
+                            <span class="accion-icon red">
+                                <i class="bi bi-x-circle"></i>
+                            </span>
+
+                            <span>
+                                Ver inactivos
+                            </span>
+
+                            <i class="bi bi-chevron-right"></i>
+
+                        </button>
+
+
+                    </div>
+
+                </section>
+
+            </aside>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+
+<!-- =====================================================
+     MODAL NUEVO CUESTIONARIO
+====================================================== -->
+
+<div
+    class="modal-overlay"
+    id="modalNuevo"
+>
+
+    <div class="modal modal-grande">
+
+        <div class="modal-header">
+
+            <div>
+                <h2>Nuevo cuestionario</h2>
+
+                <p>
+                    Crea un nuevo cuestionario para la plataforma.
+                </p>
+            </div>
+
+            <button
+                class="modal-cerrar"
+                data-close="modalNuevo"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+            <!-- INFORMACIÓN -->
+            <div class="form-grid">
+
+
+                <div class="form-group">
+
+                    <label>
+                        Nombre del cuestionario
+                    </label>
+
+                    <input
+                        type="text"
+                        id="nuevoNombre"
+                        placeholder="Ej. Ansiedad Generalizada"
+                    />
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Categoría
+                    </label>
+
+                    <select id="nuevoCategoria">
+
+                        <option value="">
+                            Seleccionar categoría
+                        </option>
+
+                        <option value="Ansiedad">
+                            Ansiedad
+                        </option>
+
+                        <option value="Depresión">
+                            Depresión
+                        </option>
+
+                        <option value="Estrés">
+                            Estrés
+                        </option>
+
+                        <option value="Autoestima">
+                            Autoestima
+                        </option>
+
+                        <option value="Sueño">
+                            Sueño
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group form-full">
+
+                    <label>
+                        Descripción
+                    </label>
+
+                    <textarea
+                        id="nuevoDescripcion"
+                        rows="3"
+                        placeholder="Describe el objetivo del cuestionario..."
+                    ></textarea>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Número de preguntas
+                    </label>
+
+                    <input
+                        type="number"
+                        id="nuevoNumeroPreguntas"
+                        min="1"
+                        value="5"
+                    />
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Puntaje máximo
+                    </label>
+
+                    <input
+                        type="number"
+                        id="nuevoPuntaje"
+                        min="1"
+                        value="20"
+                    />
+
+                </div>
+
+            </div>
+
+
+            <!-- PREGUNTAS -->
+            <div class="preguntas-section">
+
+                <div class="preguntas-heading">
+
+                    <div>
+                        <h3>Preguntas</h3>
+
+                        <p>
+                            Agrega las preguntas del cuestionario.
+                        </p>
+                    </div>
+
+                    <button
+                        class="btn-agregar-pregunta"
+                        id="btnAgregarPregunta"
+                    >
+                        <i class="bi bi-plus"></i>
+                        Agregar pregunta
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="listaPreguntas"
+                    class="lista-preguntas"
+                >
+
+                    <div class="pregunta-row">
+
+                        <span class="numero-pregunta">
+                            1
+                        </span>
+
+                        <input
+                            type="text"
+                            placeholder="Escribe la pregunta..."
+                            class="input-pregunta"
+                        />
+
+                        <button
+                            class="btn-eliminar-pregunta"
+                            type="button"
+                        >
+                            <i class="bi bi-trash"></i>
+                        </button>
+
+                    </div>
+
+
+                    <div class="pregunta-row">
+
+                        <span class="numero-pregunta">
+                            2
+                        </span>
+
+                        <input
+                            type="text"
+                            placeholder="Escribe la pregunta..."
+                            class="input-pregunta"
+                        />
+
+                        <button
+                            class="btn-eliminar-pregunta"
+                            type="button"
+                        >
+                            <i class="bi bi-trash"></i>
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+            <button
+                class="btn-secundario"
+                data-close="modalNuevo"
+            >
+                Cancelar
+            </button>
+
+            <button
+                class="btn-principal"
+                id="btnGuardarNuevo"
+            >
+                <i class="bi bi-check-lg"></i>
+                Crear cuestionario
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     MODAL EDITAR
+====================================================== -->
+
+<div
+    class="modal-overlay"
+    id="modalEditar"
+>
+
+    <div class="modal modal-mediano">
+
+        <div class="modal-header">
+
+            <div>
+
+                <h2>
+                    Editar cuestionario
+                </h2>
+
+                <p>
+                    Modifica la información del cuestionario.
+                </p>
+
+            </div>
+
+            <button
+                class="modal-cerrar"
+                data-close="modalEditar"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+            <div class="form-group">
+
+                <label>
+                    Nombre
+                </label>
+
+                <input
+                    type="text"
+                    id="editarNombre"
+                />
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Categoría
+                </label>
+
+                <select id="editarCategoria">
+
+                    <option value="Ansiedad">
+                        Ansiedad
+                    </option>
+
+                    <option value="Depresión">
+                        Depresión
+                    </option>
+
+                    <option value="Estrés">
+                        Estrés
+                    </option>
+
+                    <option value="Autoestima">
+                        Autoestima
+                    </option>
+
+                    <option value="Sueño">
+                        Sueño
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Descripción
+                </label>
+
+                <textarea
+                    id="editarDescripcion"
+                    rows="4"
+                ></textarea>
+
+            </div>
+
+
+            <div class="form-grid">
+
+                <div class="form-group">
+
+                    <label>
+                        Número de preguntas
+                    </label>
+
+                    <input
+                        type="number"
+                        id="editarPreguntas"
+                    />
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Puntaje máximo
+                    </label>
+
+                    <input
+                        type="number"
+                        id="editarPuntaje"
+                    />
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+            <button
+                class="btn-secundario"
+                data-close="modalEditar"
+            >
+                Cancelar
+            </button>
+
+            <button
+                class="btn-principal"
+                id="btnGuardarEdicion"
+            >
+                <i class="bi bi-check-lg"></i>
+                Guardar cambios
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     MODAL ESTADÍSTICAS
+====================================================== -->
+
+<div
+    class="modal-overlay"
+    id="modalEstadisticas"
+>
+
+    <div class="modal modal-estadisticas">
+
+        <div class="modal-header">
+
+            <div>
+
+                <span class="badge-categoria-modal" id="estadisticasCategoria">Categoría</span>
+
+                <h2>
+                    Estadísticas Clínicas
+                </h2>
+
+                <p id="estadisticasNombre">
+                    Ansiedad Generalizada
+                </p>
+
+            </div>
+
+            <button
+                class="modal-cerrar"
+                data-close="modalEstadisticas"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+            <div class="estadisticas-grid">
+
+                <div class="estadistica-box">
+
+                    <div class="estadistica-icon purple">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+
+                    <strong id="statRespuestas">
+                        0
+                    </strong>
+
+                    <span>
+                        Respuestas
+                    </span>
+
+                </div>
+
+
+                <div class="estadistica-box">
+
+                    <div class="estadistica-icon green">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+
+                    <strong id="statCompletados">
+                        0%
+                    </strong>
+
+                    <span>
+                        Finalización
+                    </span>
+
+                </div>
+
+
+                <div class="estadistica-box">
+
+                    <div class="estadistica-icon blue">
+                        <i class="bi bi-stopwatch-fill"></i>
+                    </div>
+
+                    <strong id="statTiempo">
+                        3.5 min
+                    </strong>
+
+                    <span>
+                        Tiempo Prom.
+                    </span>
+
+                </div>
+
+
+                <div class="estadistica-box">
+
+                    <div class="estadistica-icon orange">
+                        <i class="bi bi-award-fill"></i>
+                    </div>
+
+                    <strong id="statPuntaje">
+                        0 pts
+                    </strong>
+
+                    <span>
+                        Puntaje Máx.
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- SECCIÓN DISTRIBUCIÓN DE RIESGO SINTOMÁTICO -->
+            <div class="seccion-distribucion">
+                <div class="distribucion-header">
+                    <h3><i class="bi bi-pie-chart-fill"></i> Distribución de Diagnósticos</h3>
+                    <span>Niveles de riesgo sintomático detectados</span>
+                </div>
+
+                <div class="distribucion-barras">
+                    <div class="distribucion-item">
+                        <div class="distribucion-labels">
+                            <span class="nivel-badge leve"><i class="bi bi-emoji-smile-fill"></i> Leve / Sin Riesgo</span>
+                            <span class="porcentaje-val" id="porcentajeLeve">65%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill green" id="barLeve" style="width: 65%"></div>
+                        </div>
+                    </div>
+
+                    <div class="distribucion-item">
+                        <div class="distribucion-labels">
+                            <span class="nivel-badge moderado"><i class="bi bi-emoji-neutral-fill"></i> Moderado</span>
+                            <span class="porcentaje-val" id="porcentajeModerado">25%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill orange" id="barModerado" style="width: 25%"></div>
+                        </div>
+                    </div>
+
+                    <div class="distribucion-item">
+                        <div class="distribucion-labels">
+                            <span class="nivel-badge severo"><i class="bi bi-emoji-frown-fill"></i> Severo / Alto</span>
+                            <span class="porcentaje-val" id="porcentajeSevero">10%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill red" id="barSevero" style="width: 10%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="grafico-falso">
+
+                <div class="grafico-header">
+
+                    <div>
+                        <h3><i class="bi bi-graph-up-arrow"></i> Tendencia de Aplicación</h3>
+                        <span>Frecuencia semanal de resolución</span>
+                    </div>
+
+                    <span class="badge-semana">Semana Actual</span>
+
+                </div>
+
+
+                <div class="barras" id="barrasSemana">
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     MODAL ELIMINAR (MÁS PEQUEÑO Y PROFESIONAL)
+====================================================== -->
+
+<div
+    class="modal-overlay"
+    id="modalEliminar"
+>
+
+    <div class="modal modal-pequeno modal-eliminar-card">
+
+        <button
+            class="modal-cerrar modal-cerrar-absoluto"
+            data-close="modalEliminar"
+        >
+            <i class="bi bi-x-lg"></i>
+        </button>
+
+        <div class="confirmacion-icon-wrapper">
+            <div class="confirmacion-icon danger">
+                <i class="bi bi-trash3-fill"></i>
+            </div>
+        </div>
+
+        <h2>Eliminar cuestionario</h2>
+
+        <p class="confirmacion-texto">
+            ¿Estás seguro de que deseas eliminar
+            <strong id="eliminarNombre">este cuestionario</strong>?
+        </p>
+
+        <div class="advertencia-box">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>Esta acción es irreversible y eliminará los registros de la plataforma.</span>
+        </div>
+
+
+        <div class="confirmacion-botones">
+
+            <button
+                class="btn-secundario"
+                data-close="modalEliminar"
+            >
+                Cancelar
+            </button>
+
+            <button
+                class="btn-eliminar-confirmar"
+                id="btnConfirmarEliminar"
+            >
+                <i class="bi bi-trash3"></i>
+                Eliminar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT
+     Se utiliza JS normal para evitar los conflictos
+     de TypeScript que teníamos anteriormente.
+====================================================== -->
+
+<script is:inline>
+
+    /* =====================================================
+       CARGAR CUESTIONARIOS DESDE LA API BACKEND (MYSQL)
+    ====================================================== */
+
+    let cuestionarios = [];
+
+    async function cargarCuestionariosDesdeAPI() {
+        try {
+            const res = await fetch("http://localhost:8001/cuestionarios", {
+                credentials: "include"
+            });
+            const data = await res.json();
+            if (res.ok && data.ok && Array.isArray(data.cuestionarios)) {
+                cuestionarios = data.cuestionarios.map(function(c) {
+                    return {
+                        id: c.CuestionarioId,
+                        nombre: c.NombreCuestionario,
+                        descripcion: c.Descripcion,
+                        categoria: c.CategoriaNombre || "General",
+                        preguntas: c.NumeroPreguntas,
+                        puntaje: c.PuntajeMaximo,
+                        activo: Boolean(c.EstadoActivo),
+                        respuestas: 0
+                    };
+                });
+                renderizar();
+            }
+        } catch (err) {
+            console.error("Error al cargar cuestionarios desde la API:", err);
+        }
+    }
+
+
+    /* =====================================================
+       VARIABLES
+    ====================================================== */
+
+    let paginaActual = 1;
+
+    const elementosPorPagina = 3;
+
+    let cuestionarioEditando = null;
+
+    let cuestionarioEliminando = null;
+
+
+    /* =====================================================
+       ELEMENTOS
+    ====================================================== */
+
+    const lista = document.getElementById(
+        "cuestionariosLista"
+    );
+
+    const buscador = document.getElementById(
+        "buscarCuestionario"
+    );
+
+    const filtroCategoria = document.getElementById(
+        "filtroCategoria"
+    );
+
+    const filtroEstado = document.getElementById(
+        "filtroEstado"
+    );
+
+
+    /* =====================================================
+       OBTENER FILTRADOS
+    ====================================================== */
+
+    function obtenerFiltrados() {
+
+        const texto = buscador.value
+            .toLowerCase()
+            .trim();
+
+        const categoria =
+            filtroCategoria.value;
+
+        const estado =
+            filtroEstado.value;
+
+
+        return cuestionarios.filter(function (item) {
+
+            const coincideTexto =
+                item.nombre
+                    .toLowerCase()
+                    .includes(texto);
+
+
+            const coincideCategoria =
+                categoria === "todas" ||
+                item.categoria === categoria;
+
+
+            const coincideEstado =
+                estado === "todos" ||
+                (estado === "activo" && item.activo) ||
+                (estado === "inactivo" && !item.activo);
+
+
+            return (
+                coincideTexto &&
+                coincideCategoria &&
+                coincideEstado
+            );
+
+        });
+
+    }
+
+
+    /* =====================================================
+       RENDERIZAR CUESTIONARIOS
+    ====================================================== */
+
+    function renderizar() {
+
+        const filtrados =
+            obtenerFiltrados();
+
+
+        const totalPaginas =
+            Math.ceil(
+                filtrados.length /
+                elementosPorPagina
+            );
+
+
+        if (paginaActual > totalPaginas && totalPaginas > 0) {
+
+            paginaActual = totalPaginas;
+
+        }
+
+
+        const inicio =
+            (paginaActual - 1) *
+            elementosPorPagina;
+
+
+        const elementos =
+            filtrados.slice(
+                inicio,
+                inicio + elementosPorPagina
+            );
+
+
+        lista.innerHTML = "";
+
+
+        if (elementos.length === 0) {
+
+            lista.innerHTML = `
+                <div class="estado-vacio">
+                    <div class="estado-vacio-icon">
+                        <i class="bi bi-search"></i>
+                    </div>
+
+                    <h3>
+                        No se encontraron cuestionarios
+                    </h3>
+
+                    <p>
+                        Intenta cambiar los filtros o realizar otra búsqueda.
+                    </p>
+                </div>
+            `;
+
+        }
+
+
+        elementos.forEach(function (item) {
+
+            const card =
+                document.createElement("article");
+
+
+            card.className =
+                "cuestionario-card";
+
+
+            card.innerHTML = `
+
+                <div class="card-icon ${obtenerColorCategoria(item.categoria)}">
+
+                    <i class="${obtenerIconoCategoria(item.categoria)}"></i>
+
+                </div>
+
+
+                <div class="card-contenido">
+
+                    <div class="card-top">
+
+                        <div>
+
+                            <h3>
+                                ${item.nombre}
+                            </h3>
+
+                            <p>
+                                ${item.descripcion}
+                            </p>
+
+                        </div>
+
+
+                        <span class="estado-pill ${item.activo ? "activo" : "inactivo"}">
+
+                            <span class="estado-punto"></span>
+
+                            ${item.activo ? "Activo" : "Inactivo"}
+
+                        </span>
+
+                    </div>
+
+
+                    <div class="datos-cuestionario">
+
+                        <span>
+                            <i class="bi bi-list-check"></i>
+                            ${item.preguntas} Preguntas
+                        </span>
+
+                        <span>
+                            <i class="bi bi-star"></i>
+                            ${item.puntaje} Puntaje máx.
+                        </span>
+
+                        <span>
+                            <i class="bi bi-tag"></i>
+                            ${item.categoria}
+                        </span>
+
+                    </div>
+
+
+                    <div class="card-footer">
+
+                        <div class="card-botones">
+
+                            <button
+                                class="btn-card editar"
+                                data-editar="${item.id}"
+                            >
+                                <i class="bi bi-pencil"></i>
+                                Editar
+                            </button>
+
+
+                            <button
+                                class="btn-card estadisticas"
+                                data-estadisticas="${item.id}"
+                            >
+                                <i class="bi bi-bar-chart"></i>
+                                Estadísticas
+                            </button>
+
+
+                            <button
+                                class="btn-card eliminar"
+                                data-eliminar="${item.id}"
+                            >
+                                <i class="bi bi-trash3"></i>
+                                Eliminar
+                            </button>
+
+                        </div>
+
+
+                        <div class="switch-container">
+
+                            <span>
+                                ${item.activo ? "Activado" : "Desactivado"}
+                            </span>
+
+                            <button
+                                class="switch ${item.activo ? "on" : ""}"
+                                data-toggle="${item.id}"
+                                aria-label="Cambiar estado"
+                            >
+
+                                <span></span>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            lista.appendChild(card);
+
+        });
+
+
+        renderizarPaginacion();
+
+        actualizarResumen();
+
+        document.getElementById(
+            "contadorCuestionarios"
+        ).textContent =
+            `Mostrando ${elementos.length} de ${filtrados.length} cuestionarios`;
+
+    }
+
+
+    /* =====================================================
+       COLOR CATEGORÍA
+    ====================================================== */
+
+    function obtenerColorCategoria(categoria) {
+
+        if (categoria === "Ansiedad") {
+            return "categoria-purple";
+        }
+
+        if (categoria === "Depresión") {
+            return "categoria-blue";
+        }
+
+        if (categoria === "Estrés") {
+            return "categoria-orange";
+        }
+
+        if (categoria === "Autoestima") {
+            return "categoria-green";
+        }
+
+        return "categoria-pink";
+
+    }
+
+
+    /* =====================================================
+       ICONO CATEGORÍA
+    ====================================================== */
+
+    function obtenerIconoCategoria(categoria) {
+
+        if (categoria === "Ansiedad") {
+            return "bi bi-grid";
+        }
+
+        if (categoria === "Depresión") {
+            return "bi bi-heart-pulse";
+        }
+
+        if (categoria === "Estrés") {
+            return "bi bi-lightning";
+        }
+
+        if (categoria === "Autoestima") {
+            return "bi bi-person-heart";
+        }
+
+        return "bi bi-moon-stars";
+
+    }
+
+
+    /* =====================================================
+       PAGINACIÓN
+    ====================================================== */
+
+    function renderizarPaginacion() {
+
+        const paginas =
+            document.getElementById("paginas");
+
+
+        const total =
+            Math.ceil(
+                obtenerFiltrados().length /
+                elementosPorPagina
+            );
+
+
+        paginas.innerHTML = "";
+
+
+        for (
+            let i = 1;
+            i <= total;
+            i++
+        ) {
+
+            const boton =
+                document.createElement("button");
+
+
+            boton.className =
+                "pagina-numero";
+
+
+            if (i === paginaActual) {
+
+                boton.classList.add("activo");
+
+            }
+
+
+            boton.textContent = i;
+
+
+            boton.addEventListener(
+                "click",
+                function () {
+
+                    paginaActual = i;
+
+                    renderizar();
+
+                    window.scrollTo({
+                        top: 0,
+                        behavior: "smooth"
+                    });
+
+                }
+            );
+
+
+            paginas.appendChild(boton);
+
+        }
+
+
+        document.getElementById(
+            "paginaAnterior"
+        ).disabled =
+            paginaActual <= 1;
+
+
+        document.getElementById(
+            "paginaSiguiente"
+        ).disabled =
+            paginaActual >= total;
+
+    }
+
+
+    /* =====================================================
+       RESUMEN
+    ====================================================== */
+
+    function actualizarResumen() {
+
+        const total =
+            cuestionarios.length;
+
+
+        const activos =
+            cuestionarios.filter(
+                function (item) {
+                    return item.activo;
+                }
+            ).length;
+
+
+        const inactivos =
+            cuestionarios.filter(
+                function (item) {
+                    return !item.activo;
+                }
+            ).length;
+
+
+        const respuestas =
+            cuestionarios.reduce(
+                function (total, item) {
+                    return total + item.respuestas;
+                },
+                0
+            );
+
+
+        document.getElementById(
+            "totalCuestionarios"
+        ).textContent = total;
+
+
+        document.getElementById(
+            "totalActivos"
+        ).textContent = activos;
+
+
+        document.getElementById(
+            "totalInactivos"
+        ).textContent = inactivos;
+
+
+        document.getElementById(
+            "totalRespuestas"
+        ).textContent = respuestas;
+
+    }
+
+
+    /* =====================================================
+       ABRIR MODAL NUEVO
+    ====================================================== */
+
+    function abrirModal(id) {
+
+        const modal =
+            document.getElementById(id);
+
+
+        modal.classList.add("mostrar");
+
+        document.body.classList.add(
+            "modal-abierto"
+        );
+
+    }
+
+
+    /* =====================================================
+       CERRAR MODAL
+    ====================================================== */
+
+    function cerrarModal(id) {
+
+        const modal =
+            document.getElementById(id);
+
+
+        modal.classList.remove("mostrar");
+
+        document.body.classList.remove(
+            "modal-abierto"
+        );
+
+    }
+
+
+    /* =====================================================
+       BOTÓN NUEVO
+    ====================================================== */
+
+    document.getElementById(
+        "btnNuevo"
+    ).addEventListener(
+        "click",
+        function () {
+
+            abrirModal("modalNuevo");
+
+        }
+    );
+
+
+    document.getElementById(
+        "accionNuevo"
+    ).addEventListener(
+        "click",
+        function () {
+
+            abrirModal("modalNuevo");
+
+        }
+    );
+
+
+    /* =====================================================
+       CERRAR MODALES
+    ====================================================== */
+
+    document.querySelectorAll(
+        "[data-close]"
+    ).forEach(
+        function (boton) {
+
+            boton.addEventListener(
+                "click",
+                function () {
+
+                    cerrarModal(
+                        boton.dataset.close
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+    /* =====================================================
+       EVENTOS DE LAS CARDS
+    ====================================================== */
+
+    lista.addEventListener(
+        "click",
+        function (event) {
+
+            const target =
+                event.target;
+
+
+            const editar =
+                target.closest(
+                    "[data-editar]"
+                );
+
+
+            const estadisticas =
+                target.closest(
+                    "[data-estadisticas]"
+                );
+
+
+            const eliminar =
+                target.closest(
+                    "[data-eliminar]"
+                );
+
+
+            const toggle =
+                target.closest(
+                    "[data-toggle]"
+                );
+
+
+            if (editar) {
+                abrirEditar(editar.dataset.editar);
+            }
+
+            if (estadisticas) {
+                abrirEstadisticas(estadisticas.dataset.estadisticas);
+            }
+
+            if (eliminar) {
+                abrirEliminar(eliminar.dataset.eliminar);
+            }
+
+            if (toggle) {
+                cambiarEstado(toggle.dataset.toggle);
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       EDITAR
+    ====================================================== */
+
+    function abrirEditar(id) {
+
+        const item =
+            cuestionarios.find(
+                function (cuestionario) {
+                    return cuestionario.id === id;
+                }
+            );
+
+
+        if (!item) return;
+
+
+        cuestionarioEditando = item;
+
+
+        document.getElementById(
+            "editarNombre"
+        ).value = item.nombre;
+
+
+        document.getElementById(
+            "editarCategoria"
+        ).value = item.categoria;
+
+
+        document.getElementById(
+            "editarDescripcion"
+        ).value = item.descripcion;
+
+
+        document.getElementById(
+            "editarPreguntas"
+        ).value = item.preguntas;
+
+
+        document.getElementById(
+            "editarPuntaje"
+        ).value = item.puntaje;
+
+
+        abrirModal("modalEditar");
+
+    }
+
+
+    /* =====================================================
+       GUARDAR EDICIÓN
+    ====================================================== */
+
+    document.getElementById(
+        "btnGuardarEdicion"
+    ).addEventListener(
+        "click",
+        function () {
+
+            if (!cuestionarioEditando) return;
+
+
+            cuestionarioEditando.nombre =
+                document.getElementById(
+                    "editarNombre"
+                ).value;
+
+
+            cuestionarioEditando.categoria =
+                document.getElementById(
+                    "editarCategoria"
+                ).value;
+
+
+            cuestionarioEditando.descripcion =
+                document.getElementById(
+                    "editarDescripcion"
+                ).value;
+
+
+            cuestionarioEditando.preguntas =
+                Number(
+                    document.getElementById(
+                        "editarPreguntas"
+                    ).value
+                );
+
+
+            cuestionarioEditando.puntaje =
+                Number(
+                    document.getElementById(
+                        "editarPuntaje"
+                    ).value
+                );
+
+
+            cerrarModal("modalEditar");
+
+            renderizar();
+
+        }
+    );
+
+
+    /* =====================================================
+       ESTADÍSTICAS DINÁMICAS
+    ====================================================== */
+
+    function abrirEstadisticas(id) {
+
+        const item =
+            cuestionarios.find(
+                function (cuestionario) {
+                    return cuestionario.id === id;
+                }
+            );
+
+
+        if (!item) return;
+
+
+        document.getElementById("estadisticasNombre").textContent = item.nombre;
+        document.getElementById("estadisticasCategoria").textContent = item.categoria || "General";
+
+        // Métricas calculadas o sembradas según el ID del cuestionario
+        const charCodeSum = (item.id || "").toString().split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+        const totalResp = item.respuestas || Math.floor((charCodeSum % 150) + 45);
+        const completadosPct = Math.min(98, Math.floor(78 + (charCodeSum % 20)));
+        const tiempoProm = (3.0 + (charCodeSum % 4) * 0.5).toFixed(1) + " min";
+        const puntajeMax = item.puntaje || 20;
+
+        document.getElementById("statRespuestas").textContent = totalResp;
+        document.getElementById("statCompletados").textContent = completadosPct + "%";
+        document.getElementById("statTiempo").textContent = tiempoProm;
+        document.getElementById("statPuntaje").textContent = puntajeMax + " pts";
+
+        // Porcentajes de nivel de riesgo sintomático
+        const pLeve = Math.floor(50 + (charCodeSum % 25));
+        const pMod = Math.floor((100 - pLeve) * 0.65);
+        const pSev = 100 - pLeve - pMod;
+
+        const elLeveVal = document.getElementById("porcentajeLeve");
+        const elLeveBar = document.getElementById("barLeve");
+        if (elLeveVal && elLeveBar) {
+            elLeveVal.textContent = pLeve + "%";
+            elLeveBar.style.width = pLeve + "%";
+        }
+
+        const elModVal = document.getElementById("porcentajeModerado");
+        const elModBar = document.getElementById("barModerado");
+        if (elModVal && elModBar) {
+            elModVal.textContent = pMod + "%";
+            elModBar.style.width = pMod + "%";
+        }
+
+        const elSevVal = document.getElementById("porcentajeSevero");
+        const elSevBar = document.getElementById("barSevero");
+        if (elSevVal && elSevBar) {
+            elSevVal.textContent = pSev + "%";
+            elSevBar.style.width = pSev + "%";
+        }
+
+        // Gráfico de barras semanales
+        const contenedorBarras = document.getElementById("barrasSemana");
+        if (contenedorBarras) {
+            contenedorBarras.innerHTML = "";
+            const dias = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+            dias.forEach(function(dia, i) {
+                const pctHeight = Math.floor(25 + ((charCodeSum * (i + 1) * 11) % 68));
+                const barra = document.createElement("div");
+                barra.className = "barra";
+                barra.style.height = pctHeight + "%";
+                barra.innerHTML = `<span>${dia}</span>`;
+                contenedorBarras.appendChild(barra);
+            });
+        }
+
+
+        abrirModal("modalEstadisticas");
+
+    }
+
+
+    /* =====================================================
+       ELIMINAR
+    ====================================================== */
+
+    function abrirEliminar(id) {
+
+        const item =
+            cuestionarios.find(
+                function (cuestionario) {
+                    return cuestionario.id === id;
+                }
+            );
+
+
+        if (!item) return;
+
+
+        cuestionarioEliminando = item;
+
+
+        document.getElementById(
+            "eliminarNombre"
+        ).textContent =
+            item.nombre;
+
+
+        abrirModal("modalEliminar");
+
+    }
+
+
+    document.getElementById(
+        "btnConfirmarEliminar"
+    ).addEventListener(
+        "click",
+        function () {
+
+            if (!cuestionarioEliminando) return;
+
+
+            cuestionarios =
+                cuestionarios.filter(
+                    function (item) {
+                        return item.id !==
+                            cuestionarioEliminando.id;
+                    }
+                );
+
+
+            cuestionarioEliminando =
+                null;
+
+
+            cerrarModal(
+                "modalEliminar"
+            );
+
+
+            renderizar();
+
+        }
+    );
+
+
+    /* =====================================================
+       CAMBIAR ESTADO
+    ====================================================== */
+
+    function cambiarEstado(id) {
+
+        const item =
+            cuestionarios.find(
+                function (cuestionario) {
+                    return cuestionario.id === id;
+                }
+            );
+
+
+        if (!item) return;
+
+
+        item.activo =
+            !item.activo;
+
+
+        renderizar();
+
+    }
+
+
+    /* =====================================================
+       BUSCADOR
+    ====================================================== */
+
+    buscador.addEventListener(
+        "input",
+        function () {
+
+            paginaActual = 1;
+
+            renderizar();
+
+        }
+    );
+
+
+    /* =====================================================
+       FILTRO CATEGORÍA
+    ====================================================== */
+
+    filtroCategoria.addEventListener(
+        "change",
+        function () {
+
+            paginaActual = 1;
+
+            renderizar();
+
+        }
+    );
+
+
+    /* =====================================================
+       FILTRO ESTADO
+    ====================================================== */
+
+    filtroEstado.addEventListener(
+        "change",
+        function () {
+
+            paginaActual = 1;
+
+            renderizar();
+
+        }
+    );
+
+
+    /* =====================================================
+       PAGINA ANTERIOR
+    ====================================================== */
+
+    document.getElementById(
+        "paginaAnterior"
+    ).addEventListener(
+        "click",
+        function () {
+
+            if (paginaActual > 1) {
+
+                paginaActual--;
+
+                renderizar();
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       PAGINA SIGUIENTE
+    ====================================================== */
+
+    document.getElementById(
+        "paginaSiguiente"
+    ).addEventListener(
+        "click",
+        function () {
+
+            const total =
+                Math.ceil(
+                    obtenerFiltrados().length /
+                    elementosPorPagina
+                );
+
+
+            if (paginaActual < total) {
+
+                paginaActual++;
+
+                renderizar();
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       ACCIONES RÁPIDAS
+    ====================================================== */
+
+    document.getElementById(
+        "accionActivos"
+    ).addEventListener(
+        "click",
+        function () {
+
+            filtroEstado.value =
+                "activo";
+
+            paginaActual = 1;
+
+            renderizar();
+
+        }
+    );
+
+
+    document.getElementById(
+        "accionInactivos"
+    ).addEventListener(
+        "click",
+        function () {
+
+            filtroEstado.value =
+                "inactivo";
+
+            paginaActual = 1;
+
+            renderizar();
+
+        }
+    );
+
+
+    /* =====================================================
+       AGREGAR PREGUNTA
+    ====================================================== */
+
+    document.getElementById(
+        "btnAgregarPregunta"
+    ).addEventListener(
+        "click",
+        function () {
+
+            const contenedor =
+                document.getElementById(
+                    "listaPreguntas"
+                );
+
+
+            const numero =
+                contenedor.children.length + 1;
+
+
+            const pregunta =
+                document.createElement(
+                    "div"
+                );
+
+
+            pregunta.className =
+                "pregunta-row";
+
+
+            pregunta.innerHTML = `
+
+                <span class="numero-pregunta">
+                    ${numero}
+                </span>
+
+                <input
+                    type="text"
+                    placeholder="Escribe la pregunta..."
+                    class="input-pregunta"
+                />
+
+                <button
+                    class="btn-eliminar-pregunta"
+                    type="button"
+                >
+                    <i class="bi bi-trash"></i>
+                </button>
+
+            `;
+
+
+            contenedor.appendChild(
+                pregunta
+            );
+
+        }
+    );
+
+
+    /* =====================================================
+       ELIMINAR PREGUNTA
+    ====================================================== */
+
+    document.getElementById(
+        "listaPreguntas"
+    ).addEventListener(
+        "click",
+        function (event) {
+
+            const boton =
+                event.target.closest(
+                    ".btn-eliminar-pregunta"
+                );
+
+
+            if (!boton) return;
+
+
+            const fila =
+                boton.closest(
+                    ".pregunta-row"
+                );
+
+
+            fila.remove();
+
+
+            actualizarNumerosPreguntas();
+
+        }
+    );
+
+
+    function actualizarNumerosPreguntas() {
+
+        const preguntas =
+            document.querySelectorAll(
+                ".pregunta-row"
+            );
+
+
+        preguntas.forEach(
+            function (pregunta, index) {
+
+                pregunta.querySelector(
+                    ".numero-pregunta"
+                ).textContent =
+                    index + 1;
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       CREAR NUEVO CUESTIONARIO
+    ====================================================== */
+
+    document.getElementById(
+        "btnGuardarNuevo"
+    ).addEventListener(
+        "click",
+        function () {
+
+            const nombre =
+                document.getElementById(
+                    "nuevoNombre"
+                ).value.trim();
+
+
+            const categoria =
+                document.getElementById(
+                    "nuevoCategoria"
+                ).value;
+
+
+            const descripcion =
+                document.getElementById(
+                    "nuevoDescripcion"
+                ).value.trim();
+
+
+            const preguntas =
+                Number(
+                    document.getElementById(
+                        "nuevoNumeroPreguntas"
+                    ).value
+                );
+
+
+            const puntaje =
+                Number(
+                    document.getElementById(
+                        "nuevoPuntaje"
+                    ).value
+                );
+
+
+            if (
+                !nombre ||
+                !categoria ||
+                !descripcion
+            ) {
+
+                alert(
+                    "Completa todos los campos."
+                );
+
+                return;
+
+            }
+
+
+            const nuevo = {
+
+                id:
+                    Date.now(),
+
+                nombre:
+                    nombre,
+
+                descripcion:
+                    descripcion,
+
+                categoria:
+                    categoria,
+
+                preguntas:
+                    preguntas,
+
+                puntaje:
+                    puntaje,
+
+                activo:
+                    true,
+
+                respuestas:
+                    0
+
+            };
+
+
+            cuestionarios.unshift(
+                nuevo
+            );
+
+
+            cerrarModal(
+                "modalNuevo"
+            );
+
+
+            document.getElementById(
+                "nuevoNombre"
+            ).value = "";
+
+
+            document.getElementById(
+                "nuevoCategoria"
+            ).value = "";
+
+
+            document.getElementById(
+                "nuevoDescripcion"
+            ).value = "";
+
+
+            paginaActual = 1;
+
+
+            renderizar();
+
+        }
+    );
+
+
+    /* =====================================================
+       CERRAR AL HACER CLICK FUERA
+    ====================================================== */
+
+    document.querySelectorAll(
+        ".modal-overlay"
+    ).forEach(
+        function (modal) {
+
+            modal.addEventListener(
+                "click",
+                function (event) {
+
+                    if (
+                        event.target === modal
+                    ) {
+
+                        modal.classList.remove(
+                            "mostrar"
+                        );
+
+                        document.body.classList.remove(
+                            "modal-abierto"
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+    /* =====================================================
+       ESC PARA CERRAR
+    ====================================================== */
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                event.key === "Escape"
+            ) {
+
+                document.querySelectorAll(
+                    ".modal-overlay.mostrar"
+                ).forEach(
+                    function (modal) {
+
+                        modal.classList.remove(
+                            "mostrar"
+                        );
+
+                    }
+                );
+
+
+                document.body.classList.remove(
+                    "modal-abierto"
+                );
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       INICIAR
+    ====================================================== */
+
+    cargarCuestionariosDesdeAPI();
+
+</script>

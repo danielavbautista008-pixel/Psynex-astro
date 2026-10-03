@@ -1,0 +1,1938 @@
+---
+import MenuAdmin from "../Menu/MenuAdmin.astro";
+import "./verificarpsicologos.css";
+---
+
+<div class="verificacion-page">
+
+    <!-- =====================================================
+         MENÚ LATERAL
+    ====================================================== -->
+
+    <MenuAdmin />
+
+
+    <!-- =====================================================
+         CONTENIDO
+    ====================================================== -->
+
+    <main class="verificacion-content">
+
+        <!-- =================================================
+             ENCABEZADO
+        ================================================== -->
+
+        <header class="verificacion-header">
+
+            <div class="header-left">
+
+                <div class="header-icon">
+                    <i class="bi bi-person-check"></i>
+                </div>
+
+                <div>
+                    <h1>Verificar psicólogos</h1>
+
+                    <p>
+                        Revisa y valida la documentación de los profesionales registrados.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <!-- TRES PUNTICOS -->
+
+            <div class="header-actions">
+
+                <button
+                    type="button"
+                    class="btn-tres-puntos"
+                    id="btnResumen"
+                    aria-label="Mostrar resumen"
+                >
+                    <i class="bi bi-three-dots-vertical"></i>
+                </button>
+
+
+                <!-- RESUMEN OCULTO -->
+
+                <div
+                    class="resumen-menu"
+                    id="resumenMenu"
+                >
+
+                    <div class="resumen-menu-header">
+
+                        <div>
+                            <strong>Resumen</strong>
+
+                            <span>
+                                Estado de los psicólogos
+                            </span>
+                        </div>
+
+                        <i class="bi bi-bar-chart"></i>
+
+                    </div>
+
+
+                    <div class="resumen-grid">
+
+                        <div class="resumen-item resumen-total">
+
+                            <div class="resumen-icon">
+                                <i class="bi bi-people"></i>
+                            </div>
+
+                            <div>
+                                <strong id="resumenTotal">8</strong>
+                                <span>Total</span>
+                            </div>
+
+                        </div>
+
+
+                        <div class="resumen-item resumen-verificado">
+
+                            <div class="resumen-icon">
+                                <i class="bi bi-check-lg"></i>
+                            </div>
+
+                            <div>
+                                <strong id="resumenVerificados">0</strong>
+                                <span>Verificados</span>
+                            </div>
+
+                        </div>
+
+
+                        <div class="resumen-item resumen-pendiente">
+
+                            <div class="resumen-icon">
+                                <i class="bi bi-clock"></i>
+                            </div>
+
+                            <div>
+                                <strong id="resumenPendientes">8</strong>
+                                <span>Pendientes</span>
+                            </div>
+
+                        </div>
+
+
+                        <div class="resumen-item resumen-rechazado">
+
+                            <div class="resumen-icon">
+                                <i class="bi bi-x-lg"></i>
+                            </div>
+
+                            <div>
+                                <strong id="resumenRechazados">0</strong>
+                                <span>Rechazados</span>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =================================================
+             FILTROS
+        ================================================== -->
+
+        <section class="filtros-verificacion">
+
+            <div class="busqueda-wrapper">
+
+                <i class="bi bi-search"></i>
+
+                <input
+                    type="search"
+                    id="buscarPsicologo"
+                    placeholder="Buscar psicólogo..."
+                />
+
+            </div>
+
+
+            <select id="filtroEspecialidad">
+
+                <option value="">Todas las especialidades</option>
+
+                <option value="Psicología clínica">
+                    Psicología clínica
+                </option>
+
+                <option value="Psicología educativa">
+                    Psicología educativa
+                </option>
+
+                <option value="Psicología infantil">
+                    Psicología infantil
+                </option>
+
+                <option value="Psicología organizacional">
+                    Psicología organizacional
+                </option>
+
+            </select>
+
+
+            <select id="filtroEstado">
+
+                <option value="">Todos los estados</option>
+
+                <option value="Pendiente">Pendiente</option>
+
+                <option value="Verificado">Verificado</option>
+
+                <option value="Rechazado">Rechazado</option>
+
+            </select>
+
+        </section>
+
+
+        <!-- =================================================
+             BANDEJA DE REVISIÓN
+        ================================================== -->
+
+        <section class="revision-container">
+
+
+            <!-- =================================================
+                 LISTA IZQUIERDA
+            ================================================== -->
+
+            <aside class="psicologos-lista">
+
+                <div class="revision-top">
+
+                    <div class="pendientes-info">
+
+                        <div class="pendientes-icon">
+                            <i class="bi bi-list-check"></i>
+                        </div>
+
+                        <div>
+
+                            <strong>Solicitudes</strong>
+
+                            <span id="contadorPendientes">
+                                8 pendientes
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <i class="bi bi-list-check lista-icono"></i>
+
+                </div>
+
+
+                <div
+                    class="lista-scroll"
+                    id="listaPsicologos"
+                >
+
+                    <!-- JAVASCRIPT INSERTA AQUÍ LOS PSICÓLOGOS -->
+
+                </div>
+
+            </aside>
+
+
+            <!-- =================================================
+                 DETALLE
+            ================================================== -->
+
+            <section
+                class="detalle-psicologo"
+                id="detallePsicologo"
+            >
+
+                <!-- ESTADO INICIAL -->
+
+                <div
+                    class="detalle-vacio"
+                    id="detalleVacio"
+                >
+
+                    <div class="detalle-vacio-icono">
+                        <i class="bi bi-person-check"></i>
+                    </div>
+
+                    <h2>Selecciona una solicitud</h2>
+
+                    <p>
+                        Selecciona un psicólogo de la lista para revisar
+                        su información y documentación.
+                    </p>
+
+                </div>
+
+
+                <!-- DETALLE REAL -->
+
+                <div
+                    class="detalle-contenido"
+                    id="detalleContenido"
+                    hidden
+                >
+
+                    <!-- HEADER DEL PSICÓLOGO -->
+
+                    <div class="detalle-header">
+
+                        <div class="detalle-identidad">
+
+                            <div
+                                class="detalle-avatar"
+                                id="detalleAvatar"
+                            >
+                                <i class="bi bi-person"></i>
+                            </div>
+
+                            <div>
+
+                                <div class="nombre-estado">
+
+                                    <h2 id="detalleNombre">
+                                        Dr. Diego Herrera
+                                    </h2>
+
+                                    <span
+                                        class="estado-badge pendiente"
+                                        id="detalleEstado"
+                                    >
+                                        <span></span>
+                                        Pendiente
+                                    </span>
+
+                                </div>
+
+
+                                <strong
+                                    class="detalle-especialidad"
+                                    id="detalleEspecialidad"
+                                >
+                                    Psicología organizacional
+                                </strong>
+
+
+                                <div class="datos-contacto">
+
+                                    <span>
+                                        <i class="bi bi-envelope"></i>
+                                        <span id="detalleCorreo">
+                                            diego.herrera@correo.com
+                                        </span>
+                                    </span>
+
+                                    <span>
+                                        <i class="bi bi-telephone"></i>
+                                        <span id="detalleTelefono">
+                                            +57 300 123 4567
+                                        </span>
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            class="btn-ver-perfil"
+                            id="btnVerPerfil"
+                        >
+                            <i class="bi bi-person-vcard"></i>
+                            Ver perfil completo
+                        </button>
+
+                    </div>
+
+
+                    <!-- DATOS PROFESIONALES -->
+
+                    <div class="datos-profesionales">
+
+                        <div class="dato-profesional">
+
+                            <div class="dato-icono">
+                                <i class="bi bi-calendar3"></i>
+                            </div>
+
+                            <div>
+
+                                <span>Registro</span>
+
+                                <strong id="detalleRegistro">
+                                    Hace 3 días
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="dato-profesional">
+
+                            <div class="dato-icono">
+                                <i class="bi bi-geo-alt"></i>
+                            </div>
+
+                            <div>
+
+                                <span>Ciudad</span>
+
+                                <strong id="detalleCiudad">
+                                    Bogotá, Colombia
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="dato-profesional">
+
+                            <div class="dato-icono">
+                                <i class="bi bi-briefcase"></i>
+                            </div>
+
+                            <div>
+
+                                <span>Experiencia</span>
+
+                                <strong id="detalleExperiencia">
+                                    5 años
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- DOCUMENTOS -->
+
+                    <div class="documentos-section">
+
+                        <div class="section-title">
+
+                            <div>
+
+                                <h3>Documentos</h3>
+
+                                <p>
+                                    Revisa cada documento antes de tomar una decisión.
+                                </p>
+
+                            </div>
+
+                            <span class="documentos-count">
+                                3 documentos
+                            </span>
+
+                        </div>
+
+
+                        <!-- DIPLOMA -->
+
+                        <div class="documento-row">
+
+                            <div class="documento-info">
+
+                                <div class="documento-icono">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        Diploma universitario
+                                    </strong>
+
+                                    <span>
+                                        Documento de formación académica
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="documento-actions">
+
+                                <button
+                                    type="button"
+                                    class="btn-documento btn-ver-documento"
+                                    data-documento="Diploma universitario"
+                                >
+                                    <i class="bi bi-eye"></i>
+                                    Ver
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn-documento btn-descargar-documento"
+                                    data-documento="Diploma universitario"
+                                >
+                                    <i class="bi bi-download"></i>
+                                    Descargar
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- TARJETA -->
+
+                        <div class="documento-row">
+
+                            <div class="documento-info">
+
+                                <div class="documento-icono">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        Tarjeta profesional
+                                    </strong>
+
+                                    <span>
+                                        Registro profesional
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="documento-actions">
+
+                                <button
+                                    type="button"
+                                    class="btn-documento btn-ver-documento"
+                                    data-documento="Tarjeta profesional"
+                                >
+                                    <i class="bi bi-eye"></i>
+                                    Ver
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn-documento btn-descargar-documento"
+                                    data-documento="Tarjeta profesional"
+                                >
+                                    <i class="bi bi-download"></i>
+                                    Descargar
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- CÉDULA -->
+
+                        <div class="documento-row">
+
+                            <div class="documento-info">
+
+                                <div class="documento-icono">
+                                    <i class="bi bi-person-vcard"></i>
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        Cédula de ciudadanía
+                                    </strong>
+
+                                    <span>
+                                        Documento de identidad
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="documento-actions">
+
+                                <button
+                                    type="button"
+                                    class="btn-documento btn-ver-documento"
+                                    data-documento="Cédula de ciudadanía"
+                                >
+                                    <i class="bi bi-eye"></i>
+                                    Ver
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn-documento btn-descargar-documento"
+                                    data-documento="Cédula de ciudadanía"
+                                >
+                                    <i class="bi bi-download"></i>
+                                    Descargar
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- DECISIÓN -->
+
+                    <div class="decision-section">
+
+                        <div>
+
+                            <strong>
+                                ¿Qué deseas hacer con esta solicitud?
+                            </strong>
+
+                            <span>
+                                La decisión cambiará el estado del psicólogo.
+                            </span>
+
+                        </div>
+
+
+                        <div class="decision-buttons">
+
+                            <button
+                                type="button"
+                                class="btn-verificar"
+                                id="btnVerificar"
+                            >
+                                <i class="bi bi-check-lg"></i>
+                                Verificar y activar
+                            </button>
+
+                            <button
+                                type="button"
+                                class="btn-rechazar"
+                                id="btnRechazar"
+                            >
+                                <i class="bi bi-x-lg"></i>
+                                Rechazar
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </section>
+
+
+        <!-- =================================================
+             NAVEGACIÓN INFERIOR
+        ================================================== -->
+
+        <div class="revision-footer">
+
+            <button
+                type="button"
+                class="btn-navegacion"
+                id="btnAnterior"
+                aria-label="Solicitud anterior"
+            >
+                <i class="bi bi-chevron-left"></i>
+            </button>
+
+
+            <div
+                class="footer-dots"
+                id="footerDots"
+            >
+                <!-- JAVASCRIPT -->
+            </div>
+
+
+            <button
+                type="button"
+                class="btn-navegacion"
+                id="btnSiguiente"
+                aria-label="Siguiente solicitud"
+            >
+                <i class="bi bi-chevron-right"></i>
+            </button>
+
+
+            <span class="footer-hint">
+                Usa las flechas para revisar
+            </span>
+
+        </div>
+
+    </main>
+
+
+    <!-- =====================================================
+         MODAL DOCUMENTO
+    ====================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="modalDocumento"
+    >
+
+        <div class="modal-documento">
+
+            <div class="modal-documento-header">
+
+                <div>
+
+                    <span class="modal-kicker">
+                        Documento
+                    </span>
+
+                    <h2 id="modalDocumentoTitulo">
+                        Diploma universitario
+                    </h2>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="btn-cerrar-modal"
+                    data-cerrar="modalDocumento"
+                >
+                    <i class="bi bi-x-lg"></i>
+                </button>
+
+            </div>
+
+
+            <div class="documento-preview">
+
+                <div class="documento-preview-icono">
+
+                    <i class="bi bi-file-earmark-pdf"></i>
+
+                </div>
+
+                <h3 id="modalDocumentoNombre">
+                    Diploma universitario
+                </h3>
+
+                <p>
+                    Aquí se mostrará la vista previa del documento
+                    cargado por el psicólogo.
+                </p>
+
+                <span class="preview-aviso">
+                    Vista previa
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MODAL PERFIL
+    ====================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="modalPerfil"
+    >
+
+        <div class="modal-perfil">
+
+            <div class="modal-documento-header">
+
+                <div>
+
+                    <span class="modal-kicker">
+                        Perfil profesional
+                    </span>
+
+                    <h2 id="perfilNombre">
+                        Dr. Diego Herrera
+                    </h2>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="btn-cerrar-modal"
+                    data-cerrar="modalPerfil"
+                >
+                    <i class="bi bi-x-lg"></i>
+                </button>
+
+            </div>
+
+
+            <div class="perfil-modal-body">
+
+                <div class="perfil-modal-header">
+
+                    <div class="perfil-modal-avatar">
+                        <i class="bi bi-person"></i>
+                    </div>
+
+                    <div>
+
+                        <h3 id="perfilNombreHeader">
+                            Dr. Diego Herrera
+                        </h3>
+
+                        <p id="perfilEspecialidad">
+                            Psicología organizacional
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="perfil-grid">
+
+                    <div class="perfil-dato">
+
+                        <span>Correo</span>
+
+                        <strong id="perfilCorreo">
+                            diego.herrera@correo.com
+                        </strong>
+
+                    </div>
+
+
+                    <div class="perfil-dato">
+
+                        <span>Teléfono</span>
+
+                        <strong id="perfilTelefono">
+                            +57 300 123 4567
+                        </strong>
+
+                    </div>
+
+
+                    <div class="perfil-dato">
+
+                        <span>Ciudad</span>
+
+                        <strong id="perfilCiudad">
+                            Bogotá, Colombia
+                        </strong>
+
+                    </div>
+
+
+                    <div class="perfil-dato">
+
+                        <span>Experiencia</span>
+
+                        <strong id="perfilExperiencia">
+                            5 años
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="perfil-descripcion">
+
+                    <span>Información profesional</span>
+
+                    <p id="perfilDescripcion">
+                        Profesional registrado en la plataforma
+                        para ejercer como psicólogo.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MODAL RECHAZAR
+    ====================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="modalRechazar"
+    >
+
+        <div class="modal-rechazar">
+
+            <div class="modal-documento-header">
+
+                <div>
+
+                    <span class="modal-kicker rojo">
+                        Revisión
+                    </span>
+
+                    <h2>Rechazar solicitud</h2>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="btn-cerrar-modal"
+                    data-cerrar="modalRechazar"
+                >
+                    <i class="bi bi-x-lg"></i>
+                </button>
+
+            </div>
+
+
+            <div class="rechazar-body">
+
+                <div class="alerta-rechazo">
+
+                    <i class="bi bi-exclamation-circle"></i>
+
+                    <p>
+                        Escribe el motivo del rechazo para que
+                        el psicólogo pueda saber qué debe corregir.
+                    </p>
+
+                </div>
+
+
+                <label for="motivoRechazo">
+                    Motivo del rechazo
+                </label>
+
+                <textarea
+                    id="motivoRechazo"
+                    placeholder="Escribe aquí el motivo..."
+                ></textarea>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn-cancelar"
+                    data-cerrar="modalRechazar"
+                >
+                    Cancelar
+                </button>
+
+
+                <button
+                    type="button"
+                    class="btn-confirmar-rechazo"
+                    id="btnConfirmarRechazo"
+                >
+                    <i class="bi bi-x-lg"></i>
+                    Confirmar rechazo
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     JAVASCRIPT
+====================================================== -->
+
+<script is:inline>
+
+    const psicologos = [
+
+        {
+            id: 1,
+            nombre: "Dra. Laura Torres",
+            especialidad: "Psicología clínica",
+            correo: "laura.torres@correo.com",
+            telefono: "+57 300 111 2233",
+            registro: "Hace 2 días",
+            ciudad: "Bogotá, Colombia",
+            experiencia: "7 años",
+            estado: "Pendiente",
+            color: "morado"
+        },
+
+        {
+            id: 2,
+            nombre: "Dr. Andrés Silva",
+            especialidad: "Psicología educativa",
+            correo: "andres.silva@correo.com",
+            telefono: "+57 301 222 3344",
+            registro: "Hace 2 días",
+            ciudad: "Medellín, Colombia",
+            experiencia: "4 años",
+            estado: "Pendiente",
+            color: "azul"
+        },
+
+        {
+            id: 3,
+            nombre: "Lic. Valentina Rojas",
+            especialidad: "Psicología infantil",
+            correo: "valentina.rojas@correo.com",
+            telefono: "+57 302 333 4455",
+            registro: "Hace 3 días",
+            ciudad: "Cali, Colombia",
+            experiencia: "6 años",
+            estado: "Pendiente",
+            color: "rosa"
+        },
+
+        {
+            id: 4,
+            nombre: "Dr. Diego Herrera",
+            especialidad: "Psicología organizacional",
+            correo: "diego.herrera@correo.com",
+            telefono: "+57 300 123 4567",
+            registro: "Hace 3 días",
+            ciudad: "Bogotá, Colombia",
+            experiencia: "5 años",
+            estado: "Pendiente",
+            color: "verde"
+        },
+
+        {
+            id: 5,
+            nombre: "Dra. Camila Navarro",
+            especialidad: "Psicología clínica",
+            correo: "camila.navarro@correo.com",
+            telefono: "+57 303 444 5566",
+            registro: "Hace 4 días",
+            ciudad: "Bogotá, Colombia",
+            experiencia: "8 años",
+            estado: "Pendiente",
+            color: "azul"
+        },
+
+        {
+            id: 6,
+            nombre: "Lic. Santiago Muñoz",
+            especialidad: "Psicología educativa",
+            correo: "santiago.munoz@correo.com",
+            telefono: "+57 304 555 6677",
+            registro: "Hace 5 días",
+            ciudad: "Tunja, Colombia",
+            experiencia: "3 años",
+            estado: "Pendiente",
+            color: "rosa"
+        },
+
+        {
+            id: 7,
+            nombre: "Dra. Patricia Gómez",
+            especialidad: "Psicología infantil",
+            correo: "patricia.gomez@correo.com",
+            telefono: "+57 305 666 7788",
+            registro: "Hace 5 días",
+            ciudad: "Manizales, Colombia",
+            experiencia: "9 años",
+            estado: "Pendiente",
+            color: "azul"
+        },
+
+        {
+            id: 8,
+            nombre: "Dr. Felipe Martínez",
+            especialidad: "Psicología organizacional",
+            correo: "felipe.martinez@correo.com",
+            telefono: "+57 306 777 8899",
+            registro: "Hace 6 días",
+            ciudad: "Barranquilla, Colombia",
+            experiencia: "5 años",
+            estado: "Pendiente",
+            color: "verde"
+        }
+
+    ];
+
+
+    let indiceActual = -1;
+
+
+    const lista = document.getElementById("listaPsicologos");
+    const detalleVacio = document.getElementById("detalleVacio");
+    const detalleContenido = document.getElementById("detalleContenido");
+
+    const resumenMenu = document.getElementById("resumenMenu");
+    const btnResumen = document.getElementById("btnResumen");
+
+    const buscar = document.getElementById("buscarPsicologo");
+    const filtroEspecialidad = document.getElementById("filtroEspecialidad");
+    const filtroEstado = document.getElementById("filtroEstado");
+
+    const footerDots = document.getElementById("footerDots");
+
+
+    /* =====================================================
+       RESUMEN
+    ====================================================== */
+
+    btnResumen.addEventListener("click", function (event) {
+
+        event.stopPropagation();
+
+        resumenMenu.classList.toggle("mostrar");
+
+    });
+
+
+    document.addEventListener("click", function (event) {
+
+        if (
+            !event.target.closest(".header-actions")
+        ) {
+
+            resumenMenu.classList.remove("mostrar");
+
+        }
+
+    });
+
+
+    /* =====================================================
+       RENDER LISTA
+    ====================================================== */
+
+    function obtenerFiltrados() {
+
+        const texto = buscar.value.toLowerCase().trim();
+
+        const especialidad = filtroEspecialidad.value;
+
+        const estado = filtroEstado.value;
+
+
+        return psicologos.filter(function (psicologo) {
+
+            const coincideNombre =
+                psicologo.nombre.toLowerCase().includes(texto) ||
+                psicologo.especialidad.toLowerCase().includes(texto);
+
+            const coincideEspecialidad =
+                !especialidad ||
+                psicologo.especialidad === especialidad;
+
+            const coincideEstado =
+                !estado ||
+                psicologo.estado === estado;
+
+
+            return (
+                coincideNombre &&
+                coincideEspecialidad &&
+                coincideEstado
+            );
+
+        });
+
+    }
+
+
+    function renderLista() {
+
+        const filtrados = obtenerFiltrados();
+
+        lista.innerHTML = "";
+
+
+        if (filtrados.length === 0) {
+
+            lista.innerHTML = `
+                <div class="lista-vacia">
+                    <i class="bi bi-person-x"></i>
+                    <span>No se encontraron psicólogos.</span>
+                </div>
+            `;
+
+            indiceActual = -1;
+
+            mostrarVacio();
+
+            actualizarDots([]);
+
+            actualizarResumen();
+
+            return;
+
+        }
+
+
+        filtrados.forEach(function (psicologo) {
+
+            const item = document.createElement("button");
+
+            item.type = "button";
+
+            item.className = "psicologo-item";
+
+            item.dataset.id = psicologo.id;
+
+
+            if (
+                indiceActual !== -1 &&
+                psicologos[indiceActual] &&
+                psicologos[indiceActual].id === psicologo.id
+            ) {
+
+                item.classList.add("seleccionado");
+
+            }
+
+
+            item.innerHTML = `
+
+                <div class="psicologo-avatar avatar-${psicologo.color}">
+                    <i class="bi bi-person"></i>
+                </div>
+
+                <div class="psicologo-item-info">
+
+                    <strong>
+                        ${psicologo.nombre}
+                    </strong>
+
+                    <span>
+                        ${psicologo.especialidad}
+                    </span>
+
+                    <small>
+                        ${psicologo.registro}
+                    </small>
+
+                </div>
+
+                <span
+                    class="punto-estado ${psicologo.estado.toLowerCase()}"
+                ></span>
+
+            `;
+
+
+            item.addEventListener("click", function () {
+
+                seleccionarPsicologo(psicologo.id);
+
+            });
+
+
+            lista.appendChild(item);
+
+        });
+
+
+        actualizarDots(filtrados);
+
+        actualizarResumen();
+
+    }
+
+
+    /* =====================================================
+       SELECCIONAR
+    ====================================================== */
+
+    function seleccionarPsicologo(id) {
+
+        const indice = psicologos.findIndex(function (item) {
+
+            return item.id === id;
+
+        });
+
+
+        if (indice === -1) {
+            return;
+        }
+
+
+        indiceActual = indice;
+
+        const psicologo = psicologos[indice];
+
+
+        detalleVacio.hidden = true;
+
+        detalleContenido.hidden = false;
+
+
+        document.getElementById("detalleNombre").textContent =
+            psicologo.nombre;
+
+        document.getElementById("detalleEspecialidad").textContent =
+            psicologo.especialidad;
+
+        document.getElementById("detalleCorreo").textContent =
+            psicologo.correo;
+
+        document.getElementById("detalleTelefono").textContent =
+            psicologo.telefono;
+
+        document.getElementById("detalleRegistro").textContent =
+            psicologo.registro;
+
+        document.getElementById("detalleCiudad").textContent =
+            psicologo.ciudad;
+
+        document.getElementById("detalleExperiencia").textContent =
+            psicologo.experiencia;
+
+
+        const estado = document.getElementById("detalleEstado");
+
+        estado.className =
+            "estado-badge " +
+            psicologo.estado.toLowerCase();
+
+        estado.innerHTML = `
+            <span></span>
+            ${psicologo.estado}
+        `;
+
+
+        actualizarListaSeleccionada();
+
+    }
+
+
+    function actualizarListaSeleccionada() {
+
+        const items =
+            lista.querySelectorAll(".psicologo-item");
+
+
+        items.forEach(function (item) {
+
+            const id =
+                Number(item.dataset.id);
+
+
+            item.classList.toggle(
+                "seleccionado",
+                psicologos[indiceActual] &&
+                psicologos[indiceActual].id === id
+            );
+
+        });
+
+    }
+
+
+    function mostrarVacio() {
+
+        detalleVacio.hidden = false;
+
+        detalleContenido.hidden = true;
+
+    }
+
+
+    /* =====================================================
+       PUNTICOS INFERIORES
+    ====================================================== */
+
+    function actualizarDots(items) {
+
+        footerDots.innerHTML = "";
+
+
+        items.forEach(function (psicologo, posicion) {
+
+            const dot =
+                document.createElement("button");
+
+
+            dot.type = "button";
+
+            dot.className = "footer-dot";
+
+
+            if (
+                psicologos[indiceActual] &&
+                psicologos[indiceActual].id === psicologo.id
+            ) {
+
+                dot.classList.add("activo");
+
+            }
+
+
+            dot.title = psicologo.nombre;
+
+
+            dot.addEventListener("click", function () {
+
+                seleccionarPsicologo(psicologo.id);
+
+            });
+
+
+            footerDots.appendChild(dot);
+
+        });
+
+    }
+
+
+    /* =====================================================
+       ANTERIOR
+    ====================================================== */
+
+    document
+        .getElementById("btnAnterior")
+        .addEventListener("click", function () {
+
+            const filtrados = obtenerFiltrados();
+
+
+            if (filtrados.length === 0) {
+                return;
+            }
+
+
+            if (indiceActual === -1) {
+
+                seleccionarPsicologo(
+                    filtrados[0].id
+                );
+
+                return;
+
+            }
+
+
+            const posicion =
+                filtrados.findIndex(function (item) {
+
+                    return item.id ===
+                        psicologos[indiceActual].id;
+
+                });
+
+
+            const anterior =
+                posicion <= 0
+                    ? filtrados[filtrados.length - 1]
+                    : filtrados[posicion - 1];
+
+
+            seleccionarPsicologo(anterior.id);
+
+            actualizarDots(filtrados);
+
+        });
+
+
+    /* =====================================================
+       SIGUIENTE
+    ====================================================== */
+
+    document
+        .getElementById("btnSiguiente")
+        .addEventListener("click", function () {
+
+            const filtrados = obtenerFiltrados();
+
+
+            if (filtrados.length === 0) {
+                return;
+            }
+
+
+            if (indiceActual === -1) {
+
+                seleccionarPsicologo(
+                    filtrados[0].id
+                );
+
+                return;
+
+            }
+
+
+            const posicion =
+                filtrados.findIndex(function (item) {
+
+                    return item.id ===
+                        psicologos[indiceActual].id;
+
+                });
+
+
+            const siguiente =
+                posicion >= filtrados.length - 1
+                    ? filtrados[0]
+                    : filtrados[posicion + 1];
+
+
+            seleccionarPsicologo(siguiente.id);
+
+            actualizarDots(filtrados);
+
+        });
+
+
+    /* =====================================================
+       FILTROS
+    ====================================================== */
+
+    buscar.addEventListener("input", function () {
+
+        renderLista();
+
+    });
+
+
+    filtroEspecialidad.addEventListener("change", function () {
+
+        renderLista();
+
+    });
+
+
+    filtroEstado.addEventListener("change", function () {
+
+        renderLista();
+
+    });
+
+
+    /* =====================================================
+       MODAL PERFIL
+    ====================================================== */
+
+    document
+        .getElementById("btnVerPerfil")
+        .addEventListener("click", function () {
+
+            if (indiceActual === -1) {
+                return;
+            }
+
+
+            const psicologo =
+                psicologos[indiceActual];
+
+
+            document.getElementById("perfilNombre").textContent =
+                psicologo.nombre;
+
+            document.getElementById("perfilNombreHeader").textContent =
+                psicologo.nombre;
+
+            document.getElementById("perfilEspecialidad").textContent =
+                psicologo.especialidad;
+
+            document.getElementById("perfilCorreo").textContent =
+                psicologo.correo;
+
+            document.getElementById("perfilTelefono").textContent =
+                psicologo.telefono;
+
+            document.getElementById("perfilCiudad").textContent =
+                psicologo.ciudad;
+
+            document.getElementById("perfilExperiencia").textContent =
+                psicologo.experiencia;
+
+
+            abrirModal("modalPerfil");
+
+        });
+
+
+    /* =====================================================
+       VER DOCUMENTO
+    ====================================================== */
+
+    document
+        .querySelectorAll(".btn-ver-documento")
+        .forEach(function (boton) {
+
+            boton.addEventListener("click", function () {
+
+                const nombre =
+                    boton.dataset.documento;
+
+
+                document.getElementById(
+                    "modalDocumentoTitulo"
+                ).textContent = nombre;
+
+
+                document.getElementById(
+                    "modalDocumentoNombre"
+                ).textContent = nombre;
+
+
+                abrirModal("modalDocumento");
+
+            });
+
+        });
+
+
+    /* =====================================================
+       DESCARGAR DOCUMENTO
+    ====================================================== */
+
+    document
+        .querySelectorAll(".btn-descargar-documento")
+        .forEach(function (boton) {
+
+            boton.addEventListener("click", function () {
+
+                const nombre =
+                    boton.dataset.documento;
+
+
+                const contenido =
+                    "Documento de prueba de PSYNEX\n\n" +
+                    nombre;
+
+
+                const archivo =
+                    new Blob(
+                        [contenido],
+                        { type: "text/plain" }
+                    );
+
+
+                const url =
+                    URL.createObjectURL(archivo);
+
+
+                const enlace =
+                    document.createElement("a");
+
+
+                enlace.href = url;
+
+                enlace.download =
+                    nombre.replaceAll(" ", "_") +
+                    ".txt";
+
+
+                enlace.click();
+
+
+                URL.revokeObjectURL(url);
+
+            });
+
+        });
+
+
+    /* =====================================================
+       VERIFICAR
+    ====================================================== */
+
+    document
+        .getElementById("btnVerificar")
+        .addEventListener("click", function () {
+
+            if (indiceActual === -1) {
+                return;
+            }
+
+
+            psicologos[indiceActual].estado =
+                "Verificado";
+
+
+            const id =
+                psicologos[indiceActual].id;
+
+
+            indiceActual = -1;
+
+
+            renderLista();
+
+            mostrarVacio();
+
+            actualizarResumen();
+
+
+            alert(
+                "El psicólogo fue verificado y activado correctamente."
+            );
+
+        });
+
+
+    /* =====================================================
+       RECHAZAR
+    ====================================================== */
+
+    document
+        .getElementById("btnRechazar")
+        .addEventListener("click", function () {
+
+            if (indiceActual === -1) {
+                return;
+            }
+
+
+            document.getElementById(
+                "motivoRechazo"
+            ).value = "";
+
+
+            abrirModal("modalRechazar");
+
+        });
+
+
+    /* =====================================================
+       CONFIRMAR RECHAZO
+    ====================================================== */
+
+    document
+        .getElementById("btnConfirmarRechazo")
+        .addEventListener("click", function () {
+
+            if (indiceActual === -1) {
+                return;
+            }
+
+
+            const motivo =
+                document.getElementById(
+                    "motivoRechazo"
+                ).value.trim();
+
+
+            if (!motivo) {
+
+                alert(
+                    "Debes escribir el motivo del rechazo."
+                );
+
+                return;
+
+            }
+
+
+            psicologos[indiceActual].estado =
+                "Rechazado";
+
+
+            indiceActual = -1;
+
+
+            cerrarModal("modalRechazar");
+
+            renderLista();
+
+            mostrarVacio();
+
+            actualizarResumen();
+
+        });
+
+
+    /* =====================================================
+       MODALES
+    ====================================================== */
+
+    function abrirModal(id) {
+
+        const modal =
+            document.getElementById(id);
+
+
+        modal.classList.add("mostrar");
+
+        document.body.classList.add(
+            "modal-abierto"
+        );
+
+    }
+
+
+    function cerrarModal(id) {
+
+        const modal =
+            document.getElementById(id);
+
+
+        modal.classList.remove("mostrar");
+
+        document.body.classList.remove(
+            "modal-abierto"
+        );
+
+    }
+
+
+    document
+        .querySelectorAll("[data-cerrar]")
+        .forEach(function (boton) {
+
+            boton.addEventListener("click", function () {
+
+                cerrarModal(
+                    boton.dataset.cerrar
+                );
+
+            });
+
+        });
+
+
+    document
+        .querySelectorAll(".modal-overlay")
+        .forEach(function (modal) {
+
+            modal.addEventListener(
+                "click",
+                function (event) {
+
+                    if (
+                        event.target === modal
+                    ) {
+
+                        cerrarModal(modal.id);
+
+                    }
+
+                }
+            );
+
+        });
+
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key !== "Escape") {
+                return;
+            }
+
+
+            document
+                .querySelectorAll(".modal-overlay.mostrar")
+                .forEach(function (modal) {
+
+                    cerrarModal(modal.id);
+
+                });
+
+        }
+    );
+
+
+    /* =====================================================
+       RESUMEN
+    ====================================================== */
+
+    function actualizarResumen() {
+
+        const total =
+            psicologos.length;
+
+
+        const verificados =
+            psicologos.filter(function (item) {
+
+                return item.estado === "Verificado";
+
+            }).length;
+
+
+        const pendientes =
+            psicologos.filter(function (item) {
+
+                return item.estado === "Pendiente";
+
+            }).length;
+
+
+        const rechazados =
+            psicologos.filter(function (item) {
+
+                return item.estado === "Rechazado";
+
+            }).length;
+
+
+        document.getElementById(
+            "resumenTotal"
+        ).textContent = total;
+
+
+        document.getElementById(
+            "resumenVerificados"
+        ).textContent = verificados;
+
+
+        document.getElementById(
+            "resumenPendientes"
+        ).textContent = pendientes;
+
+
+        document.getElementById(
+            "resumenRechazados"
+        ).textContent = rechazados;
+
+
+        document.getElementById(
+            "contadorPendientes"
+        ).textContent =
+            pendientes + " pendientes";
+
+    }
+
+
+    /* =====================================================
+       INICIALIZAR
+    ====================================================== */
+
+    renderLista();
+
+    actualizarResumen();
+
+</script>

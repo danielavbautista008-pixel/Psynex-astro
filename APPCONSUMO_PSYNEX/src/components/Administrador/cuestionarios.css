@@ -1,0 +1,2389 @@
+/* =====================================================
+   VARIABLES
+===================================================== */
+
+:root {
+    --cuestionarios-primary: var(--primary, #8f5bd7);
+    --cuestionarios-primary-hover: var(--primary-hover, #7d49c4);
+
+    --cuestionarios-bg: var(--bg, #f5efff);
+    --cuestionarios-surface: var(--surface, #ffffff);
+
+    --cuestionarios-text: var(--text, #43246d);
+    --cuestionarios-muted: var(--text-muted, #806e91);
+
+    --cuestionarios-border: var(--border, #e7dff0);
+
+    --verde: #18b77a;
+    --verde-suave: #e0f8ee;
+
+    --rojo: #ef5350;
+    --rojo-suave: #fde6e6;
+
+    --azul: #4f8df7;
+    --azul-suave: #e7efff;
+
+    --naranja: #f59e0b;
+    --naranja-suave: #fff0d9;
+
+    --rosa: #e878b2;
+    --rosa-suave: #fde8f3;
+
+    --morado-suave: #eee5ff;
+}
+
+
+/* =====================================================
+   RESET
+===================================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+
+body {
+    margin: 0;
+    font-family: "Roboto", Arial, sans-serif;
+    background: var(--cuestionarios-bg);
+    color: var(--cuestionarios-text);
+}
+
+
+button,
+input,
+select,
+textarea {
+    font-family: inherit;
+}
+
+
+button {
+    cursor: pointer;
+}
+
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: .45;
+}
+
+
+/* =====================================================
+   LAYOUT GENERAL
+===================================================== */
+
+.cuestionarios-layout {
+    min-height: 100vh;
+    width: 100%;
+}
+
+
+.cuestionarios-page {
+    min-height: 100vh;
+
+    margin-left: 310px;
+
+    width: calc(100% - 310px);
+
+    padding: 28px 34px 50px;
+
+    background: var(--cuestionarios-bg);
+
+    overflow-x: hidden;
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.page-header {
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 25px;
+
+    margin-bottom: 24px;
+}
+
+
+.header-info {
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+}
+
+
+.header-icon {
+    width: 46px;
+    height: 46px;
+
+    flex: 0 0 46px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 14px;
+
+    background: var(--cuestionarios-primary);
+
+    color: var(--on-primary, #fff);
+
+    font-size: 21px;
+}
+
+
+.header-info h1 {
+    margin: 0;
+
+    font-size: 27px;
+
+    font-weight: 750;
+
+    letter-spacing: -.4px;
+}
+
+
+.header-info p {
+    margin: 4px 0 0;
+
+    font-size: 13px;
+
+    color: var(--cuestionarios-muted);
+}
+
+
+.btn-nuevo {
+    border: 0;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 12px 18px;
+
+    border-radius: 11px;
+
+    background: var(--cuestionarios-primary);
+
+    color: var(--on-primary, #fff);
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    transition:
+        transform .2s ease,
+        background .2s ease,
+        box-shadow .2s ease;
+}
+
+
+.btn-nuevo:hover {
+    background: var(--cuestionarios-primary-hover);
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 8px 18px rgba(80, 40, 120, .14);
+}
+
+
+/* =====================================================
+   DASHBOARD CONTENT
+===================================================== */
+
+.dashboard-content {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        355px;
+
+    gap: 24px;
+
+    align-items: start;
+}
+
+
+/* =====================================================
+   SECTION HEADING
+===================================================== */
+
+.section-heading {
+    margin-bottom: 14px;
+}
+
+
+.section-heading h2 {
+    margin: 0;
+
+    font-size: 19px;
+
+    font-weight: 750;
+}
+
+
+.section-heading span {
+    display: block;
+
+    margin-top: 3px;
+
+    color: var(--cuestionarios-muted);
+
+    font-size: 12px;
+}
+
+
+/* =====================================================
+   FILTROS
+===================================================== */
+
+.filtros {
+    display: grid;
+
+    grid-template-columns:
+        minmax(220px, 1fr)
+        220px
+        180px;
+
+    gap: 12px;
+
+    margin-bottom: 18px;
+}
+
+
+.buscador {
+    height: 46px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 0 14px;
+
+    background: var(--cuestionarios-surface);
+
+    border: 1px solid var(--cuestionarios-border);
+
+    border-radius: 11px;
+
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease;
+}
+
+
+.buscador:focus-within {
+    border-color: var(--cuestionarios-primary);
+
+    box-shadow:
+        0 0 0 3px
+        color-mix(
+            in srgb,
+            var(--cuestionarios-primary) 12%,
+            transparent
+        );
+}
+
+
+.buscador i {
+    color: var(--cuestionarios-primary);
+
+    font-size: 17px;
+}
+
+
+.buscador input {
+    width: 100%;
+
+    border: 0;
+
+    outline: 0;
+
+    background: transparent;
+
+    color: var(--cuestionarios-text);
+
+    font-size: 13px;
+}
+
+
+.buscador input::placeholder {
+    color: #a99db3;
+}
+
+
+.filtros select {
+    height: 46px;
+
+    width: 100%;
+
+    padding: 0 13px;
+
+    border: 1px solid var(--cuestionarios-border);
+
+    border-radius: 11px;
+
+    background: var(--cuestionarios-surface);
+
+    color: var(--cuestionarios-text);
+
+    outline: 0;
+
+    font-size: 13px;
+
+    cursor: pointer;
+}
+
+
+.filtros select:focus {
+    border-color: var(--cuestionarios-primary);
+}
+
+
+/* =====================================================
+   LISTA
+===================================================== */
+
+.cuestionarios-lista {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 14px;
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.cuestionario-card {
+    width: 100%;
+
+    display: flex;
+
+    gap: 18px;
+
+    padding: 19px;
+
+    background: var(--cuestionarios-surface);
+
+    border: 1px solid var(--cuestionarios-border);
+
+    border-radius: 18px;
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        border-color .2s ease;
+}
+
+
+.cuestionario-card:hover {
+    transform: translateY(-3px);
+
+    border-color:
+        color-mix(
+            in srgb,
+            var(--cuestionarios-primary) 30%,
+            var(--cuestionarios-border)
+        );
+
+    box-shadow:
+        0 10px 25px rgba(65, 35, 95, .08);
+}
+
+
+/* =====================================================
+   ICONO CARD
+===================================================== */
+
+.card-icon {
+    width: 58px;
+    height: 58px;
+
+    flex: 0 0 58px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    font-size: 21px;
+}
+
+
+.categoria-purple {
+    background: #eee5ff;
+
+    color: #8d55d7;
+}
+
+
+.categoria-blue {
+    background: #e5efff;
+
+    color: #4d89ec;
+}
+
+
+.categoria-orange {
+    background: #fff0da;
+
+    color: #f19a15;
+}
+
+
+.categoria-green {
+    background: #e2f8ee;
+
+    color: #18ad76;
+}
+
+
+.categoria-pink {
+    background: #fde8f3;
+
+    color: #d867a0;
+}
+
+
+/* =====================================================
+   CONTENIDO CARD
+===================================================== */
+
+.card-contenido {
+    min-width: 0;
+
+    flex: 1;
+}
+
+
+.card-top {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 18px;
+}
+
+
+.card-top h3 {
+    margin: 0;
+
+    font-size: 17px;
+
+    font-weight: 750;
+
+    color: var(--cuestionarios-text);
+}
+
+
+.card-top p {
+    margin: 5px 0 0;
+
+    max-width: 760px;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+
+    color: var(--cuestionarios-muted);
+}
+
+
+/* =====================================================
+   ESTADO
+===================================================== */
+
+.estado-pill {
+    flex: 0 0 auto;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 7px 11px;
+
+    border-radius: 30px;
+
+    font-size: 11px;
+
+    font-weight: 600;
+}
+
+
+.estado-punto {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+}
+
+
+.estado-pill.activo {
+    color: #087c51;
+
+    background: var(--verde-suave);
+}
+
+
+.estado-pill.activo .estado-punto {
+    background: var(--verde);
+}
+
+
+.estado-pill.inactivo {
+    color: #c43737;
+
+    background: var(--rojo-suave);
+}
+
+
+.estado-pill.inactivo .estado-punto {
+    background: var(--rojo);
+}
+
+
+/* =====================================================
+   DATOS
+===================================================== */
+
+.datos-cuestionario {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 7px;
+
+    margin-top: 13px;
+}
+
+
+.datos-cuestionario span {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 8px 10px;
+
+    border-radius: 8px;
+
+    background: var(--cuestionarios-bg);
+
+    color: var(--cuestionarios-text);
+
+    font-size: 11px;
+}
+
+
+.datos-cuestionario i {
+    font-size: 12px;
+}
+
+
+/* =====================================================
+   FOOTER CARD
+===================================================== */
+
+.card-footer {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-top: 13px;
+
+    padding-top: 13px;
+
+    border-top: 1px solid var(--cuestionarios-border);
+}
+
+
+.card-botones {
+    display: flex;
+
+    gap: 7px;
+
+    flex-wrap: wrap;
+}
+
+
+.btn-card {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 8px 11px;
+
+    border-radius: 8px;
+
+    border: 1px solid var(--cuestionarios-border);
+
+    background: var(--cuestionarios-surface);
+
+    color: var(--cuestionarios-text);
+
+    font-size: 11px;
+
+    transition: all .2s ease;
+}
+
+
+.btn-card:hover {
+    border-color: var(--cuestionarios-primary);
+
+    color: var(--cuestionarios-primary);
+
+    background: var(--cuestionarios-bg);
+}
+
+
+.btn-card.eliminar {
+    color: #e54848;
+}
+
+
+.btn-card.eliminar:hover {
+    border-color: #e54848;
+
+    background: #fff2f2;
+
+    color: #d93636;
+}
+
+
+/* =====================================================
+   SWITCH
+===================================================== */
+
+.switch-container {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    flex: 0 0 auto;
+}
+
+
+.switch-container > span {
+    font-size: 10px;
+
+    color: var(--cuestionarios-muted);
+}
+
+
+.switch {
+    width: 49px;
+    height: 27px;
+
+    padding: 3px;
+
+    border: 0;
+
+    border-radius: 30px;
+
+    background: #d9dadd;
+
+    transition: background .2s ease;
+}
+
+
+.switch span {
+    display: block;
+
+    width: 21px;
+    height: 21px;
+
+    border-radius: 50%;
+
+    background: white;
+
+    box-shadow:
+        0 2px 5px rgba(0,0,0,.15);
+
+    transition: transform .2s ease;
+}
+
+
+.switch.on {
+    background: var(--cuestionarios-primary);
+}
+
+
+.switch.on span {
+    transform: translateX(22px);
+}
+
+
+/* =====================================================
+   ESTADO VACÍO
+===================================================== */
+
+.estado-vacio {
+    padding: 65px 25px;
+
+    text-align: center;
+
+    background: var(--cuestionarios-surface);
+
+    border: 1px dashed var(--cuestionarios-border);
+
+    border-radius: 17px;
+}
+
+
+.estado-vacio-icon {
+    width: 55px;
+    height: 55px;
+
+    margin: 0 auto 14px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: var(--morado-suave);
+
+    color: var(--cuestionarios-primary);
+
+    font-size: 20px;
+}
+
+
+.estado-vacio h3 {
+    margin: 0;
+
+    font-size: 16px;
+}
+
+
+.estado-vacio p {
+    margin: 6px 0 0;
+
+    font-size: 12px;
+
+    color: var(--cuestionarios-muted);
+}
+
+
+/* =====================================================
+   PAGINACIÓN
+===================================================== */
+
+.paginacion {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    margin-top: 22px;
+}
+
+
+.paginas {
+    display: flex;
+
+    gap: 6px;
+}
+
+
+.pagina-btn,
+.pagina-numero {
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px;
+
+    border: 1px solid var(--cuestionarios-border);
+
+    background: var(--cuestionarios-surface);
+
+    color: var(--cuestionarios-text);
+
+    font-size: 12px;
+
+    transition: all .2s ease;
+}
+
+
+.pagina-btn:hover:not(:disabled),
+.pagina-numero:hover {
+    border-color: var(--cuestionarios-primary);
+
+    color: var(--cuestionarios-primary);
+}
+
+
+.pagina-numero.activo {
+    border-color: var(--cuestionarios-primary);
+
+    background: var(--cuestionarios-primary);
+
+    color: white;
+}
+
+
+/* =====================================================
+   COLUMNA LATERAL
+===================================================== */
+
+.columna-lateral {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 18px;
+}
+
+
+/* =====================================================
+   PANEL
+===================================================== */
+
+.panel-lateral {
+    padding: 18px;
+
+    background: var(--cuestionarios-surface);
+
+    border: 1px solid var(--cuestionarios-border);
+
+    border-radius: 18px;
+}
+
+
+.panel-header {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-bottom: 15px;
+}
+
+
+.panel-header h3 {
+    margin: 0;
+
+    font-size: 16px;
+
+    font-weight: 750;
+}
+
+
+.panel-header p {
+    margin: 4px 0 0;
+
+    color: var(--cuestionarios-muted);
+
+    font-size: 11px;
+}
+
+
+.panel-header > i {
+    color: var(--cuestionarios-primary);
+
+    font-size: 17px;
+}
+
+
+/* =====================================================
+   RESUMEN
+===================================================== */
+
+.resumen-grid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 9px;
+}
+
+
+.resumen-item {
+    min-height: 74px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    padding: 11px;
+
+    border: 1px solid var(--cuestionarios-border);
+
+    border-radius: 12px;
+}
+
+
+.resumen-icon {
+    width: 35px;
+    height: 35px;
+
+    flex: 0 0 35px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px;
+
+    font-size: 14px;
+}
+
+
+.resumen-icon.purple {
+    color: #8251d0;
+
+    background: #eee5ff;
+}
+
+
+.resumen-icon.green {
+    color: #0da56b;
+
+    background: #e0f8ee;
+}
+
+
+.resumen-icon.red {
+    color: #e54848;
+
+    background: #fde5e5;
+}
+
+
+.resumen-icon.blue {
+    color: #4b86e9;
+
+    background: #e6efff;
+}
+
+
+.resumen-item strong {
+    display: block;
+
+    font-size: 18px;
+
+    line-height: 1;
+}
+
+
+.resumen-item span {
+    display: block;
+
+    margin-top: 4px;
+
+    font-size: 9px;
+
+    color: var(--cuestionarios-muted);
+}
+
+
+/* =====================================================
+   ACCIONES RÁPIDAS
+===================================================== */
+
+.acciones-rapidas {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+
+.accion-rapida {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        38px 1fr auto;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 8px;
+
+    border: 0;
+
+    background: transparent;
+
+    border-radius: 11px;
+
+    color: var(--cuestionarios-text);
+
+    text-align: left;
+
+    font-size: 12px;
+
+    transition: background .2s ease;
+}
+
+
+.accion-rapida:hover {
+    background: var(--cuestionarios-bg);
+}
+
+
+.accion-icon {
+    width: 36px;
+    height: 36px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+}
+
+
+.accion-icon.purple {
+    color: #8251d0;
+
+    background: #eee5ff;
+}
+
+
+.accion-icon.green {
+    color: #0da56b;
+
+    background: #e0f8ee;
+}
+
+
+.accion-icon.red {
+    color: #e54848;
+
+    background: #fde5e5;
+}
+
+
+.accion-rapida > i {
+    color: var(--cuestionarios-muted);
+
+    transition: transform .2s ease;
+}
+
+
+.accion-rapida:hover > i {
+    transform: translateX(3px);
+
+    color: var(--cuestionarios-primary);
+}
+
+
+/* =====================================================
+   MODALES
+===================================================== */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+
+    z-index: 9999;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: 100vh;
+
+    padding: 24px;
+
+    box-sizing: border-box;
+
+    background: rgba(35, 20, 48, 0.42);
+
+    backdrop-filter: blur(4px);
+}
+
+
+/* Modal visible */
+
+.modal-overlay.mostrar {
+    display: flex;
+}
+
+
+/* Bloquear scroll de la página */
+
+body.modal-abierto {
+    overflow: hidden;
+}
+
+
+/* =====================================================
+   CAJA PRINCIPAL DEL MODAL
+===================================================== */
+
+.modal {
+    position: relative;
+
+    width: 100%;
+
+    max-height: calc(100vh - 48px);
+
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+
+    margin: 0 auto;
+
+    background: var(--cuestionarios-surface);
+
+    border-radius: 20px;
+
+    box-shadow:
+        0 25px 70px rgba(45, 20, 70, 0.22);
+
+    animation: aparecerModal 0.2s ease;
+}
+
+
+/* =====================================================
+   ANIMACIÓN
+===================================================== */
+
+@keyframes aparecerModal {
+
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+}
+
+
+/* =====================================================
+   TAMAÑOS
+===================================================== */
+
+.modal-grande {
+    max-width: 850px;
+}
+
+
+.modal-mediano {
+    max-width: 580px;
+}
+
+
+.modal-estadisticas {
+    max-width: 650px;
+}
+
+
+.modal-pequeno {
+    max-width: 430px;
+
+    padding: 30px;
+
+    text-align: center;
+}
+
+
+/* =====================================================
+   HEADER DEL MODAL
+===================================================== */
+
+.modal-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 24px 28px;
+
+    border-bottom: 1px solid var(--cuestionarios-border);
+}
+
+
+/* =====================================================
+   CUERPO DEL MODAL
+===================================================== */
+
+.modal-body {
+    flex: 1;
+
+    min-height: 0;
+
+    padding: 26px 28px;
+
+    overflow-y: auto;
+}
+
+
+/* =====================================================
+   FOOTER DEL MODAL
+===================================================== */
+
+.modal-footer {
+    display: flex;
+
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 12px;
+
+    padding: 18px 28px;
+
+    border-top: 1px solid var(--cuestionarios-border);
+
+    background: var(--cuestionarios-surface);
+
+    flex-shrink: 0;
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 700px) {
+
+    .modal-overlay {
+        padding: 15px;
+    }
+
+    .modal {
+        max-height: calc(100vh - 30px);
+
+        border-radius: 18px;
+    }
+
+    .modal-header {
+        padding: 20px;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .modal-footer {
+        padding: 16px 20px;
+    }
+
+}
+
+
+@media (max-width: 480px) {
+
+    .modal-overlay {
+        padding: 10px;
+    }
+
+    .modal {
+        max-height: calc(100vh - 20px);
+
+        border-radius: 16px;
+    }
+
+    .modal-header {
+        padding: 18px;
+    }
+
+    .modal-body {
+        padding: 18px;
+    }
+
+    .modal-footer {
+        padding: 15px 18px;
+
+        flex-direction: column-reverse;
+    }
+
+    .modal-footer button {
+        width: 100%;
+    }
+
+}
+
+/* =====================================================
+   HEADER MODAL
+===================================================== */
+
+.modal-header {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 22px 24px;
+
+    border-bottom: 1px solid var(--cuestionarios-border);
+}
+
+
+.modal-header h2 {
+    margin: 0;
+
+    font-size: 19px;
+
+    font-weight: 750;
+}
+
+
+.modal-header p {
+    margin: 5px 0 0;
+
+    font-size: 11px;
+
+    color: var(--cuestionarios-muted);
+}
+
+
+.modal-cerrar {
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border: 0;
+
+    border-radius: 9px;
+
+    background: var(--cuestionarios-bg);
+
+    color: var(--cuestionarios-muted);
+
+    transition: all .2s ease;
+}
+
+
+.modal-cerrar:hover {
+    color: var(--rojo);
+
+    background: var(--rojo-suave);
+}
+
+
+/* =====================================================
+   BODY MODAL
+===================================================== */
+
+.modal-body {
+    overflow-y: auto;
+
+    padding: 22px 24px;
+}
+
+
+/* =====================================================
+   FORMULARIOS
+===================================================== */
+
+.form-grid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 15px;
+}
+
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+
+.form-full {
+    grid-column: 1 / -1;
+}
+
+
+.form-group label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    color: var(--cuestionarios-text);
+}
+
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+
+    padding: 11px 12px;
+
+    border: 1px solid var(--cuestionarios-border);
+
+    border-radius: 9px;
+
+    outline: 0;
+
+    background: var(--cuestionarios-surface);
+
+    color: var(--cuestionarios-text);
+
+    font-size: 12px;
+
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease;
+}
+
+
+.form-group textarea {
+    resize: vertical;
+
+    min-height: 90px;
+}
+
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--cuestionarios-primary);
+
+    box-shadow:
+        0 0 0 3px
+        color-mix(
+            in srgb,
+            var(--cuestionarios-primary) 10%,
+            transparent
+        );
+}
+
+
+/* =====================================================
+   PREGUNTAS
+===================================================== */
+
+.preguntas-section {
+    margin-top: 8px;
+
+    padding-top: 20px;
+
+    border-top: 1px solid var(--cuestionarios-border);
+}
+
+
+.preguntas-heading {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 13px;
+}
+
+
+.preguntas-heading h3 {
+    margin: 0;
+
+    font-size: 15px;
+}
+
+
+.preguntas-heading p {
+    margin: 3px 0 0;
+
+    font-size: 11px;
+
+    color: var(--cuestionarios-muted);
+}
+
+
+.btn-agregar-pregunta {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 8px 11px;
+
+    border: 1px solid var(--cuestionarios-border);
+
+    border-radius: 8px;
+
+    background: var(--cuestionarios-surface);
+
+    color: var(--cuestionarios-primary);
+
+    font-size: 11px;
+
+    font-weight: 600;
+}
+
+
+.btn-agregar-pregunta:hover {
+    background: var(--cuestionarios-bg);
+}
+
+
+.lista-preguntas {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+
+.pregunta-row {
+    display: grid;
+
+    grid-template-columns: 32px 1fr 35px;
+
+    gap: 8px;
+
+    align-items: center;
+}
+
+
+.numero-pregunta {
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+
+    background: var(--morado-suave);
+
+    color: var(--cuestionarios-primary);
+
+    font-size: 11px;
+
+    font-weight: 700;
+}
+
+
+.input-pregunta {
+    width: 100%;
+
+    height: 38px;
+
+    padding: 0 11px;
+
+    border: 1px solid var(--cuestionarios-border);
+
+    border-radius: 8px;
+
+    outline: 0;
+
+    color: var(--cuestionarios-text);
+
+    font-size: 11px;
+}
+
+
+.input-pregunta:focus {
+    border-color: var(--cuestionarios-primary);
+}
+
+
+.btn-eliminar-pregunta {
+    width: 34px;
+    height: 34px;
+
+    border: 0;
+
+    border-radius: 8px;
+
+    background: var(--rojo-suave);
+
+    color: var(--rojo);
+
+    transition: all .2s ease;
+}
+
+
+.btn-eliminar-pregunta:hover {
+    background: var(--rojo);
+
+    color: white;
+}
+
+
+/* =====================================================
+   FOOTER MODAL
+===================================================== */
+
+.modal-footer {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-end;
+
+    gap: 9px;
+
+    padding: 16px 24px;
+
+    border-top: 1px solid var(--cuestionarios-border);
+}
+
+
+.btn-secundario,
+.btn-principal,
+.btn-eliminar-confirmar {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    padding: 10px 15px;
+
+    border-radius: 9px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+}
+
+
+.btn-secundario {
+    border: 1px solid var(--cuestionarios-border);
+
+    background: var(--cuestionarios-surface);
+
+    color: var(--cuestionarios-text);
+}
+
+
+.btn-secundario:hover {
+    background: var(--cuestionarios-bg);
+}
+
+
+.btn-principal {
+    border: 0;
+
+    background: var(--cuestionarios-primary);
+
+    color: white;
+}
+
+
+.btn-principal:hover {
+    background: var(--cuestionarios-primary-hover);
+}
+
+
+.btn-eliminar-confirmar {
+    border: 0;
+
+    background: var(--rojo);
+
+    color: white;
+}
+
+
+.btn-eliminar-confirmar:hover {
+    background: #d93b3b;
+}
+
+
+/* =====================================================
+   CONFIRMACIÓN ELIMINAR
+===================================================== */
+
+/* =====================================================
+   CONFIRMACIÓN ELIMINAR (COMPACTA Y PROFESIONAL)
+===================================================== */
+
+.modal-eliminar-card {
+    max-width: 410px !important;
+    padding: 26px 24px;
+    text-align: center;
+    position: relative;
+    border-radius: 20px;
+}
+
+.modal-cerrar-absoluto {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+}
+
+.confirmacion-icon-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.confirmacion-icon.danger {
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    background: #fde8e8;
+    color: #e53935;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(229, 57, 53, 0.15);
+}
+
+.modal-eliminar-card h2 {
+    margin: 0 0 8px;
+    font-size: 19px;
+    font-weight: 750;
+    color: var(--cuestionarios-text);
+}
+
+.confirmacion-texto {
+    margin: 0 0 16px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--cuestionarios-muted);
+}
+
+.confirmacion-texto strong {
+    color: var(--cuestionarios-text);
+    font-weight: 700;
+}
+
+.advertencia-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: #fff8ec;
+    border: 1px solid #fde3b8;
+    border-radius: 10px;
+    color: #b45309;
+    font-size: 11px;
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.advertencia-box i {
+    font-size: 16px;
+    flex-shrink: 0;
+    color: #d97706;
+}
+
+.confirmacion-botones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+
+/* =====================================================
+   ESTADÍSTICAS MEJORADAS
+===================================================== */
+
+.badge-categoria-modal {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--morado-suave);
+    color: var(--cuestionarios-primary);
+    font-size: 10px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.estadisticas-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.estadistica-box {
+    padding: 14px 10px;
+    text-align: center;
+    border: 1px solid var(--cuestionarios-border);
+    border-radius: 14px;
+    background: var(--cuestionarios-surface);
+    transition: transform 0.2s ease;
+}
+
+.estadistica-box:hover {
+    transform: translateY(-2px);
+}
+
+.estadistica-icon {
+    width: 38px;
+    height: 38px;
+    margin: 0 auto 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+.estadistica-icon.purple {
+    color: #8251d0;
+    background: var(--morado-suave);
+}
+
+.estadistica-icon.green {
+    color: var(--verde);
+    background: var(--verde-suave);
+}
+
+.estadistica-icon.blue {
+    color: var(--azul);
+    background: var(--azul-suave);
+}
+
+.estadistica-icon.orange {
+    color: var(--naranja);
+    background: var(--naranja-suave);
+}
+
+.estadistica-box strong {
+    display: block;
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--cuestionarios-text);
+}
+
+.estadistica-box span {
+    display: block;
+    margin-top: 3px;
+    font-size: 10px;
+    color: var(--cuestionarios-muted);
+}
+
+
+/* =====================================================
+   SECCIÓN DISTRIBUCIÓN DE RIESGO SINTOMÁTICO
+===================================================== */
+
+.seccion-distribucion {
+    margin-top: 18px;
+    padding: 16px 18px;
+    border: 1px solid var(--cuestionarios-border);
+    border-radius: 14px;
+    background: var(--cuestionarios-surface);
+}
+
+.distribucion-header {
+    margin-bottom: 14px;
+}
+
+.distribucion-header h3 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 750;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--cuestionarios-text);
+}
+
+.distribucion-header h3 i {
+    color: var(--cuestionarios-primary);
+}
+
+.distribucion-header span {
+    display: block;
+    margin-top: 2px;
+    font-size: 10px;
+    color: var(--cuestionarios-muted);
+}
+
+.distribucion-barras {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.distribucion-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.distribucion-labels {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+}
+
+.nivel-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+}
+
+.nivel-badge.leve { color: #15803d; }
+.nivel-badge.moderado { color: #b45309; }
+.nivel-badge.severo { color: #b91c1c; }
+
+.porcentaje-val {
+    font-weight: 700;
+    color: var(--cuestionarios-text);
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: var(--cuestionarios-bg);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.4s ease;
+}
+
+.progress-bar-fill.green { background: #22c55e; }
+.progress-bar-fill.orange { background: #f59e0b; }
+.progress-bar-fill.red { background: #ef4444; }
+
+
+/* =====================================================
+   GRÁFICO
+===================================================== */
+
+.grafico-falso {
+    margin-top: 18px;
+    padding: 16px 18px;
+    border: 1px solid var(--cuestionarios-border);
+    border-radius: 14px;
+}
+
+.grafico-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.grafico-header h3 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 750;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.grafico-header h3 i {
+    color: var(--cuestionarios-primary);
+}
+
+.grafico-header span {
+    display: block;
+    margin-top: 2px;
+    font-size: 10px;
+    color: var(--cuestionarios-muted);
+}
+
+.badge-semana {
+    padding: 3px 9px;
+    border-radius: 12px;
+    background: var(--morado-suave);
+    color: var(--cuestionarios-primary);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.barras {
+    height: 150px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    gap: 12px;
+    margin-top: 18px;
+    padding: 0 10px 20px;
+    border-bottom: 1px solid var(--cuestionarios-border);
+}
+
+.barra {
+    position: relative;
+    width: 28px;
+    max-height: 120px;
+    min-height: 18px;
+    border-radius: 6px 6px 2px 2px;
+    background: linear-gradient(180deg, var(--cuestionarios-primary) 0%, #a855f7 100%);
+    transition: height 0.4s ease;
+}
+
+.barra span {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--cuestionarios-muted);
+}
+
+
+/* =====================================================
+   RESPONSIVE 1200
+===================================================== */
+
+@media (max-width: 1200px) {
+
+    .cuestionarios-page {
+        margin-left: 280px;
+
+        width: calc(100% - 280px);
+
+        padding: 25px;
+    }
+
+
+    .dashboard-content {
+        grid-template-columns:
+            minmax(0, 1fr)
+            300px;
+    }
+
+
+    .filtros {
+        grid-template-columns:
+            1fr
+            190px
+            160px;
+    }
+
+}
+
+
+/* =====================================================
+   RESPONSIVE 1000
+===================================================== */
+
+@media (max-width: 1000px) {
+
+    .dashboard-content {
+        grid-template-columns: 1fr;
+    }
+
+
+    .columna-lateral {
+        display: grid;
+
+        grid-template-columns: 1fr 1fr;
+    }
+
+
+    .filtros {
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+
+    .buscador {
+        grid-column: 1 / -1;
+    }
+
+}
+
+
+/* =====================================================
+   RESPONSIVE 800
+===================================================== */
+
+@media (max-width: 800px) {
+
+    .cuestionarios-page {
+        margin-left: 0;
+
+        width: 100%;
+
+        padding: 20px;
+    }
+
+
+    .page-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .btn-nuevo {
+        width: 100%;
+    }
+
+
+    .cuestionario-card {
+        padding: 16px;
+    }
+
+
+    .card-top {
+        flex-direction: column;
+    }
+
+
+    .card-footer {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .switch-container {
+        width: 100%;
+
+        justify-content: space-between;
+    }
+
+
+    .columna-lateral {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* =====================================================
+   RESPONSIVE 600
+===================================================== */
+
+@media (max-width: 600px) {
+
+    .cuestionarios-page {
+        padding: 16px 13px 35px;
+    }
+
+
+    .header-info h1 {
+        font-size: 22px;
+    }
+
+
+    .header-icon {
+        width: 40px;
+        height: 40px;
+
+        flex-basis: 40px;
+    }
+
+
+    .filtros {
+        grid-template-columns: 1fr;
+    }
+
+
+    .buscador {
+        grid-column: auto;
+    }
+
+
+    .cuestionario-card {
+        flex-direction: column;
+
+        gap: 12px;
+    }
+
+
+    .card-icon {
+        width: 48px;
+        height: 48px;
+
+        flex-basis: 48px;
+    }
+
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .form-full {
+        grid-column: auto;
+    }
+
+
+    .estadisticas-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+
+    .modal-overlay {
+        padding: 12px;
+    }
+
+
+    .modal {
+        max-height: 94vh;
+
+        border-radius: 15px;
+    }
+
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding-left: 17px;
+
+        padding-right: 17px;
+    }
+
+
+    .preguntas-heading {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .btn-agregar-pregunta {
+        width: 100%;
+    }
+
+}
+
+
+/* =====================================================
+   RESPONSIVE 430
+===================================================== */
+
+@media (max-width: 430px) {
+
+    .header-info {
+        align-items: flex-start;
+    }
+
+
+    .header-info h1 {
+        font-size: 20px;
+    }
+
+
+    .datos-cuestionario span {
+        width: 100%;
+
+        justify-content: flex-start;
+    }
+
+
+    .card-botones {
+        width: 100%;
+    }
+
+
+    .btn-card {
+        flex: 1;
+
+        justify-content: center;
+    }
+
+
+    .estadisticas-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .pagina-btn,
+    .pagina-numero {
+        width: 31px;
+        height: 31px;
+    }
+
+
+    .pregunta-row {
+        grid-template-columns:
+            30px 1fr 32px;
+    }
+
+}
+
+
+/* =====================================================
+   REDUCIR ANIMACIONES
+===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+
+        animation-iteration-count: 1 !important;
+
+        transition-duration: .01ms !important;
+    }
+
+}

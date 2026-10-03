@@ -123,7 +123,7 @@ import "./login.css";
       </form>
 
       <p class="login-register">
-        ¿No tienes cuenta? <a href="/registro">Regístrate aquí</a>
+        ¿No tienes cuenta? <a href="/Inicio/registro">Regístrate aquí</a>
       </p>
     </div>
   </div>
@@ -207,9 +207,17 @@ import "./login.css";
         successBox.hidden = false;
       }
 
-      // Por ahora mandamos siempre a "/". Cuando tengas vistas por rol
-      // (Paciente / Empresa), aquí va el switch según data.usuario.Rol.
-      window.location.href = "/";
+      // Redirección según el rol del usuario devuelto por la API (con soporte case-insensitive)
+      const rolRaw = String(data.usuario?.Rol ?? data.usuario?.rol ?? "");
+      const rol = rolRaw.toLowerCase().trim();
+
+      if (rol === "admin" || rol === "administrador") {
+        window.location.href = "/Administrador/inicio";
+      } else if (rol === "empresa") {
+        window.location.href = "/Empresa/Inicio";
+      } else {
+        window.location.href = "/";
+      }
     } catch (err) {
       if (errorBox) {
         errorBox.textContent = "No se pudo conectar con el servidor";

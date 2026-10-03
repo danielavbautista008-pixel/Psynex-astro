@@ -1,0 +1,1002 @@
+/* =========================================================
+   ESTADÍSTICAS — BASE
+========================================================= */
+
+.estadistica-page {
+
+    --estadistica-bg: var(--bg, #f7f8fc);
+    --estadistica-surface: var(--surface, #ffffff);
+    --estadistica-primary: var(--primary, #8b5cf6);
+    --estadistica-text: var(--text, #202030);
+    --estadistica-muted: var(--text-muted, #7b7c88);
+    --estadistica-border: var(--border, #e5e6ed);
+
+    min-height: 100vh;
+
+    background: var(--estadistica-bg);
+
+    color: var(--estadistica-text);
+
+}
+
+
+/* =========================================================
+   CONTENIDO
+========================================================= */
+
+.estadistica-content {
+
+    width: calc(100% - 310px);
+
+    margin-left: 310px;
+
+    min-height: 100vh;
+
+    box-sizing: border-box;
+
+    padding: 26px 32px 40px;
+
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.estadistica-header {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 20px;
+
+}
+
+
+.estadistica-title {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 13px;
+
+}
+
+
+.estadistica-title-icon {
+
+    width: 43px;
+
+    height: 43px;
+
+    min-width: 43px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background: var(--primary-soft);
+
+    color: var(--estadistica-primary);
+
+    font-size: 20px;
+
+}
+
+
+.estadistica-title h1 {
+
+    margin: 0;
+
+    font-size: 25px;
+
+    line-height: 1.2;
+
+    font-weight: 750;
+
+    letter-spacing: -.4px;
+
+}
+
+
+.estadistica-title p {
+
+    margin: 4px 0 0;
+
+    color: var(--estadistica-muted);
+
+    font-size: 12px;
+
+}
+
+
+/* =========================================================
+   SELECTOR DE PERÍODO
+========================================================= */
+
+.periodo-selector {
+
+    height: 38px;
+
+    padding: 0 13px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    border: 1px solid var(--estadistica-border);
+
+    border-radius: 10px;
+
+    background: var(--estadistica-surface);
+
+    color: var(--estadistica-muted);
+
+    font-size: 11px;
+
+    white-space: nowrap;
+
+}
+
+
+.periodo-selector i:first-child {
+
+    color: var(--estadistica-primary);
+
+}
+
+
+.periodo-selector i:last-child {
+
+    font-size: 9px;
+
+}
+
+
+/* =========================================================
+   KPI
+========================================================= */
+
+.estadistica-kpis {
+
+    display: grid;
+
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    gap: 14px;
+
+    margin-bottom: 20px;
+
+}
+
+
+.kpi-card {
+
+    position: relative;
+
+    min-width: 0;
+
+    padding: 16px 17px;
+
+    border: 1px solid var(--estadistica-border);
+
+    border-radius: 14px;
+
+    background: var(--estadistica-surface);
+
+    box-sizing: border-box;
+
+    overflow: hidden;
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        border-color .2s ease;
+
+}
+
+
+.kpi-card:hover {
+
+    transform: translateY(-3px);
+
+    border-color: color-mix(
+        in srgb,
+        var(--estadistica-primary) 25%,
+        var(--estadistica-border)
+    );
+
+    box-shadow: 0 8px 22px rgba(30, 25, 50, .06);
+
+}
+
+
+/* =========================================================
+   PARTE SUPERIOR KPI
+========================================================= */
+
+.kpi-top {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 14px;
+
+}
+
+
+.kpi-icon {
+
+    width: 38px;
+
+    height: 38px;
+
+    min-width: 38px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 16px;
+
+}
+
+
+.kpi-purple {
+
+    background: #eee9ff;
+
+    color: #7651e8;
+
+}
+
+
+.kpi-green {
+
+    background: #e1f8ef;
+
+    color: #16a879;
+
+}
+
+
+.kpi-blue {
+
+    background: #e5f0ff;
+
+    color: #4288df;
+
+}
+
+
+.kpi-orange {
+
+    background: #fff0df;
+
+    color: #e99336;
+
+}
+
+
+.kpi-menu {
+
+    width: 24px;
+
+    height: 24px;
+
+    padding: 0;
+
+    border: none;
+
+    background: transparent;
+
+    color: var(--estadistica-primary);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    cursor: pointer;
+
+    font-size: 15px;
+
+}
+
+
+.kpi-menu:hover {
+
+    opacity: .7;
+
+}
+
+
+/* =========================================================
+   TEXTO KPI
+========================================================= */
+
+.kpi-label {
+
+    margin: 0 0 7px;
+
+    color: var(--estadistica-muted);
+
+    font-size: 11px;
+
+    font-weight: 500;
+
+}
+
+
+.kpi-number {
+
+    display: block;
+
+    color: var(--estadistica-text);
+
+    font-size: 25px;
+
+    line-height: 1.1;
+
+    font-weight: 750;
+
+    letter-spacing: -.5px;
+
+    white-space: nowrap;
+
+}
+
+
+/* =========================================================
+   CAMBIO KPI
+========================================================= */
+
+.kpi-bottom {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    margin-top: 10px;
+
+    color: var(--estadistica-muted);
+
+    font-size: 9px;
+
+}
+
+
+.kpi-change {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 3px;
+
+    font-size: 10px;
+
+    font-weight: 650;
+
+}
+
+
+.kpi-change.positive {
+
+    color: #19ad7a;
+
+}
+
+
+.kpi-change.negative {
+
+    color: #e14b4b;
+
+}
+
+
+/* =========================================================
+   MINI LÍNEAS DE KPI
+========================================================= */
+
+.mini-line {
+
+    position: absolute;
+
+    right: 17px;
+
+    bottom: 18px;
+
+    width: 55px;
+
+    height: 20px;
+
+    opacity: .9;
+
+}
+
+
+.mini-purple {
+
+    border-top: 2px solid #8b63f5;
+
+    border-radius: 50%;
+
+    transform: rotate(-8deg);
+
+}
+
+
+.mini-green {
+
+    border-top: 2px solid #2ac39a;
+
+    border-radius: 50%;
+
+    transform: rotate(-12deg);
+
+}
+
+
+.mini-blue {
+
+    border-top: 2px solid #4a91e9;
+
+    border-radius: 50%;
+
+    transform: rotate(-15deg);
+
+}
+
+
+.mini-orange {
+
+    border-top: 2px solid #f2a34a;
+
+    border-radius: 50%;
+
+    transform: rotate(-10deg);
+
+}
+
+
+/* =========================================================
+   GRÁFICAS SUPERIORES
+========================================================= */
+
+.charts-top {
+
+    display: grid;
+
+    grid-template-columns: minmax(0, 1.65fr) minmax(360px, .95fr);
+
+    gap: 14px;
+
+    margin-bottom: 14px;
+
+}
+
+
+/* =========================================================
+   TARJETA DE GRÁFICA
+========================================================= */
+
+.chart-card {
+
+    min-width: 0;
+
+    border: 1px solid var(--estadistica-border);
+
+    border-radius: 14px;
+
+    background: var(--estadistica-surface);
+
+    box-sizing: border-box;
+
+}
+
+
+.chart-large {
+
+    min-height: 310px;
+
+}
+
+
+.chart-donut-card {
+
+    min-height: 310px;
+
+}
+
+
+/* =========================================================
+   HEADER DE GRÁFICAS
+========================================================= */
+
+.chart-header {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 16px 18px 5px;
+
+}
+
+
+.chart-header h2 {
+
+    margin: 0;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    color: var(--estadistica-text);
+
+}
+
+
+.chart-header p {
+
+    margin: 4px 0 0;
+
+    color: var(--estadistica-muted);
+
+    font-size: 10px;
+
+}
+
+
+.chart-period {
+
+    height: 35px;
+
+    padding: 0 10px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    border: 1px solid var(--estadistica-border);
+
+    border-radius: 9px;
+
+    background: var(--estadistica-surface);
+
+    color: var(--estadistica-muted);
+
+    font-family: inherit;
+
+    font-size: 9px;
+
+    cursor: pointer;
+
+    white-space: nowrap;
+
+}
+
+
+.chart-period i {
+
+    font-size: 8px;
+
+}
+
+
+.chart-period:hover {
+
+    border-color: var(--estadistica-primary);
+
+    color: var(--estadistica-primary);
+
+}
+
+
+/* =========================================================
+   CONTENEDORES CHART
+========================================================= */
+
+.chart-container {
+
+    position: relative;
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+}
+
+
+.chart-line-container {
+
+    height: 235px;
+
+    padding: 8px 17px 12px;
+
+}
+
+
+.ingresos-chart-container {
+
+    height: 225px;
+
+    padding: 10px 20px 8px;
+
+}
+
+
+/* =========================================================
+   DONA
+========================================================= */
+
+.donut-content {
+
+    min-height: 245px;
+
+    display: grid;
+
+    grid-template-columns: 1fr 150px;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 4px 20px 15px;
+
+}
+
+
+.donut-chart-container {
+
+    position: relative;
+
+    width: 210px;
+
+    height: 210px;
+
+    justify-self: center;
+
+}
+
+
+.donut-legend {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 18px;
+
+}
+
+
+.legend-item {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 9px;
+
+}
+
+
+.legend-color {
+
+    width: 11px;
+
+    height: 11px;
+
+    min-width: 11px;
+
+    margin-top: 3px;
+
+    border-radius: 50%;
+
+}
+
+
+.legend-color.purple {
+
+    background: #8b63f5;
+
+}
+
+
+.legend-color.blue {
+
+    background: #4b91e2;
+
+}
+
+
+.legend-color.green {
+
+    background: #36c9aa;
+
+}
+
+
+.legend-item strong {
+
+    display: block;
+
+    color: var(--estadistica-text);
+
+    font-size: 10px;
+
+    font-weight: 650;
+
+}
+
+
+.legend-item small {
+
+    display: block;
+
+    margin-top: 4px;
+
+    color: var(--estadistica-muted);
+
+    font-size: 9px;
+
+}
+
+
+/* =========================================================
+   INGRESOS
+========================================================= */
+
+.ingresos-card {
+
+    min-height: 300px;
+
+}
+
+
+.ingresos-legend {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 22px;
+
+    padding: 0 0 15px;
+
+}
+
+
+.ingresos-legend > div {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    color: var(--estadistica-muted);
+
+    font-size: 9px;
+
+}
+
+
+.ingresos-legend .legend-color {
+
+    margin: 0;
+
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+
+    .estadistica-content {
+
+        width: calc(100% - 280px);
+
+        margin-left: 280px;
+
+        padding: 24px;
+
+    }
+
+
+    .estadistica-kpis {
+
+        grid-template-columns: repeat(2, 1fr);
+
+    }
+
+
+    .charts-top {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}
+
+
+@media (max-width: 950px) {
+
+    .estadistica-content {
+
+        width: 100%;
+
+        margin-left: 0;
+
+    }
+
+}
+
+
+@media (max-width: 700px) {
+
+    .estadistica-content {
+
+        padding: 18px;
+
+    }
+
+
+    .estadistica-header {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+    }
+
+
+    .estadistica-kpis {
+
+        grid-template-columns: 1fr 1fr;
+
+    }
+
+
+    .donut-content {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .donut-chart-container {
+
+        width: 190px;
+
+        height: 190px;
+
+    }
+
+
+    .donut-legend {
+
+        width: 100%;
+
+        flex-direction: row;
+
+        justify-content: center;
+
+        flex-wrap: wrap;
+
+        gap: 14px;
+
+    }
+
+}
+
+
+@media (max-width: 500px) {
+
+    .estadistica-content {
+
+        padding: 14px;
+
+    }
+
+
+    .estadistica-kpis {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .estadistica-title h1 {
+
+        font-size: 21px;
+
+    }
+
+
+    .estadistica-title p {
+
+        font-size: 10px;
+
+    }
+
+
+    .chart-header {
+
+        flex-direction: column;
+
+    }
+
+
+    .chart-line-container {
+
+        height: 220px;
+
+    }
+
+
+    .ingresos-chart-container {
+
+        height: 210px;
+
+    }
+
+
+    .ingresos-legend {
+
+        flex-direction: column;
+
+        gap: 8px;
+
+    }
+
+}
+
+
+/* =========================================================
+   REDUCIR ANIMACIONES SI EL USUARIO LO PIDE
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .kpi-card {
+
+        transition: none;
+
+    }
+
+}

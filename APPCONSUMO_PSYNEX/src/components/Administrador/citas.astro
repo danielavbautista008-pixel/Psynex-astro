@@ -1,0 +1,468 @@
+---
+import MenuAdmin from "../Menu/MenuAdmin.astro";
+import "./citas.css";
+---
+
+<div class="citas-page">
+
+  <MenuAdmin />
+
+  <main class="citas-content">
+
+    <!-- HEADER -->
+    <header class="citas-header">
+      <div class="citas-header-left">
+        <div class="citas-header-icon">
+          <i class="bi bi-calendar-check"></i>
+        </div>
+        <div>
+          <h1>Historial de citas</h1>
+          <p>Consulta y revisa las citas de la plataforma.</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- RESUMEN -->
+    <section class="resumen-citas" id="resumenCitas">
+      <div class="resumen-principal">
+        <strong id="resumenTotal">—</strong>
+        <span>citas registradas</span>
+      </div>
+      <div class="resumen-separador"></div>
+      <div class="resumen-dato">
+        <strong id="resumenCompletadas">—</strong>
+        <span>completadas</span>
+      </div>
+      <div class="resumen-separador"></div>
+      <div class="resumen-dato">
+        <strong id="resumenConfirmadas">—</strong>
+        <span>confirmadas</span>
+      </div>
+      <div class="resumen-separador"></div>
+      <div class="resumen-dato">
+        <strong id="resumenPendientes">—</strong>
+        <span>pendientes</span>
+      </div>
+      <div class="resumen-separador"></div>
+      <div class="resumen-dato">
+        <strong id="resumenVirtuales">—</strong>
+        <span>virtuales</span>
+      </div>
+    </section>
+
+    <!-- FILTROS -->
+    <section class="filtros-citas">
+      <div class="filtro-cita filtro-busqueda">
+        <i class="bi bi-search"></i>
+        <input
+          id="buscarCita"
+          type="text"
+          placeholder="Buscar por paciente o psicólogo..."
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="filtro-cita filtro-fecha">
+        <i class="bi bi-calendar3"></i>
+        <input id="fechaDesde" type="date" />
+      </div>
+
+      <div class="filtro-cita filtro-fecha">
+        <i class="bi bi-calendar3"></i>
+        <input id="fechaHasta" type="date" />
+      </div>
+
+      <div class="filtro-cita">
+        <i class="bi bi-grid"></i>
+        <select id="filtroTipo">
+          <option value="todos">Todas las modalidades</option>
+          <option value="Presencial">Presencial</option>
+          <option value="Virtual">Virtual</option>
+        </select>
+      </div>
+
+      <div class="filtro-cita">
+        <i class="bi bi-check2-circle"></i>
+        <select id="filtroEstado">
+          <option value="todos">Todos los estados</option>
+          <option value="Completada">Completada</option>
+          <option value="Confirmada">Confirmada</option>
+          <option value="Pendiente">Pendiente</option>
+          <option value="Cancelada">Cancelada</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- TABLA -->
+    <section class="citas-table-card">
+      <div class="citas-table-head">
+        <div>Hora</div>
+        <div>Paciente</div>
+        <div>Psicólogo</div>
+        <div>Modalidad</div>
+        <div>Estado</div>
+        <div></div>
+      </div>
+
+      <div id="listaCitas"></div>
+
+      <div id="citasVacio" style="display:none; padding: 32px; text-align:center; color:#64748b;">
+        No hay citas para mostrar
+      </div>
+    </section>
+
+    <!-- PAGINACIÓN -->
+    <div class="citas-pagination">
+      <span id="paginacionTexto">Cargando…</span>
+    </div>
+
+  </main>
+
+  <!-- PANEL LATERAL -->
+  <aside id="detallePanel" class="detalle-panel">
+    <div class="detalle-header">
+      <div>
+        <span class="detalle-etiqueta">DETALLE DE CITA</span>
+        <h2>Información de la cita</h2>
+      </div>
+      <button id="cerrarDetalle" type="button" class="detalle-cerrar" aria-label="Cerrar">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="detalle-body">
+      <div class="detalle-persona">
+        <div id="detalleAvatarPaciente" class="detalle-avatar avatar-purple">PS</div>
+        <div>
+          <strong id="detallePaciente">Paciente</strong>
+          <span id="detalleEmail">correo@ejemplo.com</span>
+        </div>
+      </div>
+
+      <div class="detalle-linea"></div>
+
+      <div class="detalle-bloque">
+        <span class="detalle-label">Psicólogo</span>
+        <strong id="detallePsicologo">Psicólogo</strong>
+        <small id="detallePsicologoEmail">correo@psynex.com</small>
+      </div>
+
+      <div class="detalle-grid">
+        <div class="detalle-bloque">
+          <span class="detalle-label">Hora</span>
+          <strong id="detalleHora">—</strong>
+        </div>
+        <div class="detalle-bloque">
+          <span class="detalle-label">Duración</span>
+          <strong id="detalleDuracion">—</strong>
+        </div>
+      </div>
+
+      <div class="detalle-monto">
+        <span>Monto de la cita</span>
+        <strong id="detalleMonto">—</strong>
+      </div>
+
+      <div class="detalle-grid">
+        <div class="detalle-bloque">
+          <span class="detalle-label">Modalidad</span>
+          <strong id="detalleTipoTexto">—</strong>
+        </div>
+        <div class="detalle-bloque">
+          <span class="detalle-label">Estado</span>
+          <strong id="detalleEstadoTexto">—</strong>
+        </div>
+      </div>
+
+      <div class="detalle-notas">
+        <span class="detalle-label">Notas</span>
+        <p id="detalleNotas">No hay notas registradas.</p>
+      </div>
+    </div>
+
+    <div class="detalle-comprobante">
+      <div class="detalle-comprobante-info">
+        <div class="comprobante-icon">
+          <i class="bi bi-receipt"></i>
+        </div>
+        <div>
+          <strong>Comprobante de la cita</strong>
+          <span>Consulta el comprobante generado para esta cita.</span>
+        </div>
+      </div>
+      <button type="button" class="btn-ver-comprobante" id="verComprobante">
+        <i class="bi bi-eye"></i>
+        Ver comprobante
+      </button>
+    </div>
+
+    <div class="detalle-footer">
+      <button id="cerrarDetalleFooter" type="button" class="btn-detalle-cerrar">
+        Cerrar
+      </button>
+    </div>
+  </aside>
+
+  <div id="detalleOverlay" class="detalle-overlay"></div>
+
+</div>
+
+<script>
+  const API = "http://localhost:8001";
+
+  function iniciales(nombre: string): string {
+    return nombre
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((p) => p[0]?.toUpperCase() ?? "")
+      .join("");
+  }
+
+  function formatearHora(fechaIso: string): string {
+    const d = new Date(fechaIso);
+    return d.toLocaleTimeString("es-CO", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  }
+
+  function formatearFechaGrupo(fechaIso: string): string {
+    const d = new Date(fechaIso);
+    const hoy = new Date();
+    const ayer = new Date();
+    ayer.setDate(hoy.getDate() - 1);
+
+    const misma = (a: Date, b: Date) =>
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate();
+
+    const texto = d.toLocaleDateString("es-CO", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+
+    if (misma(d, hoy)) return `Hoy, ${texto}`;
+    if (misma(d, ayer)) return `Ayer, ${texto}`;
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
+  }
+
+  function fechaSolo(fechaIso: string): string {
+    return fechaIso.slice(0, 10);
+  }
+
+  function claseEstado(estado: string): string {
+    const map: Record<string, string> = {
+      Completada: "completada",
+      Confirmada: "programada",
+      Pendiente: "programada",
+      Cancelada: "cancelada",
+    };
+    return map[estado] ?? "programada";
+  }
+
+  function claseModalidad(modalidad: string): string {
+    return modalidad === "Virtual" ? "recompensa" : "individual";
+  }
+
+  const listaCitas = document.getElementById("listaCitas");
+  const citasVacio = document.getElementById("citasVacio");
+  const paginacionTexto = document.getElementById("paginacionTexto");
+
+  const buscador = document.getElementById("buscarCita") as HTMLInputElement | null;
+  const fechaDesde = document.getElementById("fechaDesde") as HTMLInputElement | null;
+  const fechaHasta = document.getElementById("fechaHasta") as HTMLInputElement | null;
+  const filtroTipo = document.getElementById("filtroTipo") as HTMLSelectElement | null;
+  const filtroEstado = document.getElementById("filtroEstado") as HTMLSelectElement | null;
+
+  const panel = document.getElementById("detallePanel");
+  const overlay = document.getElementById("detalleOverlay");
+
+  async function cargarCitas() {
+    if (!listaCitas) return;
+
+    const params = new URLSearchParams();
+    if (buscador?.value.trim()) params.set("busqueda", buscador.value.trim());
+    if (fechaDesde?.value) params.set("fechaDesde", fechaDesde.value);
+    if (fechaHasta?.value) params.set("fechaHasta", fechaHasta.value);
+    if (filtroEstado?.value && filtroEstado.value !== "todos") {
+      params.set("estado", filtroEstado.value);
+    }
+    if (filtroTipo?.value && filtroTipo.value !== "todos") {
+      params.set("modalidad", filtroTipo.value);
+    }
+    params.set("pagina", "1");
+    params.set("porPagina", "50");
+
+    try {
+      const res = await fetch(`${API}/api/admin/citas?${params}`, {
+        credentials: "include",
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        window.location.href = "/Inicio/login";
+        return;
+      }
+
+      if (!res.ok) throw new Error("Error al cargar citas");
+
+      const data = await res.json();
+      pintarResumen(data.resumen);
+      pintarLista(data.citas ?? []);
+      if (paginacionTexto) {
+        paginacionTexto.textContent = `Mostrando ${data.citas?.length ?? 0} de ${data.total ?? 0} citas`;
+      }
+    } catch (err) {
+      console.error(err);
+      if (listaCitas) {
+        listaCitas.innerHTML =
+          `<p style="padding:24px;color:#dc2626;">No se pudieron cargar las citas. ¿Está corriendo el servidor en el puerto 8001?</p>`;
+      }
+    }
+  }
+
+  function pintarResumen(r: any) {
+    if (!r) return;
+    const set = (id: string, val: number) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = String(val ?? 0);
+    };
+    set("resumenTotal", r.total);
+    set("resumenCompletadas", r.completadas);
+    set("resumenConfirmadas", r.confirmadas);
+    set("resumenPendientes", r.pendientes);
+    set("resumenVirtuales", r.virtuales);
+  }
+
+  function pintarLista(citas: any[]) {
+    if (!listaCitas) return;
+    listaCitas.innerHTML = "";
+
+    if (!citas.length) {
+      if (citasVacio) citasVacio.style.display = "block";
+      return;
+    }
+    if (citasVacio) citasVacio.style.display = "none";
+
+    const grupos = new Map<string, any[]>();
+    for (const c of citas) {
+      const key = fechaSolo(c.FechaHora);
+      if (!grupos.has(key)) grupos.set(key, []);
+      grupos.get(key)!.push(c);
+    }
+
+    for (const [, items] of grupos) {
+      const grupo = document.createElement("div");
+      grupo.className = "cita-group";
+
+      const titulo = document.createElement("div");
+      titulo.className = "cita-dia";
+      titulo.innerHTML = `<i class="bi bi-calendar3"></i><strong>${formatearFechaGrupo(items[0].FechaHora)}</strong>`;
+      grupo.appendChild(titulo);
+
+      for (const c of items) {
+        grupo.appendChild(crearFila(c));
+      }
+      listaCitas.appendChild(grupo);
+    }
+  }
+
+  function crearFila(c: any): HTMLElement {
+    const art = document.createElement("article");
+    art.className = "cita-row";
+    art.dataset.id = c.CitaId;
+    art.dataset.date = fechaSolo(c.FechaHora);
+    art.dataset.tipo = c.Modalidad;
+    art.dataset.estado = c.Estado;
+    art.dataset.nombre = c.PacienteNombre;
+    art.dataset.email = c.PacienteEmail;
+    art.dataset.psicologo = c.PsicologoNombre;
+    art.dataset.psicologoEmail = c.PsicologoEmail;
+    art.dataset.hora = formatearHora(c.FechaHora);
+    art.dataset.duracion = `${c.DuracionMinutos} minutos`;
+    art.dataset.notas = c.RazonConsulta || "Sin notas";
+    art.dataset.monto = "—";
+
+    const iniP = iniciales(c.PacienteNombre);
+    const iniPs = iniciales(c.PsicologoNombre);
+
+    art.innerHTML = `
+      <div class="cita-hora">${formatearHora(c.FechaHora)}</div>
+      <div class="cita-persona">
+        <div class="cita-avatar avatar-purple">${iniP}</div>
+        <div class="cita-persona-info">
+          <strong>${c.PacienteNombre}</strong>
+          <small>${c.PacienteEmail}</small>
+        </div>
+      </div>
+      <div class="cita-persona">
+        <div class="cita-avatar avatar-green">${iniPs}</div>
+        <div class="cita-persona-info">
+          <strong>${c.PsicologoNombre}</strong>
+          <small>${c.PsicologoEmail}</small>
+        </div>
+      </div>
+      <div><span class="cita-tipo ${claseModalidad(c.Modalidad)}">${c.Modalidad}</span></div>
+      <div><span class="cita-estado ${claseEstado(c.Estado)}">${c.Estado}</span></div>
+      <div class="cita-arrow"><i class="bi bi-chevron-right"></i></div>
+    `;
+
+    art.addEventListener("click", () => abrirPanel(art));
+    return art;
+  }
+
+  function abrirPanel(fila: HTMLElement) {
+    const d = fila.dataset;
+    const set = (id: string, val: string) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val || "—";
+    };
+    set("detallePaciente", d.nombre || "");
+    set("detalleEmail", d.email || "");
+    set("detallePsicologo", d.psicologo || "");
+    set("detallePsicologoEmail", d.psicologoEmail || "");
+    set("detalleHora", d.hora || "");
+    set("detalleDuracion", d.duracion || "");
+    set("detalleMonto", d.monto || "—");
+    set("detalleNotas", d.notas || "No hay notas");
+    set("detalleTipoTexto", d.tipo || "");
+    set("detalleEstadoTexto", d.estado || "");
+
+    const av = document.getElementById("detalleAvatarPaciente");
+    if (av) av.textContent = iniciales(d.nombre || "PS");
+
+    panel?.classList.add("abierto");
+    overlay?.classList.add("abierto");
+    document.body.classList.add("detalle-abierto");
+  }
+
+  function cerrarPanel() {
+    panel?.classList.remove("abierto");
+    overlay?.classList.remove("abierto");
+    document.body.classList.remove("detalle-abierto");
+  }
+
+  document.getElementById("cerrarDetalle")?.addEventListener("click", cerrarPanel);
+  document.getElementById("cerrarDetalleFooter")?.addEventListener("click", cerrarPanel);
+  overlay?.addEventListener("click", cerrarPanel);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") cerrarPanel();
+  });
+
+  let timer: number | undefined;
+  const recargar = () => {
+    clearTimeout(timer);
+    timer = window.setTimeout(cargarCitas, 300);
+  };
+
+  buscador?.addEventListener("input", recargar);
+  fechaDesde?.addEventListener("change", cargarCitas);
+  fechaHasta?.addEventListener("change", cargarCitas);
+  filtroTipo?.addEventListener("change", cargarCitas);
+  filtroEstado?.addEventListener("change", cargarCitas);
+
+  cargarCitas();
+</script>
