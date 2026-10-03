@@ -1,0 +1,765 @@
+---
+import MenuAdmin from "../Menu/MenuAdmin.astro";
+import "./estadisticas.css";
+---
+
+<div class="estadistica-page">
+
+    <MenuAdmin />
+
+    <main class="estadistica-content">
+
+        <!-- ==========================================
+             ENCABEZADO
+        =========================================== -->
+
+        <header class="estadistica-header">
+
+            <div class="estadistica-title">
+
+                <div class="estadistica-title-icon">
+                    <i class="bi bi-bar-chart-fill"></i>
+                </div>
+
+                <div>
+                    <h1>Estadísticas</h1>
+                    <p>Consulta el comportamiento general de la plataforma.</p>
+                </div>
+
+            </div>
+
+            <div class="periodo-selector">
+                <i class="bi bi-calendar3"></i>
+                <span>Últimos 6 meses</span>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+
+        </header>
+
+
+        <!-- ==========================================
+             TARJETAS PRINCIPALES
+        =========================================== -->
+
+        <section class="estadistica-kpis">
+
+            <!-- Citas -->
+            <article class="kpi-card">
+
+                <div class="kpi-top">
+
+                    <div class="kpi-icon kpi-purple">
+                        <i class="bi bi-calendar3"></i>
+                    </div>
+
+                    <button class="kpi-menu" aria-label="Más opciones">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+
+                </div>
+
+                <p class="kpi-label">Citas este mes</p>
+
+                <strong class="kpi-number">248</strong>
+
+                <div class="kpi-bottom">
+
+                    <span class="kpi-change positive">
+                        <i class="bi bi-arrow-up"></i>
+                        12%
+                    </span>
+
+                    <span>vs. mes anterior</span>
+
+                </div>
+
+                <div class="mini-line mini-purple"></div>
+
+            </article>
+
+
+            <!-- Ingresos -->
+            <article class="kpi-card">
+
+                <div class="kpi-top">
+
+                    <div class="kpi-icon kpi-green">
+                        <i class="bi bi-currency-dollar"></i>
+                    </div>
+
+                    <button class="kpi-menu" aria-label="Más opciones">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+
+                </div>
+
+                <p class="kpi-label">Ingresos este mes</p>
+
+                <strong class="kpi-number">$12.450.000</strong>
+
+                <div class="kpi-bottom">
+
+                    <span class="kpi-change positive">
+                        <i class="bi bi-arrow-up"></i>
+                        18%
+                    </span>
+
+                    <span>vs. mes anterior</span>
+
+                </div>
+
+                <div class="mini-line mini-green"></div>
+
+            </article>
+
+
+            <!-- Calificación -->
+            <article class="kpi-card">
+
+                <div class="kpi-top">
+
+                    <div class="kpi-icon kpi-blue">
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+
+                    <button class="kpi-menu" aria-label="Más opciones">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+
+                </div>
+
+                <p class="kpi-label">Calificación promedio</p>
+
+                <strong class="kpi-number">4.8</strong>
+
+                <div class="kpi-bottom">
+
+                    <span class="kpi-change positive">
+                        <i class="bi bi-arrow-up"></i>
+                        6%
+                    </span>
+
+                    <span>vs. mes anterior</span>
+
+                </div>
+
+                <div class="mini-line mini-blue"></div>
+
+            </article>
+
+
+            <!-- Cancelaciones -->
+            <article class="kpi-card">
+
+                <div class="kpi-top">
+
+                    <div class="kpi-icon kpi-orange">
+                        <i class="bi bi-person-x"></i>
+                    </div>
+
+                    <button class="kpi-menu" aria-label="Más opciones">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+
+                </div>
+
+                <p class="kpi-label">Cancelaciones</p>
+
+                <strong class="kpi-number">7</strong>
+
+                <div class="kpi-bottom">
+
+                    <span class="kpi-change negative">
+                        <i class="bi bi-arrow-up"></i>
+                        22%
+                    </span>
+
+                    <span>vs. mes anterior</span>
+
+                </div>
+
+                <div class="mini-line mini-orange"></div>
+
+            </article>
+
+        </section>
+
+
+        <!-- ==========================================
+             PRIMERAS GRÁFICAS
+        =========================================== -->
+
+        <section class="charts-top">
+
+            <!-- Citas por mes -->
+            <article class="chart-card chart-large">
+
+                <div class="chart-header">
+
+                    <div>
+                        <h2>Citas por mes</h2>
+                        <p>Comportamiento de las citas durante el período seleccionado.</p>
+                    </div>
+
+                    <button class="chart-period">
+                        Últimos 6 meses
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+
+                </div>
+
+                <div class="chart-container chart-line-container">
+                    <canvas id="citasChart"></canvas>
+                </div>
+
+            </article>
+
+
+            <!-- Citas por tipo -->
+            <article class="chart-card chart-donut-card">
+
+                <div class="chart-header">
+
+                    <div>
+                        <h2>Citas por tipo</h2>
+                        <p>Distribución de las citas realizadas.</p>
+                    </div>
+
+                    <button class="chart-period">
+                        Últimos 6 meses
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+
+                </div>
+
+
+                <div class="donut-content">
+
+                    <div class="donut-chart-container">
+                        <canvas id="tipoCitasChart"></canvas>
+                    </div>
+
+
+                    <div class="donut-legend">
+
+                        <div class="legend-item">
+
+                            <span class="legend-color purple"></span>
+
+                            <div>
+                                <strong>Individual</strong>
+                                <small>596 citas (58%)</small>
+                            </div>
+
+                        </div>
+
+
+                        <div class="legend-item">
+
+                            <span class="legend-color blue"></span>
+
+                            <div>
+                                <strong>Empresarial</strong>
+                                <small>277 citas (27%)</small>
+                            </div>
+
+                        </div>
+
+
+                        <div class="legend-item">
+
+                            <span class="legend-color green"></span>
+
+                            <div>
+                                <strong>Recompensa</strong>
+                                <small>153 citas (15%)</small>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+        <!-- ==========================================
+             INGRESOS POR FUENTE
+        =========================================== -->
+
+        <section class="chart-card ingresos-card">
+
+            <div class="chart-header">
+
+                <div>
+                    <h2>Ingresos por fuente</h2>
+                    <p>Comparación entre citas individuales y planes empresariales.</p>
+                </div>
+
+                <button class="chart-period">
+                    Últimos 6 meses
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+
+            </div>
+
+
+            <div class="chart-container ingresos-chart-container">
+                <canvas id="ingresosChart"></canvas>
+            </div>
+
+
+            <div class="ingresos-legend">
+
+                <div>
+                    <span class="legend-color purple"></span>
+                    <span>Citas individuales</span>
+                </div>
+
+                <div>
+                    <span class="legend-color blue"></span>
+                    <span>Planes empresariales</span>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<script>
+    import {
+        Chart,
+        registerables
+    } from "chart.js";
+
+    Chart.register(...registerables);
+
+
+    /* ==========================================
+       COLORES DEL TEMA
+    =========================================== */
+
+    const root = document.documentElement;
+
+    const styles = getComputedStyle(root);
+
+    const primary =
+        styles.getPropertyValue("--primary").trim() || "#8b5cf6";
+
+    const text =
+        styles.getPropertyValue("--text").trim() || "#29272d";
+
+    const muted =
+        styles.getPropertyValue("--text-muted").trim() || "#85818b";
+
+    const border =
+        styles.getPropertyValue("--border").trim() || "#e7e3ea";
+
+
+    /* ==========================================
+       GRÁFICA — CITAS POR MES
+    =========================================== */
+
+    const citasCanvas =
+        document.getElementById("citasChart") as HTMLCanvasElement | null;
+
+    if (citasCanvas) {
+
+        new Chart(citasCanvas, {
+
+            type: "line",
+
+            data: {
+
+                labels: [
+                    "Ene 2026",
+                    "Feb 2026",
+                    "Mar 2026",
+                    "Abr 2026",
+                    "May 2026",
+                    "Jun 2026"
+                ],
+
+                datasets: [
+
+                    {
+                        label: "Citas",
+
+                        data: [
+                            120,
+                            145,
+                            170,
+                            195,
+                            220,
+                            248
+                        ],
+
+                        borderColor: primary,
+
+                        backgroundColor: `${primary}15`,
+
+                        borderWidth: 2,
+
+                        pointRadius: 3,
+
+                        pointHoverRadius: 5,
+
+                        pointBackgroundColor: primary,
+
+                        pointBorderColor: "#ffffff",
+
+                        pointBorderWidth: 2,
+
+                        tension: 0.35,
+
+                        fill: true
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                interaction: {
+                    intersect: false,
+                    mode: "index"
+                },
+
+                plugins: {
+
+                    legend: {
+                        display: false
+                    },
+
+                    tooltip: {
+                        backgroundColor: "#29272d",
+                        padding: 10,
+                        cornerRadius: 8,
+                        displayColors: false
+                    }
+
+                },
+
+                scales: {
+
+                    x: {
+
+                        grid: {
+                            display: false
+                        },
+
+                        border: {
+                            display: false
+                        },
+
+                        ticks: {
+                            color: muted,
+                            font: {
+                                size: 10
+                            }
+                        }
+
+                    },
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        grid: {
+                            color: border
+                        },
+
+                        border: {
+                            display: false
+                        },
+
+                        ticks: {
+                            color: muted,
+                            font: {
+                                size: 10
+                            }
+                        }
+
+                    }
+
+                }
+
+            }
+
+        });
+
+    }
+
+
+    /* ==========================================
+       GRÁFICA — CITAS POR TIPO
+    =========================================== */
+
+    const tipoCanvas =
+        document.getElementById("tipoCitasChart") as HTMLCanvasElement | null;
+
+    if (tipoCanvas) {
+
+        new Chart(tipoCanvas, {
+
+            type: "doughnut",
+
+            data: {
+
+                labels: [
+                    "Individual",
+                    "Empresarial",
+                    "Recompensa"
+                ],
+
+                datasets: [
+
+                    {
+
+                        data: [
+                            596,
+                            277,
+                            153
+                        ],
+
+                        backgroundColor: [
+                            primary,
+                            "#4b91e2",
+                            "#36c9aa"
+                        ],
+
+                        borderWidth: 3,
+
+                        borderColor: "#ffffff",
+
+                        hoverOffset: 4
+
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                cutout: "68%",
+
+                plugins: {
+
+                    legend: {
+                        display: false
+                    },
+
+                    tooltip: {
+                        padding: 10,
+                        cornerRadius: 8
+                    }
+
+                }
+
+            }
+
+        });
+
+    }
+
+
+    /* ==========================================
+       GRÁFICA — INGRESOS POR FUENTE
+    =========================================== */
+
+    const ingresosCanvas =
+        document.getElementById("ingresosChart") as HTMLCanvasElement | null;
+
+    if (ingresosCanvas) {
+
+        new Chart(ingresosCanvas, {
+
+            type: "bar",
+
+            data: {
+
+                labels: [
+                    "Ene 2026",
+                    "Feb 2026",
+                    "Mar 2026",
+                    "Abr 2026",
+                    "May 2026",
+                    "Jun 2026"
+                ],
+
+                datasets: [
+
+                    {
+                        label: "Citas individuales",
+
+                        data: [
+                            8.5,
+                            9.8,
+                            11.2,
+                            12.7,
+                            14.3,
+                            16.8
+                        ],
+
+                        backgroundColor: primary,
+
+                        borderRadius: 5,
+
+                        borderSkipped: false,
+
+                        barThickness: 14,
+
+                        maxBarThickness: 16,
+
+                        categoryPercentage: 0.65,
+
+                        barPercentage: 0.75
+                    },
+
+
+                    {
+                        label: "Planes empresariales",
+
+                        data: [
+                            4.0,
+                            4.8,
+                            5.5,
+                            7.2,
+                            8.1,
+                            9.3
+                        ],
+
+                        backgroundColor: "#4b91e2",
+
+                        borderRadius: 5,
+
+                        borderSkipped: false,
+
+                        barThickness: 14,
+
+                        maxBarThickness: 16,
+
+                        categoryPercentage: 0.65,
+
+                        barPercentage: 0.75
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                interaction: {
+                    mode: "index",
+                    intersect: false
+                },
+
+                plugins: {
+
+                    legend: {
+                        display: false
+                    },
+
+                    tooltip: {
+
+                        backgroundColor: "#29272d",
+
+                        padding: 10,
+
+                        cornerRadius: 8,
+
+                        callbacks: {
+
+                            label: function (context) {
+
+                                return `${context.dataset.label}: $${context.raw}M`;
+
+                            }
+
+                        }
+
+                    }
+
+                },
+
+                scales: {
+
+                    x: {
+
+                        grid: {
+                            display: false
+                        },
+
+                        border: {
+                            display: false
+                        },
+
+                        ticks: {
+                            color: muted,
+                            font: {
+                                size: 10
+                            }
+                        }
+
+                    },
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        max: 20,
+
+                        grid: {
+                            color: border
+                        },
+
+                        border: {
+                            display: false
+                        },
+
+                        ticks: {
+
+                            color: muted,
+
+                            font: {
+                                size: 10
+                            },
+
+                            callback: function (value) {
+                                return `$${value}M`;
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        });
+
+    }
+</script>

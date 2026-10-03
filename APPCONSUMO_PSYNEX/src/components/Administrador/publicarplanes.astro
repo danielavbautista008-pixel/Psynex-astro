@@ -1,0 +1,1422 @@
+---
+import MenuAdmin from "../Menu/MenuAdmin.astro";
+import "./publicarplanes.css";
+---
+
+<div class="planes-page">
+
+    <MenuAdmin />
+
+    <main class="planes-content">
+
+        <!-- =====================================================
+             ENCABEZADO
+        ====================================================== -->
+
+        <header class="planes-header">
+
+            <div class="header-left">
+
+                <div class="header-icon">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+
+                <div>
+                    <h1>Publicar planes</h1>
+                    <p>
+                        Administra los planes disponibles para las empresas.
+                    </p>
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="btn-nuevo-plan"
+                id="btnNuevoPlan"
+            >
+                <i class="bi bi-plus-lg"></i>
+                Nuevo plan
+            </button>
+
+        </header>
+
+
+        <!-- =====================================================
+             ESTADÍSTICAS
+        ====================================================== -->
+
+        <section class="planes-stats">
+
+            <article class="stat-plan">
+                <div class="stat-icon purple">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+
+                <div>
+                    <strong id="totalPlanes">3</strong>
+                    <span>Planes publicados</span>
+                </div>
+            </article>
+
+
+            <article class="stat-plan">
+                <div class="stat-icon green">
+                    <i class="bi bi-building"></i>
+                </div>
+
+                <div>
+                    <strong id="totalEmpresas">18</strong>
+                    <span>Empresas suscritas</span>
+                </div>
+            </article>
+
+
+            <article class="stat-plan">
+                <div class="stat-icon blue">
+                    <i class="bi bi-credit-card"></i>
+                </div>
+
+                <div>
+                    <strong>$4.8M</strong>
+                    <span>Ingresos del mes</span>
+                </div>
+            </article>
+
+
+            <article class="stat-plan">
+                <div class="stat-icon yellow">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+
+                <div>
+                    <strong>15</strong>
+                    <span>Pagos recibidos</span>
+                </div>
+            </article>
+
+        </section>
+
+
+        <!-- =====================================================
+             FILTROS
+        ====================================================== -->
+
+        <section class="planes-filtros">
+
+            <div class="buscador-plan">
+
+                <i class="bi bi-search"></i>
+
+                <input
+                    type="text"
+                    id="buscarPlan"
+                    placeholder="Buscar plan..."
+                />
+
+            </div>
+
+
+            <select id="filtroEstado">
+                <option value="todos">Todos los estados</option>
+                <option value="activo">Activos</option>
+                <option value="inactivo">Inactivos</option>
+            </select>
+
+        </section>
+
+
+        <!-- =====================================================
+             TÍTULO DE SECCIÓN
+        ====================================================== -->
+
+        <div class="seccion-titulo">
+
+            <div>
+                <h2>Planes disponibles</h2>
+                <p>Planes publicados actualmente en Psynex.</p>
+            </div>
+
+            <span class="cantidad-planes" id="cantidadPlanes">
+                3 planes
+            </span>
+
+        </div>
+
+
+        <!-- =====================================================
+             LISTA DE PLANES
+        ====================================================== -->
+
+        <section class="planes-grid" id="listaPlanes">
+
+
+            <!-- PLAN BÁSICO -->
+
+            <article
+                class="plan-card"
+                data-nombre="Plan Básico"
+                data-estado="activo"
+            >
+
+                <div class="plan-card-top">
+
+                    <div class="plan-icon plan-purple">
+                        <i class="bi bi-box"></i>
+                    </div>
+
+                    <span class="estado-plan activo">
+                        <span></span>
+                        Activo
+                    </span>
+
+                </div>
+
+
+                <h3>Plan Básico</h3>
+
+                <p class="plan-descripcion">
+                    Herramientas esenciales para empresas que comienzan a utilizar Psynex.
+                </p>
+
+
+                <div class="plan-precio">
+                    <strong>$99.000</strong>
+                    <span>/ mes</span>
+                </div>
+
+
+                <div class="plan-datos">
+
+                    <div>
+                        <i class="bi bi-people"></i>
+                        <span>5 usuarios</span>
+                    </div>
+
+                    <div>
+                        <i class="bi bi-building"></i>
+                        <span>8 empresas</span>
+                    </div>
+
+                    <div>
+                        <i class="bi bi-check-circle"></i>
+                        <span>Soporte incluido</span>
+                    </div>
+
+                </div>
+
+
+                <div class="plan-linea"></div>
+
+
+                <div class="plan-actions">
+
+                    <button
+                        type="button"
+                        class="btn-plan btn-empresas"
+                        data-plan="basico"
+                    >
+                        <i class="bi bi-building"></i>
+                        Ver empresas
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn-plan btn-editar"
+                        data-editar="basico"
+                    >
+                        <i class="bi bi-pencil"></i>
+                    </button>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="btn-estado-plan btn-desactivar"
+                    data-toggle-plan
+                >
+                    <i class="bi bi-toggle-off"></i>
+                    Desactivar plan
+                </button>
+
+            </article>
+
+
+
+            <!-- PLAN PROFESIONAL -->
+
+            <article
+                class="plan-card"
+                data-nombre="Plan Profesional"
+                data-estado="activo"
+            >
+
+                <div class="plan-card-top">
+
+                    <div class="plan-icon plan-blue">
+                        <i class="bi bi-briefcase"></i>
+                    </div>
+
+                    <span class="estado-plan activo">
+                        <span></span>
+                        Activo
+                    </span>
+
+                </div>
+
+
+                <h3>Plan Profesional</h3>
+
+                <p class="plan-descripcion">
+                    Más usuarios y herramientas para empresas con mayor actividad.
+                </p>
+
+
+                <div class="plan-precio">
+                    <strong>$189.000</strong>
+                    <span>/ mes</span>
+                </div>
+
+
+                <div class="plan-datos">
+
+                    <div>
+                        <i class="bi bi-people"></i>
+                        <span>15 usuarios</span>
+                    </div>
+
+                    <div>
+                        <i class="bi bi-building"></i>
+                        <span>7 empresas</span>
+                    </div>
+
+                    <div>
+                        <i class="bi bi-check-circle"></i>
+                        <span>Soporte prioritario</span>
+                    </div>
+
+                </div>
+
+
+                <div class="plan-linea"></div>
+
+
+                <div class="plan-actions">
+
+                    <button
+                        type="button"
+                        class="btn-plan btn-empresas"
+                        data-plan="profesional"
+                    >
+                        <i class="bi bi-building"></i>
+                        Ver empresas
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn-plan btn-editar"
+                        data-editar="profesional"
+                    >
+                        <i class="bi bi-pencil"></i>
+                    </button>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="btn-estado-plan btn-desactivar"
+                    data-toggle-plan
+                >
+                    <i class="bi bi-toggle-off"></i>
+                    Desactivar plan
+                </button>
+
+            </article>
+
+
+
+            <!-- PLAN EMPRESARIAL -->
+
+            <article
+                class="plan-card"
+                data-nombre="Plan Empresarial"
+                data-estado="inactivo"
+            >
+
+                <div class="plan-card-top">
+
+                    <div class="plan-icon plan-green">
+                        <i class="bi bi-buildings"></i>
+                    </div>
+
+                    <span class="estado-plan inactivo">
+                        <span></span>
+                        Inactivo
+                    </span>
+
+                </div>
+
+
+                <h3>Plan Empresarial</h3>
+
+                <p class="plan-descripcion">
+                    Solución completa para organizaciones con equipos grandes.
+                </p>
+
+
+                <div class="plan-precio">
+                    <strong>$329.000</strong>
+                    <span>/ mes</span>
+                </div>
+
+
+                <div class="plan-datos">
+
+                    <div>
+                        <i class="bi bi-people"></i>
+                        <span>40 usuarios</span>
+                    </div>
+
+                    <div>
+                        <i class="bi bi-building"></i>
+                        <span>3 empresas</span>
+                    </div>
+
+                    <div>
+                        <i class="bi bi-check-circle"></i>
+                        <span>Atención empresarial</span>
+                    </div>
+
+                </div>
+
+
+                <div class="plan-linea"></div>
+
+
+                <div class="plan-actions">
+
+                    <button
+                        type="button"
+                        class="btn-plan btn-empresas"
+                        data-plan="empresarial"
+                    >
+                        <i class="bi bi-building"></i>
+                        Ver empresas
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn-plan btn-editar"
+                        data-editar="empresarial"
+                    >
+                        <i class="bi bi-pencil"></i>
+                    </button>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="btn-estado-plan btn-activar"
+                    data-toggle-plan
+                >
+                    <i class="bi bi-toggle-on"></i>
+                    Activar plan
+                </button>
+
+            </article>
+
+        </section>
+
+
+        <!-- =====================================================
+             EMPRESAS Y PAGOS
+        ====================================================== -->
+
+        <section
+            class="empresas-section"
+            id="seccionEmpresas"
+        >
+
+            <div class="seccion-titulo">
+
+                <div>
+                    <h2>Empresas con planes</h2>
+                    <p>
+                        Consulta quién tiene un plan activo y cómo realizó su pago.
+                    </p>
+                </div>
+
+                <span class="cantidad-empresas">
+                    18 empresas
+                </span>
+
+            </div>
+
+
+            <div class="empresas-table-wrapper">
+
+                <table class="empresas-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Empresa</th>
+                            <th>Plan</th>
+                            <th>Pago</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        <tr>
+
+                            <td>
+                                <div class="empresa-cell">
+
+                                    <div class="empresa-avatar purple">
+                                        NS
+                                    </div>
+
+                                    <div>
+                                        <strong>Nova Soluciones S.A.S.</strong>
+                                        <small>NIT 901.234.567-8</small>
+                                    </div>
+
+                                </div>
+                            </td>
+
+
+                            <td>
+                                <span class="plan-pill purple">
+                                    Básico
+                                </span>
+                            </td>
+
+
+                            <td>
+                                <div class="pago-cell">
+                                    <i class="bi bi-credit-card"></i>
+                                    Tarjeta
+                                </div>
+                            </td>
+
+
+                            <td>
+                                <span class="fecha-pago">
+                                    24 Sep 2026
+                                </span>
+                            </td>
+
+
+                            <td>
+                                <span class="pago-estado pagado">
+                                    Pagado
+                                </span>
+                            </td>
+
+                        </tr>
+
+
+
+                        <tr>
+
+                            <td>
+                                <div class="empresa-cell">
+
+                                    <div class="empresa-avatar green">
+                                        SB
+                                    </div>
+
+                                    <div>
+                                        <strong>Sana Bienestar Ltda.</strong>
+                                        <small>NIT 900.876.543-2</small>
+                                    </div>
+
+                                </div>
+                            </td>
+
+
+                            <td>
+                                <span class="plan-pill blue">
+                                    Profesional
+                                </span>
+                            </td>
+
+
+                            <td>
+                                <div class="pago-cell">
+                                    <i class="bi bi-bank"></i>
+                                    Transferencia
+                                </div>
+                            </td>
+
+
+                            <td>
+                                <span class="fecha-pago">
+                                    22 Sep 2026
+                                </span>
+                            </td>
+
+
+                            <td>
+                                <span class="pago-estado pagado">
+                                    Pagado
+                                </span>
+                            </td>
+
+                        </tr>
+
+
+
+                        <tr>
+
+                            <td>
+                                <div class="empresa-cell">
+
+                                    <div class="empresa-avatar blue">
+                                        RR
+                                    </div>
+
+                                    <div>
+                                        <strong>Grupo RR Humano S.A.S.</strong>
+                                        <small>NIT 901.112.223-4</small>
+                                    </div>
+
+                                </div>
+                            </td>
+
+
+                            <td>
+                                <span class="plan-pill blue">
+                                    Profesional
+                                </span>
+                            </td>
+
+
+                            <td>
+                                <div class="pago-cell">
+                                    <i class="bi bi-phone"></i>
+                                    PSE
+                                </div>
+                            </td>
+
+
+                            <td>
+                                <span class="fecha-pago">
+                                    20 Sep 2026
+                                </span>
+                            </td>
+
+
+                            <td>
+                                <span class="pago-estado pagado">
+                                    Pagado
+                                </span>
+                            </td>
+
+                        </tr>
+
+
+
+                        <tr>
+
+                            <td>
+                                <div class="empresa-cell">
+
+                                    <div class="empresa-avatar orange">
+                                        MC
+                                    </div>
+
+                                    <div>
+                                        <strong>MindCare Colombia</strong>
+                                        <small>NIT 901.345.678-1</small>
+                                    </div>
+
+                                </div>
+                            </td>
+
+
+                            <td>
+                                <span class="plan-pill purple">
+                                    Básico
+                                </span>
+                            </td>
+
+
+                            <td>
+                                <div class="pago-cell">
+                                    <i class="bi bi-credit-card"></i>
+                                    Tarjeta
+                                </div>
+                            </td>
+
+
+                            <td>
+                                <span class="fecha-pago">
+                                    18 Sep 2026
+                                </span>
+                            </td>
+
+
+                            <td>
+                                <span class="pago-estado pendiente">
+                                    Pendiente
+                                </span>
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =====================================================
+         MODAL NUEVO PLAN
+    ====================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="modalPlan"
+    >
+
+        <div
+            class="modal modal-plan"
+            role="dialog"
+            aria-modal="true"
+        >
+
+            <div class="modal-header">
+
+                <div>
+                    <h2 id="modalPlanTitulo">
+                        Nuevo plan
+                    </h2>
+
+                    <p>
+                        Define la información del plan.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    class="btn-cerrar-modal"
+                    data-cerrar-modal
+                >
+                    <i class="bi bi-x-lg"></i>
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <div class="form-group">
+
+                    <label for="nombrePlan">
+                        Nombre del plan
+                    </label>
+
+                    <input
+                        id="nombrePlan"
+                        type="text"
+                        placeholder="Ej. Plan Profesional"
+                    />
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="descripcionPlan">
+                        Descripción
+                    </label>
+
+                    <textarea
+                        id="descripcionPlan"
+                        placeholder="Describe brevemente el plan..."
+                    ></textarea>
+
+                </div>
+
+
+                <div class="form-row">
+
+                    <div class="form-group">
+
+                        <label for="precioPlan">
+                            Precio mensual
+                        </label>
+
+                        <input
+                            id="precioPlan"
+                            type="number"
+                            placeholder="189000"
+                        />
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="usuariosPlan">
+                            Usuarios
+                        </label>
+
+                        <input
+                            id="usuariosPlan"
+                            type="number"
+                            placeholder="15"
+                        />
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Características
+                    </label>
+
+                    <div class="caracteristicas-check">
+
+                        <label>
+                            <input type="checkbox" checked />
+                            Soporte incluido
+                        </label>
+
+                        <label>
+                            <input type="checkbox" />
+                            Soporte prioritario
+                        </label>
+
+                        <label>
+                            <input type="checkbox" />
+                            Reportes avanzados
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn-modal-secundario"
+                    data-cerrar-modal
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    class="btn-modal-principal"
+                    id="btnGuardarPlan"
+                >
+                    <i class="bi bi-check-lg"></i>
+                    Publicar plan
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         MODAL EMPRESAS
+    ====================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="modalEmpresas"
+    >
+
+        <div
+            class="modal modal-empresas"
+            role="dialog"
+            aria-modal="true"
+        >
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2 id="tituloEmpresas">
+                        Empresas con el plan
+                    </h2>
+
+                    <p>
+                        Empresas que actualmente utilizan este plan.
+                    </p>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="btn-cerrar-modal"
+                    data-cerrar-empresas
+                >
+                    <i class="bi bi-x-lg"></i>
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <div class="empresa-modal-item">
+
+                    <div class="empresa-avatar purple">
+                        NS
+                    </div>
+
+                    <div class="empresa-modal-info">
+
+                        <strong>
+                            Nova Soluciones S.A.S.
+                        </strong>
+
+                        <span>
+                            NIT 901.234.567-8
+                        </span>
+
+                    </div>
+
+                    <div class="empresa-pago">
+
+                        <strong>
+                            Tarjeta
+                        </strong>
+
+                        <span>
+                            24 Sep 2026
+                        </span>
+
+                    </div>
+
+                    <span class="pago-estado pagado">
+                        Pagado
+                    </span>
+
+                </div>
+
+
+
+                <div class="empresa-modal-item">
+
+                    <div class="empresa-avatar green">
+                        SB
+                    </div>
+
+                    <div class="empresa-modal-info">
+
+                        <strong>
+                            Sana Bienestar Ltda.
+                        </strong>
+
+                        <span>
+                            NIT 900.876.543-2
+                        </span>
+
+                    </div>
+
+                    <div class="empresa-pago">
+
+                        <strong>
+                            Transferencia
+                        </strong>
+
+                        <span>
+                            22 Sep 2026
+                        </span>
+
+                    </div>
+
+                    <span class="pago-estado pagado">
+                        Pagado
+                    </span>
+
+                </div>
+
+
+
+                <div class="empresa-modal-item">
+
+                    <div class="empresa-avatar blue">
+                        RR
+                    </div>
+
+                    <div class="empresa-modal-info">
+
+                        <strong>
+                            Grupo RR Humano S.A.S.
+                        </strong>
+
+                        <span>
+                            NIT 901.112.223-4
+                        </span>
+
+                    </div>
+
+                    <div class="empresa-pago">
+
+                        <strong>
+                            PSE
+                        </strong>
+
+                        <span>
+                            20 Sep 2026
+                        </span>
+
+                    </div>
+
+                    <span class="pago-estado pagado">
+                        Pagado
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn-modal-secundario"
+                    data-cerrar-empresas
+                >
+                    Cerrar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+// @ts-nocheck
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const modalPlan = document.getElementById("modalPlan");
+    const modalEmpresas = document.getElementById("modalEmpresas");
+
+    const btnNuevoPlan = document.getElementById("btnNuevoPlan");
+    const btnGuardarPlan = document.getElementById("btnGuardarPlan");
+
+    const tituloEmpresas = document.getElementById("tituloEmpresas");
+
+    const nombrePlan = document.getElementById("nombrePlan");
+    const descripcionPlan = document.getElementById("descripcionPlan");
+    const precioPlan = document.getElementById("precioPlan");
+    const usuariosPlan = document.getElementById("usuariosPlan");
+
+    const buscarPlan = document.getElementById("buscarPlan");
+    const filtroEstado = document.getElementById("filtroEstado");
+
+
+
+    /* =====================================================
+       ABRIR MODAL NUEVO PLAN
+    ====================================================== */
+
+    btnNuevoPlan?.addEventListener("click", () => {
+
+        if (!modalPlan) return;
+
+        modalPlan.classList.add("mostrar");
+
+        document.body.classList.add("modal-abierto");
+
+        nombrePlan.value = "";
+        descripcionPlan.value = "";
+        precioPlan.value = "";
+        usuariosPlan.value = "";
+
+    });
+
+
+
+    /* =====================================================
+       CERRAR MODALES
+    ====================================================== */
+
+    document.querySelectorAll("[data-cerrar-modal]").forEach((boton) => {
+
+        boton.addEventListener("click", () => {
+
+            modalPlan?.classList.remove("mostrar");
+
+            document.body.classList.remove("modal-abierto");
+
+        });
+
+    });
+
+
+
+    document.querySelectorAll("[data-cerrar-empresas]").forEach((boton) => {
+
+        boton.addEventListener("click", () => {
+
+            modalEmpresas?.classList.remove("mostrar");
+
+            document.body.classList.remove("modal-abierto");
+
+        });
+
+    });
+
+
+
+    /* =====================================================
+       CERRAR AL HACER CLICK EN EL FONDO
+    ====================================================== */
+
+    modalPlan?.addEventListener("click", (event) => {
+
+        if (event.target === modalPlan) {
+
+            modalPlan.classList.remove("mostrar");
+
+            document.body.classList.remove("modal-abierto");
+
+        }
+
+    });
+
+
+
+    modalEmpresas?.addEventListener("click", (event) => {
+
+        if (event.target === modalEmpresas) {
+
+            modalEmpresas.classList.remove("mostrar");
+
+            document.body.classList.remove("modal-abierto");
+
+        }
+
+    });
+
+
+
+    /* =====================================================
+       VER EMPRESAS
+    ====================================================== */
+
+    document.querySelectorAll("[data-plan]").forEach((boton) => {
+
+        boton.addEventListener("click", () => {
+
+            const plan = boton.dataset.plan;
+
+            if (plan === "basico") {
+                tituloEmpresas.textContent = "Empresas — Plan Básico";
+            }
+
+            if (plan === "profesional") {
+                tituloEmpresas.textContent = "Empresas — Plan Profesional";
+            }
+
+            if (plan === "empresarial") {
+                tituloEmpresas.textContent = "Empresas — Plan Empresarial";
+            }
+
+            modalEmpresas?.classList.add("mostrar");
+
+            document.body.classList.add("modal-abierto");
+
+        });
+
+    });
+
+
+
+    /* =====================================================
+       ACTIVAR / DESACTIVAR PLAN
+    ====================================================== */
+
+    document.querySelectorAll("[data-toggle-plan]").forEach((boton) => {
+
+        boton.addEventListener("click", () => {
+
+            const card = boton.closest(".plan-card");
+
+            if (!card) return;
+
+            const estado = card.querySelector(".estado-plan");
+            const textoBoton = boton.querySelector("i");
+
+            if (!estado) return;
+
+
+            const estaActivo = card.dataset.estado === "activo";
+
+
+            if (estaActivo) {
+
+                card.dataset.estado = "inactivo";
+
+                estado.classList.remove("activo");
+                estado.classList.add("inactivo");
+
+                estado.innerHTML = `
+                    <span></span>
+                    Inactivo
+                `;
+
+                boton.classList.remove("btn-desactivar");
+                boton.classList.add("btn-activar");
+
+                boton.innerHTML = `
+                    <i class="bi bi-toggle-on"></i>
+                    Activar plan
+                `;
+
+            } else {
+
+                card.dataset.estado = "activo";
+
+                estado.classList.remove("inactivo");
+                estado.classList.add("activo");
+
+                estado.innerHTML = `
+                    <span></span>
+                    Activo
+                `;
+
+                boton.classList.remove("btn-activar");
+                boton.classList.add("btn-desactivar");
+
+                boton.innerHTML = `
+                    <i class="bi bi-toggle-off"></i>
+                    Desactivar plan
+                `;
+
+            }
+
+            actualizarCantidadPlanes();
+
+        });
+
+    });
+
+
+
+    /* =====================================================
+       BUSCAR PLAN
+    ====================================================== */
+
+    buscarPlan?.addEventListener("input", filtrarPlanes);
+
+    filtroEstado?.addEventListener("change", filtrarPlanes);
+
+
+    function filtrarPlanes() {
+
+        const texto = buscarPlan?.value
+            ?.toLowerCase()
+            ?.trim() || "";
+
+        const estadoFiltro = filtroEstado?.value || "todos";
+
+        const tarjetas = document.querySelectorAll(".plan-card");
+
+        tarjetas.forEach((tarjeta) => {
+
+            const nombre =
+                tarjeta.dataset.nombre?.toLowerCase() || "";
+
+            const estado =
+                tarjeta.dataset.estado || "";
+
+            const coincideNombre =
+                nombre.includes(texto);
+
+            const coincideEstado =
+                estadoFiltro === "todos" ||
+                estado === estadoFiltro;
+
+            tarjeta.style.display =
+                coincideNombre && coincideEstado
+                    ? ""
+                    : "none";
+
+        });
+
+    }
+
+
+
+    /* =====================================================
+       ACTUALIZAR CANTIDAD
+    ====================================================== */
+
+    function actualizarCantidadPlanes() {
+
+        const tarjetas =
+            document.querySelectorAll(".plan-card");
+
+        let activos = 0;
+
+        tarjetas.forEach((tarjeta) => {
+
+            if (tarjeta.dataset.estado === "activo") {
+                activos++;
+            }
+
+        });
+
+        const contador =
+            document.getElementById("cantidadPlanes");
+
+        if (contador) {
+            contador.textContent =
+                `${tarjetas.length} planes`;
+        }
+
+        const total =
+            document.getElementById("totalPlanes");
+
+        if (total) {
+            total.textContent =
+                tarjetas.length;
+        }
+
+    }
+
+
+
+    /* =====================================================
+       GUARDAR / PUBLICAR PLAN
+    ====================================================== */
+
+    btnGuardarPlan?.addEventListener("click", () => {
+
+        if (!nombrePlan?.value.trim()) {
+
+            nombrePlan.focus();
+
+            nombrePlan.style.borderColor = "#ef5b63";
+
+            setTimeout(() => {
+                nombrePlan.style.borderColor = "";
+            }, 1800);
+
+            return;
+
+        }
+
+
+        modalPlan?.classList.remove("mostrar");
+
+        document.body.classList.remove("modal-abierto");
+
+        alert("El plan fue publicado correctamente.");
+
+    });
+
+
+
+    /* =====================================================
+       EDITAR PLAN
+    ====================================================== */
+
+    document.querySelectorAll("[data-editar]").forEach((boton) => {
+
+        boton.addEventListener("click", () => {
+
+            const plan =
+                boton.dataset.editar || "";
+
+            modalPlan?.classList.add("mostrar");
+
+            document.body.classList.add("modal-abierto");
+
+
+            if (plan === "basico") {
+
+                nombrePlan.value = "Plan Básico";
+                descripcionPlan.value =
+                    "Herramientas esenciales para empresas.";
+                precioPlan.value = "99000";
+                usuariosPlan.value = "5";
+
+            }
+
+
+            if (plan === "profesional") {
+
+                nombrePlan.value = "Plan Profesional";
+                descripcionPlan.value =
+                    "Más usuarios y herramientas para empresas.";
+                precioPlan.value = "189000";
+                usuariosPlan.value = "15";
+
+            }
+
+
+            if (plan === "empresarial") {
+
+                nombrePlan.value = "Plan Empresarial";
+                descripcionPlan.value =
+                    "Solución completa para organizaciones.";
+                precioPlan.value = "329000";
+                usuariosPlan.value = "40";
+
+            }
+
+        });
+
+    });
+
+
+
+    /* =====================================================
+       ESC TECLA
+    ====================================================== */
+
+    document.addEventListener("keydown", (event) => {
+
+        if (event.key === "Escape") {
+
+            modalPlan?.classList.remove("mostrar");
+
+            modalEmpresas?.classList.remove("mostrar");
+
+            document.body.classList.remove("modal-abierto");
+
+        }
+
+    });
+
+});
+</script>

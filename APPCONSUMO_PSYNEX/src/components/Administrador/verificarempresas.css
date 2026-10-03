@@ -1,0 +1,2644 @@
+/* =========================================================
+   BASE
+========================================================= */
+
+.empresas-page,
+.verificar-empresas-page {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   CONTENIDO PRINCIPAL
+========================================================= */
+
+.empresas-content {
+    width: calc(100% - 310px);
+    margin-left: 310px;
+    min-height: 100vh;
+    padding: 26px 30px 36px;
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.empresas-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 20px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.header-icon {
+    width: 54px;
+    height: 54px;
+    min-width: 54px;
+    border-radius: 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--primary-soft);
+    color: var(--primary);
+
+    font-size: 23px;
+}
+
+.empresas-header h1 {
+    margin: 0;
+    font-size: 26px;
+    line-height: 1.2;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.empresas-header p {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
+/* =========================================================
+   BOTÓN RESUMEN
+========================================================= */
+
+.btn-resumen {
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid var(--border);
+    border-radius: 13px;
+
+    background: var(--surface);
+    color: var(--text);
+
+    font-size: 18px;
+    cursor: pointer;
+
+    transition:
+        background .2s ease,
+        transform .2s ease,
+        border-color .2s ease;
+}
+
+.btn-resumen:hover {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-color: var(--primary);
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   FILTROS SUPERIORES
+========================================================= */
+
+.filtros-empresas {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+
+/* =========================================================
+   BUSCADOR
+========================================================= */
+
+.buscador-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.buscador-wrapper i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    color: var(--text);
+    font-size: 17px;
+
+    pointer-events: none;
+}
+
+.buscador-empresa {
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+
+    box-sizing: border-box;
+
+    padding: 0 14px 0 40px;
+
+    border: 1px solid var(--border);
+    border-radius: 11px;
+
+    background: var(--surface);
+    color: var(--text);
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 400;
+
+    outline: none;
+
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease;
+}
+
+.buscador-empresa::placeholder {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.buscador-empresa:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+
+/* =========================================================
+   SELECTS
+========================================================= */
+
+.filtro-empresa {
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+
+    box-sizing: border-box;
+
+    padding: 0 12px;
+
+    border: 1px solid var(--border);
+    border-radius: 11px;
+
+    background: var(--surface);
+    color: var(--text);
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 400;
+
+    outline: none;
+    cursor: pointer;
+
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease;
+}
+
+.filtro-empresa:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+
+/* Compatibilidad con el buscador anterior */
+
+.busqueda {
+    height: 42px;
+    padding: 0 14px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    box-sizing: border-box;
+
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+}
+
+.busqueda i {
+    color: var(--text);
+    font-size: 17px;
+}
+
+.busqueda input {
+    width: 100%;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+    color: var(--text);
+
+    font-size: 12px;
+}
+
+.busqueda input::placeholder {
+    color: var(--text-muted);
+}
+
+
+/* =========================================================
+   TABS
+========================================================= */
+
+.tabs-empresas {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+
+    height: 46px;
+
+    margin-bottom: 14px;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.tab-empresa {
+    position: relative;
+
+    height: 46px;
+
+    padding: 0 3px;
+
+    display: inline-flex;
+    align-items: center;
+
+    border: none;
+    background: transparent;
+
+    color: var(--text-muted);
+
+    font-size: 12px;
+    font-weight: 500;
+
+    cursor: pointer;
+}
+
+.tab-empresa i {
+    margin-right: 6px;
+    font-size: 13px;
+}
+
+.tab-empresa:hover {
+    color: var(--primary);
+}
+
+.tab-empresa.activa {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.tab-empresa.activa::after {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: -1px;
+
+    height: 2px;
+
+    background: var(--primary);
+    border-radius: 2px 2px 0 0;
+}
+
+
+/* =========================================================
+   CONTADOR DE TABS
+========================================================= */
+
+.tab-empresa span,
+.tab-empresa .contador,
+.tab-empresa .cantidad {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 20px;
+    height: 20px;
+
+    margin-left: 5px;
+    padding: 0 5px;
+
+    border-radius: 50%;
+
+    background: var(--primary-soft);
+    color: var(--primary);
+
+    font-size: 10px;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+========================================================= */
+
+.empresas-layout {
+    display: grid;
+    grid-template-columns: 360px minmax(0, 1fr);
+
+    min-height: 600px;
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+    border-radius: 20px;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   LISTA DE EMPRESAS
+========================================================= */
+
+.empresas-lista {
+    background: color-mix(
+        in srgb,
+        var(--surface) 96%,
+        var(--primary) 4%
+    );
+
+    border-right: 1px solid var(--border);
+}
+
+
+/* =========================================================
+   HEADER LISTA
+========================================================= */
+
+.lista-header {
+    min-height: 76px;
+
+    padding: 17px 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    box-sizing: border-box;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.lista-header h2 {
+    margin: 0 0 3px;
+
+    font-size: 16px;
+    line-height: 1.2;
+    font-weight: 600;
+}
+
+.lista-header p {
+    margin: 0;
+
+    color: var(--text-muted);
+
+    font-size: 11px;
+}
+
+.lista-header > i {
+    color: var(--text);
+    font-size: 19px;
+}
+
+
+/* =========================================================
+   EMPRESA ITEM
+========================================================= */
+
+.empresa-item {
+    display: flex;
+    gap: 11px;
+
+    padding: 16px;
+
+    border-bottom: 1px solid var(--border);
+
+    cursor: pointer;
+
+    transition:
+        background .2s ease,
+        box-shadow .2s ease;
+}
+
+.empresa-item:hover {
+    background: var(--primary-soft);
+}
+
+.empresa-item.seleccionada {
+    background: var(--primary-soft);
+
+    box-shadow:
+        inset 3px 0 0 var(--primary);
+}
+
+
+/* =========================================================
+   LOGO EMPRESA
+========================================================= */
+
+.empresa-logo {
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 14px;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.logo-purple {
+    background: #eee6ff;
+    color: #7c4dff;
+}
+
+.logo-green {
+    background: #dff7ea;
+    color: #159a61;
+}
+
+.logo-blue {
+    background: #e2edff;
+    color: #3878e8;
+}
+
+
+/* =========================================================
+   INFORMACIÓN EMPRESA
+========================================================= */
+
+.empresa-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.empresa-nombre-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 7px;
+}
+
+.empresa-nombre-row h3,
+.empresa-nombre {
+    margin: 0;
+
+    font-size: 12px;
+    line-height: 1.3;
+    font-weight: 600;
+
+    color: var(--text);
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nit,
+.empresa-nit {
+    margin: 3px 0 8px;
+
+    color: var(--text-muted);
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   ESTADOS
+========================================================= */
+
+.estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    padding: 4px 7px;
+
+    border-radius: 20px;
+
+    font-size: 9px;
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+.estado span {
+    width: 5px;
+    height: 5px;
+
+    border-radius: 50%;
+}
+
+.estado-pendiente {
+    background: #fff2d6;
+    color: #b87900;
+}
+
+.estado-pendiente span {
+    background: #e9a31a;
+}
+
+.estado-activa {
+    background: #dcf7e9;
+    color: #168a57;
+}
+
+.estado-activa span {
+    background: #19a66a;
+}
+
+.estado-rechazada {
+    background: #ffe1e3;
+    color: #d64048;
+}
+
+.estado-rechazada span {
+    background: #e74b53;
+}
+
+
+/* =========================================================
+   DOCUMENTOS DE EMPRESA
+========================================================= */
+
+.empresa-documentos {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.empresa-documentos span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    padding: 4px 6px;
+
+    border-radius: 6px;
+
+    background: var(--primary-soft);
+    color: var(--text);
+
+    font-size: 9px;
+}
+
+.empresa-meta {
+    display: flex;
+    gap: 10px;
+
+    margin-top: 7px;
+
+    color: var(--text-muted);
+
+    font-size: 9px;
+}
+
+.empresa-meta span {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+
+/* =========================================================
+   DETALLE
+========================================================= */
+
+.empresa-detalle {
+    min-width: 0;
+    background: var(--surface);
+}
+
+.detalle-vacio {
+    min-height: 600px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    padding: 30px;
+}
+
+.detalle-vacio-icon {
+    width: 70px;
+    height: 70px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 16px;
+
+    border-radius: 20px;
+
+    background: var(--primary-soft);
+    color: var(--primary);
+
+    font-size: 29px;
+}
+
+.detalle-vacio h2 {
+    margin: 0 0 7px;
+
+    font-size: 18px;
+}
+
+.detalle-vacio p {
+    max-width: 400px;
+
+    margin: 0;
+
+    color: var(--text-muted);
+
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   DETALLE CONTENIDO
+========================================================= */
+
+.detalle-contenido {
+    padding: 24px 26px;
+}
+
+.detalle-identidad {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.detalle-logo {
+    width: 62px;
+    height: 62px;
+    min-width: 62px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 18px;
+
+    font-size: 25px;
+}
+
+.detalle-nombre {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.detalle-nombre h2,
+#detalleNombre {
+    margin: 0;
+
+    font-size: 20px;
+    line-height: 1.25;
+    font-weight: 700;
+}
+
+.detalle-identidad p,
+.detalle-nit {
+    margin: 4px 0 0;
+
+    color: var(--text-muted);
+
+    font-size: 11px;
+}
+
+.detalle-linea {
+    height: 1px;
+
+    margin: 19px 0;
+
+    background: var(--border);
+}
+
+
+/* =========================================================
+   INFORMACIÓN EMPRESA
+========================================================= */
+
+.info-empresa {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 10px;
+
+    margin-bottom: 22px;
+}
+
+.info-box {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 12px;
+
+    border: 1px solid var(--border);
+    border-radius: 12px;
+
+    background: color-mix(
+        in srgb,
+        var(--surface) 96%,
+        var(--primary) 4%
+    );
+}
+
+.info-icon {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: var(--primary-soft);
+    color: var(--primary);
+
+    font-size: 14px;
+}
+
+.info-box small,
+.info-label {
+    display: block;
+
+    margin-bottom: 2px;
+
+    color: var(--text-muted);
+
+    font-size: 9px;
+}
+
+.info-box strong,
+.info-value {
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   DOCUMENTOS
+========================================================= */
+
+.documentos-section {
+    margin-top: 4px;
+}
+
+.documentos-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 10px;
+}
+
+.documentos-header h3,
+.detalle-titulo {
+    margin: 0 0 3px;
+
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.documentos-header p,
+.detalle-subtitulo {
+    margin: 0;
+
+    color: var(--text-muted);
+
+    font-size: 10px;
+}
+
+.documentos-header > span {
+    padding: 6px 9px;
+
+    border-radius: 7px;
+
+    background: var(--primary-soft);
+    color: var(--primary);
+
+    font-size: 9px;
+}
+
+
+/* =========================================================
+   DOCUMENTO
+========================================================= */
+
+.documento-row {
+    display: flex;
+    align-items: center;
+
+    gap: 11px;
+
+    padding: 12px;
+
+    margin-bottom: 8px;
+
+    border: 1px solid var(--border);
+    border-radius: 12px;
+
+    transition: border-color .2s ease;
+}
+
+.documento-row:hover {
+    border-color: var(--primary);
+}
+
+.documento-icon {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: var(--primary-soft);
+    color: var(--primary);
+
+    font-size: 16px;
+}
+
+.documento-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.documento-info strong,
+.documento-nombre {
+    display: block;
+
+    margin-bottom: 3px;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.documento-info small,
+.documento-descripcion {
+    color: var(--text-muted);
+
+    font-size: 9px;
+}
+
+.documento-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-documento,
+.btn-ver,
+.btn-descargar {
+    height: 32px;
+
+    padding: 0 10px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 5px;
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    background: var(--surface);
+    color: var(--text);
+
+    font-size: 10px;
+
+    cursor: pointer;
+
+    transition: .2s ease;
+}
+
+.btn-documento:hover,
+.btn-ver:hover,
+.btn-descargar:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+
+/* =========================================================
+   ACCIONES
+========================================================= */
+
+.detalle-acciones {
+    display: flex;
+    justify-content: flex-end;
+
+    gap: 8px;
+
+    margin-top: 20px;
+    padding-top: 16px;
+
+    border-top: 1px solid var(--border);
+}
+
+.btn-activar,
+.btn-rechazar,
+.btn-cancelar {
+    height: 38px;
+
+    padding: 0 15px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    border-radius: 9px;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.btn-activar {
+    border: none;
+
+    background: #17ad6d;
+    color: white;
+}
+
+.btn-activar:hover {
+    background: #11945b;
+}
+
+.btn-rechazar {
+    border: none;
+
+    background: #ef4d57;
+    color: white;
+}
+
+.btn-rechazar:hover {
+    background: #d93d47;
+}
+
+.btn-cancelar {
+    border: 1px solid var(--border);
+
+    background: var(--surface);
+    color: var(--text);
+}
+
+.btn-cancelar:hover {
+    background: var(--primary-soft);
+}
+
+
+/* =========================================================
+   PANEL RESUMEN
+========================================================= */
+
+.resumen-panel {
+    position: fixed;
+
+    top: 78px;
+    right: 24px;
+
+    width: 300px;
+
+    padding: 17px;
+
+    box-sizing: border-box;
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+    border-radius: 16px;
+
+    box-shadow:
+        0 16px 40px rgba(30, 20, 50, .14);
+
+    z-index: 5000;
+
+    opacity: 0;
+    visibility: hidden;
+
+    transform: translateY(-8px);
+
+    transition:
+        opacity .2s ease,
+        transform .2s ease,
+        visibility .2s ease;
+}
+
+.resumen-panel.mostrar {
+    opacity: 1;
+    visibility: visible;
+
+    transform: translateY(0);
+}
+
+.resumen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    margin-bottom: 13px;
+}
+
+.resumen-header h2 {
+    margin: 0 0 3px;
+
+    font-size: 15px;
+}
+
+.resumen-header p {
+    margin: 0;
+
+    color: var(--text-muted);
+
+    font-size: 10px;
+}
+
+.resumen-header button {
+    border: none;
+    background: transparent;
+
+    color: var(--text-muted);
+
+    font-size: 14px;
+
+    cursor: pointer;
+}
+
+.resumen-grid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 8px;
+}
+
+.resumen-card {
+    padding: 11px;
+
+    display: grid;
+
+    grid-template-columns: 32px 1fr;
+
+    column-gap: 8px;
+
+    align-items: center;
+
+    border: 1px solid var(--border);
+    border-radius: 11px;
+}
+
+.resumen-icon {
+    width: 32px;
+    height: 32px;
+
+    grid-row: span 2;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px;
+}
+
+.resumen-card strong {
+    font-size: 15px;
+}
+
+.resumen-card span {
+    font-size: 8px;
+    color: var(--text-muted);
+}
+
+
+/* =========================================================
+   MODALES
+   CENTRADO REAL
+========================================================= */
+
+.modal-overlay {
+    position: fixed !important;
+
+    inset: 0 !important;
+
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+
+    margin: 0 !important;
+    padding: 18px !important;
+
+    box-sizing: border-box;
+
+    display: none;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    background: rgba(30, 24, 35, .40);
+
+    backdrop-filter: blur(4px);
+
+    z-index: 99999 !important;
+}
+
+.modal-overlay.mostrar {
+    display: flex !important;
+}
+
+
+/* =========================================================
+   MODAL GENERAL
+========================================================= */
+
+.modal-overlay .modal {
+    position: relative !important;
+
+    width: min(520px, calc(100vw - 36px)) !important;
+
+    max-width: 520px !important;
+
+    max-height: calc(100vh - 36px) !important;
+    max-height: calc(100dvh - 36px) !important;
+
+    margin: auto !important;
+
+    padding: 0;
+
+    box-sizing: border-box;
+
+    display: flex;
+
+    flex-direction: column;
+
+    overflow: hidden;
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+
+    border-radius: 17px;
+
+    box-shadow:
+        0 20px 55px rgba(35, 20, 48, .20);
+
+    transform: none !important;
+
+    animation: modalEntrada .18s ease-out;
+}
+
+
+/* =========================================================
+   TAMAÑOS
+========================================================= */
+
+.modal-overlay .modal.modal-grande,
+.modal-overlay .modal-documentos {
+    width: min(580px, calc(100vw - 36px)) !important;
+    max-width: 580px !important;
+}
+
+.modal-overlay .modal.modal-mediano {
+    width: min(500px, calc(100vw - 36px)) !important;
+    max-width: 500px !important;
+}
+
+.modal-overlay .modal.modal-pequeno {
+    width: min(390px, calc(100vw - 36px)) !important;
+    max-width: 390px !important;
+}
+
+
+/* =========================================================
+   ANIMACIÓN
+========================================================= */
+
+@keyframes modalEntrada {
+
+    from {
+        opacity: 0;
+        transform: scale(.97) translateY(6px) !important;
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0) !important;
+    }
+}
+
+
+/* =========================================================
+   HEADER MODAL
+========================================================= */
+
+.modal-overlay .modal-header {
+    min-height: auto;
+
+    padding: 17px 20px !important;
+
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-overlay .modal-header h2 {
+    margin: 0;
+
+    font-size: 16px !important;
+    line-height: 1.3;
+
+    font-weight: 650;
+}
+
+.modal-overlay .modal-header p {
+    margin: 3px 0 0;
+
+    color: var(--text-muted);
+
+    font-size: 10px !important;
+    line-height: 1.4;
+}
+
+
+/* =========================================================
+   CERRAR MODAL
+========================================================= */
+
+.cerrar-modal {
+    width: 31px;
+    height: 31px;
+    min-width: 31px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: var(--primary-soft);
+    color: var(--text);
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition: .2s ease;
+}
+
+.cerrar-modal:hover {
+    background: var(--primary);
+    color: white;
+}
+
+
+/* =========================================================
+   BODY MODAL
+========================================================= */
+
+.modal-overlay .modal-body,
+.modal-overlay .modal-content {
+    padding: 18px 20px !important;
+
+    box-sizing: border-box;
+
+    overflow-y: auto;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   FOOTER MODAL
+========================================================= */
+
+.modal-overlay .modal-footer {
+    padding: 13px 20px !important;
+
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+
+    gap: 7px;
+
+    border-top: 1px solid var(--border);
+}
+
+
+/* =========================================================
+   EMPRESA DENTRO DEL MODAL
+========================================================= */
+
+.modal-empresa {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    margin-bottom: 14px;
+}
+
+.modal-empresa-icon {
+    width: 40px;
+    height: 40px;
+
+    min-width: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 11px;
+
+    background: var(--primary-soft);
+    color: var(--primary);
+
+    font-size: 17px;
+}
+
+.modal-empresa strong {
+    display: block;
+
+    font-size: 12px;
+}
+
+.modal-empresa span {
+    display: block;
+
+    margin-top: 2px;
+
+    color: var(--text-muted);
+
+    font-size: 9px;
+}
+
+
+/* =========================================================
+   DOCUMENTO DEL MODAL
+========================================================= */
+
+.modal-documento {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 10px;
+
+    margin-bottom: 7px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 10px;
+}
+
+
+/* =========================================================
+   CONFIRMACIÓN
+========================================================= */
+
+.confirmacion-icon {
+    width: 52px;
+    height: 52px;
+
+    margin: 2px auto 13px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 15px;
+
+    background: #dcf7e9;
+    color: #16a66a;
+
+    font-size: 23px;
+}
+
+.modal-body > h3 {
+    margin: 0 0 6px;
+
+    text-align: center;
+
+    font-size: 15px;
+}
+
+.confirmacion-texto {
+    margin: 0;
+
+    text-align: center;
+
+    color: var(--text-muted);
+
+    font-size: 10px;
+
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   RECHAZO
+========================================================= */
+
+.rechazo-alerta {
+    display: flex;
+
+    gap: 8px;
+
+    padding: 10px;
+
+    margin-bottom: 14px;
+
+    border-radius: 9px;
+
+    background: #fff0f1;
+    color: #c93c45;
+
+    font-size: 10px;
+
+    line-height: 1.45;
+}
+
+
+/* =========================================================
+   FORMULARIOS MODALES
+========================================================= */
+
+.form-group {
+    margin-bottom: 13px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.modal-body label,
+.form-group label {
+    display: block;
+
+    margin-bottom: 5px;
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.modal-body textarea,
+.form-group input,
+.form-group select {
+
+    width: 100%;
+
+    min-height: 38px;
+
+    box-sizing: border-box;
+
+    padding: 8px 10px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 8px;
+
+    background: var(--surface);
+    color: var(--text);
+
+    outline: none;
+
+    font-family: inherit;
+    font-size: 11px;
+}
+
+.modal-body textarea {
+    min-height: 85px;
+    resize: vertical;
+}
+
+.modal-body textarea:focus,
+.form-group input:focus,
+.form-group select:focus {
+
+    border-color: var(--primary);
+
+    box-shadow:
+        0 0 0 2px var(--primary-soft);
+}
+
+
+/* =========================================================
+   BOTONES MODAL
+========================================================= */
+
+.modal-overlay .btn-cancelar,
+.modal-overlay .btn-confirmar,
+.modal-overlay .btn-activar,
+.modal-overlay .btn-rechazar {
+
+    min-height: 34px;
+
+    padding: 0 13px;
+
+    border-radius: 8px;
+
+    font-size: 10px !important;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   SCROLL
+========================================================= */
+
+body.modal-abierto {
+    overflow: hidden !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+
+    .empresas-content {
+        width: calc(100% - 280px);
+        margin-left: 280px;
+
+        padding: 24px;
+    }
+
+    .filtros-empresas {
+        grid-template-columns: 1.4fr 1fr 1fr;
+    }
+
+    .empresas-layout {
+        grid-template-columns: 330px minmax(0, 1fr);
+    }
+}
+
+
+@media (max-width: 1000px) {
+
+    .empresas-content {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .filtros-empresas {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .buscador-wrapper {
+        grid-column: 1 / -1;
+    }
+
+    .empresas-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .empresas-lista {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+}
+
+
+@media (max-width: 650px) {
+
+    .empresas-content {
+        padding: 18px;
+    }
+
+    .empresas-header {
+        align-items: flex-start;
+    }
+
+    .header-icon {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+    }
+
+    .empresas-header h1 {
+        font-size: 22px;
+    }
+
+    .empresas-header p {
+        font-size: 11px;
+    }
+
+    .filtros-empresas {
+        grid-template-columns: 1fr;
+    }
+
+    .buscador-wrapper {
+        grid-column: auto;
+    }
+
+    .info-empresa {
+        grid-template-columns: 1fr;
+    }
+
+    .detalle-contenido {
+        padding: 20px 17px;
+    }
+
+    .documento-row {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .documento-actions {
+        width: 100%;
+        margin-left: 49px;
+    }
+
+    .detalle-acciones {
+        flex-direction: column;
+    }
+
+    .detalle-acciones button {
+        width: 100%;
+    }
+
+    .resumen-panel {
+        left: 16px;
+        right: 16px;
+        width: auto;
+    }
+
+    .modal-overlay {
+        padding: 12px !important;
+    }
+
+    .modal-overlay .modal,
+    .modal-overlay .modal.modal-grande,
+    .modal-overlay .modal.modal-mediano,
+    .modal-overlay .modal.modal-pequeno,
+    .modal-overlay .modal-documentos {
+
+        width: calc(100vw - 24px) !important;
+
+        max-width: none !important;
+
+        max-height: calc(100vh - 24px) !important;
+        max-height: calc(100dvh - 24px) !important;
+    }
+}
+
+
+@media (max-width: 430px) {
+
+    .empresas-content {
+        padding: 14px;
+    }
+
+    .empresas-header h1 {
+        font-size: 20px;
+    }
+
+    .header-icon {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        font-size: 19px;
+    }
+
+    .tabs-empresas {
+        gap: 15px;
+    }
+
+    .tab-empresa {
+        font-size: 11px;
+    }
+
+    .empresa-item {
+        padding: 13px;
+    }
+
+    .detalle-nombre h2,
+    #detalleNombre {
+        font-size: 17px;
+    }
+
+    .detalle-contenido {
+        padding: 17px 14px;
+    }
+
+    .modal-overlay .modal-header {
+        padding: 15px 16px !important;
+    }
+
+    .modal-overlay .modal-body,
+    .modal-overlay .modal-content {
+        padding: 16px !important;
+    }
+
+    .modal-overlay .modal-footer {
+        padding: 12px 16px !important;
+    }
+}
+/* =========================================================
+   AJUSTE FINAL — ESTILO PSYNEX COMPACTO
+   NO CAMBIAR HTML
+========================================================= */
+
+.verificar-empresas-page,
+.empresas-page {
+    font-size: 14px;
+}
+
+/* =========================================================
+   CONTENIDO
+========================================================= */
+
+.empresas-content {
+    padding: 28px 32px 40px;
+}
+
+/* =========================================================
+   ENCABEZADO
+========================================================= */
+
+.empresas-header {
+    margin-bottom: 22px;
+}
+
+.empresas-header h1 {
+    margin: 0 0 4px;
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 750;
+}
+
+.empresas-header p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.header-icon {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;
+    border-radius: 16px;
+    font-size: 23px;
+}
+
+.btn-resumen {
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    font-size: 19px;
+}
+
+/* =========================================================
+   FILTROS SUPERIORES
+   ESTOS SON LOS SELECTORES CORRECTOS
+========================================================= */
+
+.filtros-empresas {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(190px, 1fr) minmax(190px, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+/* Buscador */
+
+.busqueda {
+    height: 48px;
+    min-height: 48px;
+    padding: 0 15px;
+    gap: 10px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--surface);
+    box-sizing: border-box;
+}
+
+.busqueda i {
+    font-size: 18px;
+    color: var(--text);
+    flex-shrink: 0;
+}
+
+.busqueda input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    box-sizing: border-box;
+}
+
+.busqueda input::placeholder {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* SELECTS */
+
+.filtros-empresas select {
+    width: 100%;
+    height: 48px;
+    min-height: 48px;
+    padding: 0 36px 0 14px;
+
+    border: 1px solid var(--border);
+    border-radius: 13px;
+
+    background-color: var(--surface);
+    color: var(--text);
+
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 400;
+
+    outline: none;
+    cursor: pointer;
+
+    box-sizing: border-box;
+}
+
+.filtros-empresas select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+/* =========================================================
+   TABS
+========================================================= */
+
+.tabs-empresas {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+
+    height: 46px;
+    margin-bottom: 16px;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.tab-empresa {
+    position: relative;
+
+    height: 46px;
+    padding: 0 3px;
+
+    border: none;
+    background: transparent;
+
+    color: var(--text-muted);
+
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+
+    cursor: pointer;
+}
+
+.tab-empresa i {
+    margin-right: 5px;
+    font-size: 13px;
+}
+
+.tab-empresa span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 20px;
+    height: 20px;
+
+    margin-left: 5px;
+    padding: 0 5px;
+
+    border-radius: 50%;
+
+    background: var(--primary-soft);
+    color: var(--primary);
+
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.tab-empresa.activa {
+    color: var(--text);
+}
+
+.tab-empresa.activa::after {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: -1px;
+
+    height: 2px;
+
+    border-radius: 2px 2px 0 0;
+
+    background: var(--primary);
+}
+
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+========================================================= */
+
+.empresas-layout {
+    grid-template-columns: 370px minmax(0, 1fr);
+
+    min-height: 600px;
+
+    border-radius: 20px;
+}
+
+/* =========================================================
+   CABECERA DE LISTA
+========================================================= */
+
+.lista-header {
+    height: 78px;
+    padding: 18px 20px;
+}
+
+.lista-header h2 {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.lista-header p {
+    font-size: 11px;
+}
+
+/* =========================================================
+   EMPRESAS
+========================================================= */
+
+.empresa-item {
+    gap: 12px;
+    padding: 16px;
+}
+
+.empresa-logo {
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+    border-radius: 14px;
+    font-size: 14px;
+}
+
+.empresa-nombre-row h3 {
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.nit {
+    margin: 3px 0 8px;
+    font-size: 10px;
+}
+
+.estado {
+    padding: 4px 8px;
+    font-size: 10px;
+}
+
+.empresa-documentos span {
+    padding: 4px 6px;
+    font-size: 9px;
+}
+
+.empresa-meta {
+    gap: 10px;
+    margin-top: 7px;
+    font-size: 9px;
+}
+
+/* =========================================================
+   DETALLE
+========================================================= */
+
+.detalle-contenido {
+    padding: 24px 26px;
+}
+
+.detalle-logo {
+    width: 62px;
+    height: 62px;
+    border-radius: 18px;
+    font-size: 25px;
+}
+
+.detalle-nombre {
+    gap: 8px;
+}
+
+.detalle-nombre h2 {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.detalle-identidad p {
+    margin-top: 4px;
+    font-size: 12px;
+}
+
+.detalle-linea {
+    margin: 20px 0;
+}
+
+/* =========================================================
+   INFORMACIÓN
+========================================================= */
+
+.info-empresa {
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.info-box {
+    gap: 10px;
+    padding: 13px;
+    border-radius: 13px;
+}
+
+.info-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+}
+
+.info-box small {
+    font-size: 9px;
+}
+
+.info-box strong {
+    font-size: 11px;
+}
+
+/* =========================================================
+   DOCUMENTOS
+========================================================= */
+
+.documentos-header {
+    margin-bottom: 11px;
+}
+
+.documentos-header h3 {
+    font-size: 15px;
+}
+
+.documentos-header p {
+    font-size: 10px;
+}
+
+.documentos-header > span {
+    padding: 6px 9px;
+    font-size: 9px;
+}
+
+.documento-row {
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 13px;
+}
+
+.documento-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 11px;
+    font-size: 17px;
+}
+
+.documento-info strong {
+    font-size: 12px;
+    margin-bottom: 3px;
+}
+
+.documento-info small {
+    font-size: 9px;
+}
+
+.btn-documento {
+    height: 34px;
+    padding: 0 11px;
+    border-radius: 9px;
+    font-size: 10px;
+}
+
+/* =========================================================
+   BOTONES
+========================================================= */
+
+.detalle-acciones {
+    gap: 8px;
+    margin-top: 22px;
+    padding-top: 18px;
+}
+
+.btn-activar,
+.btn-rechazar,
+.btn-cancelar {
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 10px;
+    font-size: 11px;
+}
+
+/* =========================================================
+   PANEL RESUMEN
+========================================================= */
+
+.resumen-panel {
+    top: 82px;
+    right: 28px;
+
+    width: 310px;
+
+    padding: 18px;
+
+    border-radius: 17px;
+}
+
+.resumen-header {
+    margin-bottom: 14px;
+}
+
+.resumen-header h2 {
+    font-size: 16px;
+}
+
+.resumen-header p {
+    font-size: 10px;
+}
+
+.resumen-grid {
+    gap: 8px;
+}
+
+.resumen-card {
+    padding: 12px;
+
+    grid-template-columns: 34px 1fr;
+
+    border-radius: 12px;
+}
+
+.resumen-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+}
+
+.resumen-card strong {
+    font-size: 16px;
+}
+
+.resumen-card span {
+    font-size: 8px;
+}
+
+/* =========================================================
+   MODALES
+   CENTRADOS REALMENTE
+========================================================= */
+
+.modal-overlay {
+    position: fixed !important;
+
+    inset: 0 !important;
+
+    width: 100vw !important;
+    height: 100vh !important;
+
+    display: none;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    padding: 20px !important;
+
+    box-sizing: border-box;
+
+    background: rgba(30, 25, 35, .40);
+
+    backdrop-filter: blur(3px);
+
+    z-index: 999999 !important;
+}
+
+.modal-overlay.mostrar {
+    display: flex !important;
+}
+
+/* Modal base */
+
+.modal-overlay .modal {
+    position: relative !important;
+
+    width: min(560px, calc(100vw - 40px)) !important;
+    max-width: 560px !important;
+
+    max-height: calc(100vh - 40px) !important;
+
+    margin: 0 !important;
+
+    border-radius: 17px;
+
+    background: var(--surface);
+
+    box-shadow: 0 20px 55px rgba(30, 20, 40, .20);
+
+    transform: none !important;
+
+    animation: modalEntrada .18s ease-out;
+}
+
+/* Documentos: mediano */
+
+.modal-overlay .modal.modal-documentos {
+    width: min(620px, calc(100vw - 40px)) !important;
+    max-width: 620px !important;
+}
+
+/* Pequeño */
+
+.modal-overlay .modal.modal-pequeno {
+    width: min(400px, calc(100vw - 40px)) !important;
+    max-width: 400px !important;
+}
+
+/* Modal grande */
+
+.modal-overlay .modal.modal-grande {
+    width: min(720px, calc(100vw - 40px)) !important;
+    max-width: 720px !important;
+}
+
+/* =========================================================
+   ANIMACIÓN
+========================================================= */
+
+@keyframes modalEntrada {
+
+    from {
+        opacity: 0;
+        transform: scale(.97) translateY(6px) !important;
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0) !important;
+    }
+
+}
+
+/* =========================================================
+   HEADER MODAL
+========================================================= */
+
+.modal-overlay .modal-header {
+    padding: 18px 21px !important;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-overlay .modal-header h2 {
+    margin: 0 0 3px;
+
+    font-size: 17px !important;
+    line-height: 1.3;
+
+    font-weight: 650;
+}
+
+.modal-overlay .modal-header p {
+    margin: 0;
+
+    color: var(--text-muted);
+
+    font-size: 10px !important;
+}
+
+.cerrar-modal {
+    width: 32px;
+    height: 32px;
+
+    border-radius: 9px;
+
+    font-size: 13px;
+}
+
+/* =========================================================
+   CUERPO MODAL
+========================================================= */
+
+.modal-overlay .modal-body,
+.modal-overlay .modal-content {
+    padding: 19px 21px !important;
+
+    overflow-y: auto;
+
+    font-size: 12px;
+}
+
+.modal-overlay label,
+.modal-overlay .form-group label {
+    margin-bottom: 6px;
+
+    font-size: 11px !important;
+    font-weight: 600;
+}
+
+.modal-overlay input,
+.modal-overlay select,
+.modal-overlay textarea {
+    min-height: 38px;
+
+    padding: 9px 11px;
+
+    border-radius: 9px;
+
+    font-size: 11px !important;
+}
+
+.modal-overlay textarea {
+    min-height: 90px;
+}
+
+/* =========================================================
+   FOOTER MODAL
+========================================================= */
+
+.modal-overlay .modal-footer {
+    padding: 14px 21px !important;
+
+    gap: 8px;
+
+    border-top: 1px solid var(--border);
+}
+
+.modal-overlay .modal-footer button {
+    height: 37px;
+
+    padding: 0 14px;
+
+    border-radius: 9px;
+
+    font-size: 11px !important;
+}
+
+/* =========================================================
+   DOCUMENTOS DENTRO DEL MODAL
+========================================================= */
+
+.modal-documento {
+    gap: 10px;
+
+    padding: 11px;
+
+    margin-bottom: 8px;
+
+    border-radius: 11px;
+}
+
+.modal-empresa {
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.modal-empresa-icon {
+    width: 40px;
+    height: 40px;
+
+    border-radius: 11px;
+
+    font-size: 17px;
+}
+
+.modal-empresa strong {
+    font-size: 12px;
+}
+
+.modal-empresa span {
+    font-size: 9px;
+}
+
+/* =========================================================
+   CONFIRMACIÓN
+========================================================= */
+
+.confirmacion-icon {
+    width: 54px;
+    height: 54px;
+
+    margin: 0 auto 13px;
+
+    border-radius: 15px;
+
+    font-size: 24px;
+}
+
+.modal-body > h3 {
+    font-size: 15px;
+}
+
+.confirmacion-texto {
+    font-size: 11px;
+}
+
+/* =========================================================
+   RECHAZO
+========================================================= */
+
+.rechazo-alerta {
+    padding: 10px;
+    margin-bottom: 15px;
+
+    border-radius: 9px;
+
+    font-size: 10px;
+}
+
+/* =========================================================
+   SCROLL
+========================================================= */
+
+body.modal-abierto {
+    overflow: hidden !important;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+
+    .empresas-content {
+        width: calc(100% - 280px);
+        margin-left: 280px;
+        padding: 24px;
+    }
+
+    .filtros-empresas {
+        grid-template-columns: minmax(0, 1.4fr) 1fr 1fr;
+    }
+
+    .empresas-layout {
+        grid-template-columns: 330px minmax(0, 1fr);
+    }
+
+}
+
+@media (max-width: 1000px) {
+
+    .empresas-content {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .filtros-empresas {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .busqueda {
+        grid-column: 1 / -1;
+    }
+
+    .empresas-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .empresas-lista {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+
+}
+
+@media (max-width: 650px) {
+
+    .empresas-content {
+        padding: 18px;
+    }
+
+    .empresas-header h1 {
+        font-size: 23px;
+    }
+
+    .filtros-empresas {
+        grid-template-columns: 1fr;
+    }
+
+    .busqueda {
+        grid-column: auto;
+    }
+
+    .info-empresa {
+        grid-template-columns: 1fr;
+    }
+
+    .resumen-panel {
+        left: 16px;
+        right: 16px;
+        top: 70px;
+        width: auto;
+    }
+
+    .modal-overlay {
+        padding: 12px !important;
+    }
+
+    .modal-overlay .modal,
+    .modal-overlay .modal.modal-documentos,
+    .modal-overlay .modal.modal-grande,
+    .modal-overlay .modal.modal-pequeno {
+        width: calc(100vw - 24px) !important;
+        max-width: none !important;
+        max-height: calc(100vh - 24px) !important;
+        border-radius: 15px;
+    }
+
+}
+
+@media (max-width: 430px) {
+
+    .empresas-content {
+        padding: 14px;
+    }
+
+    .empresas-header h1 {
+        font-size: 21px;
+    }
+
+    .tabs-empresas {
+        gap: 15px;
+    }
+
+    .tab-empresa {
+        font-size: 12px;
+    }
+
+}

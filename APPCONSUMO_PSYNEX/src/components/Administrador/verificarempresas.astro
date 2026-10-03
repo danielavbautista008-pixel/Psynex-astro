@@ -1,0 +1,1560 @@
+---
+import MenuAdmin from "../Menu/MenuAdmin.astro";
+import "./verificarempresas.css";
+---
+
+<div class="empresas-page">
+
+    <MenuAdmin />
+
+    <main class="empresas-content">
+
+        <!-- =====================================================
+             ENCABEZADO
+        ====================================================== -->
+
+        <header class="empresas-header">
+
+            <div class="header-left">
+
+                <div class="header-icon">
+                    <i class="bi bi-building-check"></i>
+                </div>
+
+                <div>
+                    <h1>Verificar empresas</h1>
+
+                    <p>
+                        Revisa y valida la documentación de las empresas
+                        registradas en la plataforma.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- TRES PUNTICOS -->
+            <button
+                class="btn-resumen"
+                id="btnResumen"
+                aria-label="Mostrar resumen"
+            >
+                <i class="bi bi-three-dots-vertical"></i>
+            </button>
+
+        </header>
+
+
+        <!-- =====================================================
+             FILTROS
+        ====================================================== -->
+
+        <section class="filtros-empresas">
+
+            <div class="busqueda">
+
+                <i class="bi bi-search"></i>
+
+                <input
+                    type="text"
+                    id="buscarEmpresa"
+                    placeholder="Buscar empresa..."
+                />
+
+            </div>
+
+
+            <select id="filtroCiudad">
+
+                <option value="todas">
+                    Todas las ciudades
+                </option>
+
+                <option value="bogota">
+                    Bogotá
+                </option>
+
+                <option value="medellin">
+                    Medellín
+                </option>
+
+                <option value="cali">
+                    Cali
+                </option>
+
+                <option value="bucaramanga">
+                    Bucaramanga
+                </option>
+
+            </select>
+
+
+            <select id="filtroEstado">
+
+                <option value="todos">
+                    Todos los estados
+                </option>
+
+                <option value="pendiente">
+                    Pendientes
+                </option>
+
+                <option value="activa">
+                    Activas
+                </option>
+
+                <option value="rechazada">
+                    Rechazadas
+                </option>
+
+            </select>
+
+        </section>
+
+
+        <!-- =====================================================
+             PESTAÑAS
+        ====================================================== -->
+
+        <div class="tabs-empresas">
+
+            <button
+                class="tab-empresa activa"
+                data-tab="pendientes"
+            >
+                <i class="bi bi-clock"></i>
+
+                Pendientes
+
+                <span id="contadorPendientes">
+                    2
+                </span>
+
+            </button>
+
+
+            <button
+                class="tab-empresa"
+                data-tab="activas"
+            >
+                <i class="bi bi-check-circle"></i>
+
+                Activas
+
+                <span id="contadorActivas">
+                    2
+                </span>
+
+            </button>
+
+        </div>
+
+
+        <!-- =====================================================
+             CONTENIDO PRINCIPAL
+        ====================================================== -->
+
+        <section class="empresas-layout">
+
+            <!-- =================================================
+                 LISTA
+            ================================================== -->
+
+            <div class="empresas-lista">
+
+                <div class="lista-header">
+
+                    <div>
+                        <h2 id="tituloLista">
+                            Empresas pendientes
+                        </h2>
+
+                        <p id="subtituloLista">
+                            Revisa las solicitudes que esperan validación.
+                        </p>
+                    </div>
+
+                    <i class="bi bi-buildings"></i>
+
+                </div>
+
+
+                <!-- ================= EMPRESA 1 ================= -->
+
+                <article
+                    class="empresa-item seleccionada"
+                    data-nombre="Nova Soluciones S.A.S."
+                    data-ciudad="bogota"
+                    data-estado="pendiente"
+                >
+
+                    <div class="empresa-logo logo-purple">
+                        <i class="bi bi-buildings"></i>
+                    </div>
+
+                    <div class="empresa-info">
+
+                        <div class="empresa-nombre-row">
+
+                            <h3>
+                                Nova Soluciones S.A.S.
+                            </h3>
+
+                            <span class="estado estado-pendiente">
+                                <span></span>
+                                Pendiente
+                            </span>
+
+                        </div>
+
+                        <p class="nit">
+                            NIT: 901.234.567-8
+                        </p>
+
+                        <div class="empresa-documentos">
+
+                            <span>
+                                <i class="bi bi-file-earmark-text"></i>
+                                Cámara de Comercio
+                            </span>
+
+                            <span>
+                                <i class="bi bi-file-earmark-text"></i>
+                                RUT
+                            </span>
+
+                        </div>
+
+                        <div class="empresa-meta">
+
+                            <span>
+                                <i class="bi bi-calendar3"></i>
+                                Hace 2 días
+                            </span>
+
+                            <span>
+                                <i class="bi bi-geo-alt"></i>
+                                Bogotá
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <!-- ================= EMPRESA 2 ================= -->
+
+                <article
+                    class="empresa-item"
+                    data-nombre="Sana Bienestar Ltda."
+                    data-ciudad="medellin"
+                    data-estado="pendiente"
+                >
+
+                    <div class="empresa-logo logo-green">
+                        <i class="bi bi-leaf"></i>
+                    </div>
+
+                    <div class="empresa-info">
+
+                        <div class="empresa-nombre-row">
+
+                            <h3>
+                                Sana Bienestar Ltda.
+                            </h3>
+
+                            <span class="estado estado-pendiente">
+                                <span></span>
+                                Pendiente
+                            </span>
+
+                        </div>
+
+                        <p class="nit">
+                            NIT: 900.876.543-2
+                        </p>
+
+                        <div class="empresa-documentos">
+
+                            <span>
+                                <i class="bi bi-file-earmark-text"></i>
+                                Cámara de Comercio
+                            </span>
+
+                            <span>
+                                <i class="bi bi-file-earmark-text"></i>
+                                RUT
+                            </span>
+
+                        </div>
+
+                        <div class="empresa-meta">
+
+                            <span>
+                                <i class="bi bi-calendar3"></i>
+                                Hace 3 días
+                            </span>
+
+                            <span>
+                                <i class="bi bi-geo-alt"></i>
+                                Medellín
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <!-- ================= EMPRESA 3 ================= -->
+
+                <article
+                    class="empresa-item empresa-activa"
+                    data-nombre="Grupo RR Humano S.A.S."
+                    data-ciudad="cali"
+                    data-estado="activa"
+                >
+
+                    <div class="empresa-logo logo-blue">
+                        <span>RR</span>
+                    </div>
+
+                    <div class="empresa-info">
+
+                        <div class="empresa-nombre-row">
+
+                            <h3>
+                                Grupo RR Humano S.A.S.
+                            </h3>
+
+                            <span class="estado estado-activa">
+                                <span></span>
+                                Activa
+                            </span>
+
+                        </div>
+
+                        <p class="nit">
+                            NIT: 901.112.223-4
+                        </p>
+
+                        <div class="empresa-documentos">
+
+                            <span>
+                                <i class="bi bi-file-earmark-text"></i>
+                                Cámara de Comercio
+                            </span>
+
+                            <span>
+                                <i class="bi bi-file-earmark-text"></i>
+                                RUT
+                            </span>
+
+                        </div>
+
+                        <div class="empresa-meta">
+
+                            <span>
+                                <i class="bi bi-calendar3"></i>
+                                Activa hace 4 días
+                            </span>
+
+                            <span>
+                                <i class="bi bi-geo-alt"></i>
+                                Cali
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <!-- ================= EMPRESA 4 ================= -->
+
+                <article
+                    class="empresa-item empresa-activa"
+                    data-nombre="Alfa Construcciones S.A.S."
+                    data-ciudad="bucaramanga"
+                    data-estado="activa"
+                >
+
+                    <div class="empresa-logo logo-blue">
+                        <span>A</span>
+                    </div>
+
+                    <div class="empresa-info">
+
+                        <div class="empresa-nombre-row">
+
+                            <h3>
+                                Alfa Construcciones S.A.S.
+                            </h3>
+
+                            <span class="estado estado-activa">
+                                <span></span>
+                                Activa
+                            </span>
+
+                        </div>
+
+                        <p class="nit">
+                            NIT: 900.198.776-1
+                        </p>
+
+                        <div class="empresa-documentos">
+
+                            <span>
+                                <i class="bi bi-file-earmark-text"></i>
+                                Cámara de Comercio
+                            </span>
+
+                            <span>
+                                <i class="bi bi-file-earmark-text"></i>
+                                RUT
+                            </span>
+
+                        </div>
+
+                        <div class="empresa-meta">
+
+                            <span>
+                                <i class="bi bi-calendar3"></i>
+                                Activa hace 5 días
+                            </span>
+
+                            <span>
+                                <i class="bi bi-geo-alt"></i>
+                                Bucaramanga
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+            </div>
+
+
+            <!-- =================================================
+                 DETALLE
+            ================================================== -->
+
+            <div class="empresa-detalle" id="empresaDetalle">
+
+                <!-- SE LLENA AL SELECCIONAR -->
+
+                <div class="detalle-vacio" id="detalleVacio">
+
+                    <div class="detalle-vacio-icon">
+                        <i class="bi bi-building-check"></i>
+                    </div>
+
+                    <h2>
+                        Selecciona una empresa
+                    </h2>
+
+                    <p>
+                        Selecciona una empresa de la lista para revisar
+                        su información y documentación.
+                    </p>
+
+                </div>
+
+
+                <!-- =================================================
+                     DETALLE DE EMPRESA
+                ================================================== -->
+
+                <div
+                    class="detalle-contenido"
+                    id="detalleContenido"
+                    style="display:none;"
+                >
+
+                    <div class="detalle-header">
+
+                        <div class="detalle-identidad">
+
+                            <div
+                                class="detalle-logo logo-purple"
+                                id="detalleLogo"
+                            >
+                                <i class="bi bi-buildings"></i>
+                            </div>
+
+                            <div>
+
+                                <div class="detalle-nombre">
+
+                                    <h2 id="detalleNombre">
+                                        Nova Soluciones S.A.S.
+                                    </h2>
+
+                                    <span
+                                        class="estado estado-pendiente"
+                                        id="detalleEstado"
+                                    >
+                                        <span></span>
+                                        Pendiente
+                                    </span>
+
+                                </div>
+
+                                <p id="detalleNit">
+                                    NIT: 901.234.567-8
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="detalle-linea"></div>
+
+
+                    <!-- INFORMACIÓN -->
+
+                    <div class="info-empresa">
+
+                        <div class="info-box">
+
+                            <div class="info-icon">
+                                <i class="bi bi-calendar3"></i>
+                            </div>
+
+                            <div>
+                                <small>Registro</small>
+                                <strong id="detalleRegistro">
+                                    Hace 2 días
+                                </strong>
+                            </div>
+
+                        </div>
+
+
+                        <div class="info-box">
+
+                            <div class="info-icon">
+                                <i class="bi bi-geo-alt"></i>
+                            </div>
+
+                            <div>
+                                <small>Ciudad</small>
+                                <strong id="detalleCiudad">
+                                    Bogotá, Colombia
+                                </strong>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- DOCUMENTOS -->
+
+                    <div class="documentos-section">
+
+                        <div class="documentos-header">
+
+                            <div>
+
+                                <h3>
+                                    Documentos
+                                </h3>
+
+                                <p>
+                                    Revisa la documentación antes
+                                    de tomar una decisión.
+                                </p>
+
+                            </div>
+
+                            <span>
+                                2 documentos
+                            </span>
+
+                        </div>
+
+
+                        <!-- CÁMARA -->
+
+                        <div class="documento-row">
+
+                            <div class="documento-icon">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+
+                            <div class="documento-info">
+
+                                <strong>
+                                    Cámara de Comercio
+                                </strong>
+
+                                <small>
+                                    Certificado de existencia
+                                    y representación legal
+                                </small>
+
+                            </div>
+
+                            <div class="documento-actions">
+
+                                <button
+                                    class="btn-documento btn-ver"
+                                    data-documento="camara"
+                                >
+                                    <i class="bi bi-eye"></i>
+                                    Ver
+                                </button>
+
+                                <button
+                                    class="btn-documento"
+                                    data-documento="camara"
+                                >
+                                    <i class="bi bi-download"></i>
+                                    Descargar
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- RUT -->
+
+                        <div class="documento-row">
+
+                            <div class="documento-icon">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+
+                            <div class="documento-info">
+
+                                <strong>
+                                    RUT
+                                </strong>
+
+                                <small>
+                                    Registro Único Tributario
+                                </small>
+
+                            </div>
+
+                            <div class="documento-actions">
+
+                                <button
+                                    class="btn-documento btn-ver"
+                                    data-documento="rut"
+                                >
+                                    <i class="bi bi-eye"></i>
+                                    Ver
+                                </button>
+
+                                <button
+                                    class="btn-documento"
+                                    data-documento="rut"
+                                >
+                                    <i class="bi bi-download"></i>
+                                    Descargar
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ACCIONES -->
+
+                    <div class="detalle-acciones">
+
+                        <button
+                            class="btn-rechazar"
+                            id="btnRechazar"
+                        >
+                            <i class="bi bi-x-lg"></i>
+                            Rechazar
+                        </button>
+
+                        <button
+                            class="btn-activar"
+                            id="btnActivar"
+                        >
+                            <i class="bi bi-check-lg"></i>
+                            Activar empresa
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================================================
+         PANEL RESUMEN
+    ========================================================== -->
+
+    <aside
+        class="resumen-panel"
+        id="resumenPanel"
+    >
+
+        <div class="resumen-header">
+
+            <div>
+
+                <h2>
+                    Resumen
+                </h2>
+
+                <p>
+                    Estado de las empresas
+                </p>
+
+            </div>
+
+            <button id="cerrarResumen">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        <div class="resumen-grid">
+
+            <div class="resumen-card">
+
+                <div class="resumen-icon icon-purple">
+                    <i class="bi bi-buildings"></i>
+                </div>
+
+                <strong>6</strong>
+
+                <span>Total</span>
+
+            </div>
+
+
+            <div class="resumen-card">
+
+                <div class="resumen-icon icon-green">
+                    <i class="bi bi-check-lg"></i>
+                </div>
+
+                <strong>3</strong>
+
+                <span>Activas</span>
+
+            </div>
+
+
+            <div class="resumen-card">
+
+                <div class="resumen-icon icon-yellow">
+                    <i class="bi bi-clock"></i>
+                </div>
+
+                <strong>2</strong>
+
+                <span>Pendientes</span>
+
+            </div>
+
+
+            <div class="resumen-card">
+
+                <div class="resumen-icon icon-red">
+                    <i class="bi bi-x-lg"></i>
+                </div>
+
+                <strong>1</strong>
+
+                <span>Rechazadas</span>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================================================
+         MODAL DOCUMENTOS
+    ========================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="modalDocumentos"
+    >
+
+        <div class="modal modal-documentos">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>
+                        Documentos de la empresa
+                    </h2>
+
+                    <p>
+                        Nova Soluciones S.A.S.
+                    </p>
+
+                </div>
+
+                <button
+                    class="cerrar-modal"
+                    data-cerrar="modalDocumentos"
+                >
+                    <i class="bi bi-x-lg"></i>
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <div class="modal-empresa">
+
+                    <div class="modal-empresa-icon">
+                        <i class="bi bi-buildings"></i>
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Nova Soluciones S.A.S.
+                        </strong>
+
+                        <span>
+                            NIT: 901.234.567-8
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="modal-documento">
+
+                    <div class="documento-icon">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Cámara de Comercio
+                        </strong>
+
+                        <small>
+                            Certificado de existencia
+                            y representación legal
+                        </small>
+
+                    </div>
+
+                    <div class="documento-actions">
+
+                        <button class="btn-documento btn-ver">
+                            <i class="bi bi-eye"></i>
+                            Ver
+                        </button>
+
+                        <button class="btn-documento">
+                            <i class="bi bi-download"></i>
+                            Descargar
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="modal-documento">
+
+                    <div class="documento-icon">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            RUT
+                        </strong>
+
+                        <small>
+                            Registro Único Tributario
+                        </small>
+
+                    </div>
+
+                    <div class="documento-actions">
+
+                        <button class="btn-documento btn-ver">
+                            <i class="bi bi-eye"></i>
+                            Ver
+                        </button>
+
+                        <button class="btn-documento">
+                            <i class="bi bi-download"></i>
+                            Descargar
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    class="btn-cancelar"
+                    data-cerrar="modalDocumentos"
+                >
+                    Cerrar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         MODAL ACTIVAR
+    ========================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="modalActivar"
+    >
+
+        <div class="modal modal-pequeno">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>
+                        Activar empresa
+                    </h2>
+
+                    <p>
+                        Confirma la activación.
+                    </p>
+
+                </div>
+
+                <button
+                    class="cerrar-modal"
+                    data-cerrar="modalActivar"
+                >
+                    <i class="bi bi-x-lg"></i>
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <div class="confirmacion-icon">
+                    <i class="bi bi-check-lg"></i>
+                </div>
+
+                <h3>
+                    ¿Activar esta empresa?
+                </h3>
+
+                <p class="confirmacion-texto">
+                    La empresa quedará activa en la plataforma.
+                </p>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    class="btn-cancelar"
+                    data-cerrar="modalActivar"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    class="btn-activar"
+                    id="confirmarActivar"
+                >
+                    <i class="bi bi-check-lg"></i>
+                    Activar empresa
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         MODAL RECHAZAR
+    ========================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="modalRechazar"
+    >
+
+        <div class="modal modal-pequeno">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>
+                        Rechazar empresa
+                    </h2>
+
+                    <p>
+                        Indica el motivo del rechazo.
+                    </p>
+
+                </div>
+
+                <button
+                    class="cerrar-modal"
+                    data-cerrar="modalRechazar"
+                >
+                    <i class="bi bi-x-lg"></i>
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <div class="rechazo-alerta">
+
+                    <i class="bi bi-exclamation-circle"></i>
+
+                    <span>
+                        La empresa podrá corregir la documentación
+                        y volver a solicitar la validación.
+                    </span>
+
+                </div>
+
+
+                <label>
+                    Motivo del rechazo
+                </label>
+
+                <textarea
+                    id="motivoRechazo"
+                    placeholder="Escribe el motivo del rechazo..."
+                ></textarea>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    class="btn-cancelar"
+                    data-cerrar="modalRechazar"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    class="btn-rechazar"
+                    id="confirmarRechazo"
+                >
+                    <i class="bi bi-x-lg"></i>
+                    Rechazar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         MODAL EDITAR PLAN
+    ========================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="modalPlan"
+    >
+
+        <div class="modal modal-pequeno">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>
+                        Editar plan
+                    </h2>
+
+                    <p>
+                        Modifica la configuración de la empresa.
+                    </p>
+
+                </div>
+
+                <button
+                    class="cerrar-modal"
+                    data-cerrar="modalPlan"
+                >
+                    <i class="bi bi-x-lg"></i>
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <div class="form-group">
+
+                    <label>
+                        Plan
+                    </label>
+
+                    <select>
+
+                        <option>
+                            Plan 10 citas/mes
+                        </option>
+
+                        <option selected>
+                            Plan 20 citas/mes
+                        </option>
+
+                        <option>
+                            Plan 50 citas/mes
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Precio mensual
+                    </label>
+
+                    <input
+                        type="number"
+                        value="200000"
+                    />
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    class="btn-cancelar"
+                    data-cerrar="modalPlan"
+                >
+                    Cancelar
+                </button>
+
+                <button class="btn-activar">
+
+                    <i class="bi bi-check-lg"></i>
+
+                    Guardar cambios
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+// @ts-nocheck
+
+    /* =====================================================
+       RESUMEN
+    ====================================================== */
+
+    const btnResumen = document.getElementById("btnResumen");
+    const resumenPanel = document.getElementById("resumenPanel");
+    const cerrarResumen = document.getElementById("cerrarResumen");
+
+    btnResumen?.addEventListener("click", () => {
+
+        resumenPanel?.classList.toggle("mostrar");
+
+    });
+
+
+    cerrarResumen?.addEventListener("click", () => {
+
+        resumenPanel?.classList.remove("mostrar");
+
+    });
+
+
+    /* =====================================================
+       SELECCIONAR EMPRESA
+    ====================================================== */
+
+    const empresas = document.querySelectorAll(".empresa-item");
+
+    const detalleVacio =
+        document.getElementById("detalleVacio");
+
+    const detalleContenido =
+        document.getElementById("detalleContenido");
+
+
+    empresas.forEach((empresa) => {
+
+        empresa.addEventListener("click", () => {
+
+            empresas.forEach((item) => {
+
+                item.classList.remove("seleccionada");
+
+            });
+
+            empresa.classList.add("seleccionada");
+
+            detalleVacio.style.display = "none";
+
+            detalleContenido.style.display = "block";
+
+
+            const nombre =
+                empresa.getAttribute("data-nombre");
+
+            const estado =
+                empresa.getAttribute("data-estado");
+
+
+            document.getElementById("detalleNombre").textContent =
+                nombre || "Empresa";
+
+
+            if (estado === "activa") {
+
+                document.getElementById("detalleEstado").innerHTML =
+                    "<span></span> Activa";
+
+                document.getElementById("detalleEstado").className =
+                    "estado estado-activa";
+
+            }
+
+            else if (estado === "pendiente") {
+
+                document.getElementById("detalleEstado").innerHTML =
+                    "<span></span> Pendiente";
+
+                document.getElementById("detalleEstado").className =
+                    "estado estado-pendiente";
+
+            }
+
+        });
+
+    });
+
+
+    /* =====================================================
+       MODALES
+    ====================================================== */
+
+    function abrirModal(id) {
+
+        const modal = document.getElementById(id);
+
+        if (modal) {
+
+            modal.classList.add("mostrar");
+
+            document.body.classList.add("modal-abierto");
+
+        }
+
+    }
+
+
+    function cerrarModal(id) {
+
+        const modal = document.getElementById(id);
+
+        if (modal) {
+
+            modal.classList.remove("mostrar");
+
+            document.body.classList.remove("modal-abierto");
+
+        }
+
+    }
+
+
+    document.querySelectorAll("[data-cerrar]").forEach((boton) => {
+
+        boton.addEventListener("click", () => {
+
+            const id =
+                boton.getAttribute("data-cerrar");
+
+            cerrarModal(id);
+
+        });
+
+    });
+
+
+    document.querySelectorAll(".modal-overlay").forEach((modal) => {
+
+        modal.addEventListener("click", (event) => {
+
+            if (event.target === modal) {
+
+                modal.classList.remove("mostrar");
+
+                document.body.classList.remove("modal-abierto");
+
+            }
+
+        });
+
+    });
+
+
+    /* =====================================================
+       BOTÓN VER DOCUMENTOS
+    ====================================================== */
+
+    document.querySelectorAll(".btn-ver").forEach((boton) => {
+
+        boton.addEventListener("click", (event) => {
+
+            event.stopPropagation();
+
+            abrirModal("modalDocumentos");
+
+        });
+
+    });
+
+
+    /* =====================================================
+       ACTIVAR
+    ====================================================== */
+
+    document
+        .getElementById("btnActivar")
+        ?.addEventListener("click", () => {
+
+            abrirModal("modalActivar");
+
+        });
+
+
+    document
+        .getElementById("confirmarActivar")
+        ?.addEventListener("click", () => {
+
+            cerrarModal("modalActivar");
+
+            alert("Empresa activada correctamente.");
+
+        });
+
+
+    /* =====================================================
+       RECHAZAR
+    ====================================================== */
+
+    document
+        .getElementById("btnRechazar")
+        ?.addEventListener("click", () => {
+
+            abrirModal("modalRechazar");
+
+        });
+
+
+    document
+        .getElementById("confirmarRechazo")
+        ?.addEventListener("click", () => {
+
+            const motivo =
+                document.getElementById("motivoRechazo").value.trim();
+
+
+            if (!motivo) {
+
+                alert("Escribe el motivo del rechazo.");
+
+                return;
+
+            }
+
+
+            cerrarModal("modalRechazar");
+
+            document.getElementById("motivoRechazo").value = "";
+
+            alert("Empresa rechazada correctamente.");
+
+        });
+
+
+    /* =====================================================
+       PESTAÑAS
+    ====================================================== */
+
+    const tabs =
+        document.querySelectorAll(".tab-empresa");
+
+
+    tabs.forEach((tab) => {
+
+        tab.addEventListener("click", () => {
+
+            tabs.forEach((item) => {
+
+                item.classList.remove("activa");
+
+            });
+
+            tab.classList.add("activa");
+
+            const tipo =
+                tab.getAttribute("data-tab");
+
+
+            empresas.forEach((empresa) => {
+
+                const estado =
+                    empresa.getAttribute("data-estado");
+
+                if (tipo === "pendientes") {
+
+                    empresa.style.display =
+                        estado === "pendiente"
+                            ? "flex"
+                            : "none";
+
+                }
+
+                else {
+
+                    empresa.style.display =
+                        estado === "activa"
+                            ? "flex"
+                            : "none";
+
+                }
+
+            });
+
+
+            const titulo =
+                document.getElementById("tituloLista");
+
+            const subtitulo =
+                document.getElementById("subtituloLista");
+
+
+            if (tipo === "pendientes") {
+
+                titulo.textContent =
+                    "Empresas pendientes";
+
+                subtitulo.textContent =
+                    "Revisa las solicitudes que esperan validación.";
+
+            }
+
+            else {
+
+                titulo.textContent =
+                    "Empresas activas";
+
+                subtitulo.textContent =
+                    "Empresas que ya fueron verificadas y activadas.";
+
+            }
+
+        });
+
+    });
+
+
+    /* =====================================================
+       BUSCADOR
+    ====================================================== */
+
+    const buscador =
+        document.getElementById("buscarEmpresa");
+
+
+    buscador?.addEventListener("input", () => {
+
+        const texto =
+            buscador.value.toLowerCase().trim();
+
+
+        empresas.forEach((empresa) => {
+
+            const nombre =
+                empresa.getAttribute("data-nombre")?.toLowerCase() || "";
+
+
+            if (nombre.includes(texto)) {
+
+                empresa.style.display = "flex";
+
+            }
+
+            else {
+
+                empresa.style.display = "none";
+
+            }
+
+        });
+
+    });
+
+</script>

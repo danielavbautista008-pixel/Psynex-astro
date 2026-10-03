@@ -1,0 +1,197 @@
+---
+/**
+ * sobre-nosotros.astro
+ * -------------------------------------------------------------------------
+ * Reemplaza tu @page "/sobre-nosotros" de Blazor.
+ *
+ * CAMBIOS respecto a tu C#:
+ * 1. El carrusel de 8 fotos (con flechas, punticos y el Timer de C#) se
+ *    reemplazó por un video de fondo en loop — tu idea. El archivo
+ *    descargado de YouTube tenía un códec que Chrome no puede reproducir
+ *    (típico de muchos descargadores: guardan VP9/Opus con extensión
+ *    .mp4, que engaña al navegador). Como convertirlo localmente no era
+ *    viable por espacio/RAM, en vez de un <video> con archivo propio se
+ *    usa un <iframe> que EMBEBE el video directo desde YouTube — YouTube
+ *    hace todo el trabajo pesado, tu proyecto no guarda ni procesa nada.
+ * 2. El <nav> duplicado que tenías copiado y pegado aquí se quitó por
+ *    completo: ahora se usa tu componente <Navbar /> reutilizable (el
+ *    mismo de la landing y el resto del sitio), en vez de repetir el
+ *    HTML del menú en cada página.
+ * 3. Variables de color corregidas: tu CSS original usaba
+ *    var(--color-primary) y var(--text-primary), que NO existen en tu
+ *    colores-globales.css real (ahí es --primary y --text). Si se
+ *    hubiera dejado así, esos elementos se habrían visto sin color.
+ * 4. .info-card y .valor-card usaban "background: white" fijo en vez de
+ *    var(--surface) — eso significa que esas tarjetas se habrían visto
+ *    blancas SIEMPRE, incluso en temas oscuros o de otro color. Ya
+ *    quedan usando la variable, para que cambien con el tema.
+ * 5. .about-container tenía "background: var(--color-primary)" (el
+ *    fondo de TODA la sección pintado del color fuerte del tema) — se
+ *    ve casi seguro que era un error, no una decisión de diseño
+ *    (ninguna otra página de tu sitio hace esto). Lo cambié a
+ *    var(--bg), el fondo normal de página. Avísame si en realidad sí
+ *    lo querías así.
+ */
+
+import Navbar from "../Menu/Navbar.astro";
+import "./sobrenosotros.css";
+
+// El ID es la parte final de tu link https://youtu.be/uYW2Mja9c5c
+const youtubeId = "uYW2Mja9c5c";
+
+// Imagen que se ve ABAJO del iframe mientras YouTube carga (unos
+// segundos), o si el usuario tiene activado "reducir movimiento" (ver
+// el <script> al final: ahí ni siquiera se carga el iframe).
+const videoPoster = "/Imagenes/imagenc.1.jpeg";
+
+// Parámetros del embed de YouTube:
+// autoplay=1 + mute=1 -> se reproduce solo, sin sonido (obligatorio
+//   para que cualquier navegador permita el autoplay).
+// loop=1 + playlist=<mismoId> -> truco necesario de YouTube para que
+//   loop funcione en un solo video (sin "playlist" repitiendo el mismo
+//   ID, YouTube ignora el loop).
+// controls=0, modestbranding=1, rel=0 -> oculta controles y "videos
+//   relacionados" de YouTube al terminar, para que se vea como un
+//   video de fondo y no como un reproductor de YouTube de verdad.
+const youtubeParams = new URLSearchParams({
+  autoplay: "1",
+  mute: "1",
+  loop: "1",
+  playlist: youtubeId,
+  controls: "0",
+  modestbranding: "1",
+  rel: "0",
+  playsinline: "1",
+  iv_load_policy: "3",
+});
+
+const valores = [
+  { icono: "bi-heart-fill", titulo: "Empatía", texto: "Escuchamos y comprendemos las necesidades de cada persona." },
+  { icono: "bi-shield-check", titulo: "Confianza", texto: "Protegemos la privacidad y seguridad de nuestros usuarios." },
+  { icono: "bi-lightbulb", titulo: "Innovación", texto: "Utilizamos tecnología moderna para mejorar la experiencia." },
+  { icono: "bi-people-fill", titulo: "Compromiso", texto: "Trabajamos para generar impacto positivo en la comunidad." },
+];
+
+const redes = [
+  { icono: "bi-instagram", url: "https://www.instagram.com/erika2622_?igsh=MXFtY3ZtNG5hZWJhMA==", label: "Instagram" },
+  { icono: "bi-whatsapp", url: "https://wa.me/573202259605", label: "WhatsApp" },
+  { icono: "bi-facebook", url: "https://www.facebook.com/share/1EVCvvKbnw/", label: "Facebook" },
+  { icono: "bi-envelope", url: "mailto:Psynex.2025.ye@gmail.com", label: "Correo" },
+];
+---
+
+<Navbar />
+
+<!-- HERO con video de fondo embebido de YouTube -->
+<section class="sn-hero">
+
+  <!-- Imagen de respaldo: visible mientras el iframe carga, o como
+       única opción si se desactiva el video por accesibilidad. -->
+  <img src={videoPoster} alt="" class="sn-hero-poster" />
+
+  <div class="sn-hero-video-wrap" id="snHeroVideoWrap">
+    <iframe
+      class="sn-hero-iframe"
+      src={`https://www.youtube.com/embed/${youtubeId}?${youtubeParams.toString()}`}
+      title="Video institucional Psynex"
+      frameborder="0"
+      allow="autoplay; encrypted-media"
+      loading="lazy"
+    ></iframe>
+  </div>
+
+  <div class="sn-hero-overlay"></div>
+
+  <div class="sn-hero-content">
+    <h1>Sobre Nosotros</h1>
+    <p>
+      Promovemos el bienestar emocional y psicológico mediante
+      herramientas digitales accesibles.
+    </p>
+  </div>
+</section>
+
+<div class="sn-container">
+
+  <!-- MISIÓN Y VISIÓN -->
+  <section class="sn-mision-vision">
+    <div class="sn-info-card">
+      <div class="sn-icon-circle">
+        <i class="bi bi-bullseye"></i>
+      </div>
+      <div class="sn-card-content">
+        <h2>Nuestra Misión</h2>
+        <p>
+          Brindar una plataforma innovadora y accesible que facilite el
+          acompañamiento psicológico, promoviendo la salud mental, el
+          bienestar emocional y el crecimiento personal.
+        </p>
+      </div>
+    </div>
+
+    <div class="sn-info-card">
+      <div class="sn-icon-circle">
+        <i class="bi bi-eye"></i>
+      </div>
+      <div class="sn-card-content">
+        <h2>Nuestra Visión</h2>
+        <p>
+          Ser una plataforma líder en bienestar psicológico, reconocida
+          por transformar vidas mediante el acceso a herramientas
+          digitales confiables y profesionales.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- VALORES -->
+  <section class="sn-valores">
+    <div class="sn-section-title">
+      <h2>Nuestros Valores</h2>
+      <div class="sn-title-line"></div>
+    </div>
+
+    <div class="sn-valores-grid">
+      {valores.map((v) => (
+        <div class="sn-valor-card">
+          <div class="sn-valor-icon">
+            <i class={`bi ${v.icono}`}></i>
+          </div>
+          <h3>{v.titulo}</h3>
+          <p>{v.texto}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- CONTACTO -->
+  <section class="sn-contacto">
+    <div class="sn-section-title">
+      <h2>Contáctanos</h2>
+      <div class="sn-title-line"></div>
+    </div>
+
+    <div class="sn-contact-buttons">
+      {redes.map((r) => (
+        <a href={r.url} class="sn-contact-btn" target="_blank" rel="noopener noreferrer" aria-label={r.label}>
+          <i class={`bi ${r.icono}`}></i>
+        </a>
+      ))}
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // Si el usuario tiene activado "reducir movimiento" en su sistema
+  // operativo (una preferencia de accesibilidad), ni siquiera cargamos
+  // el iframe de YouTube — quitamos ese <div> y queda solo el poster
+  // (imagen fija) de fondo.
+  const prefiereMenosMovimiento = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
+
+  if (prefiereMenosMovimiento) {
+    document.getElementById("snHeroVideoWrap")?.remove();
+  }
+</script>
