@@ -206,19 +206,18 @@ import "./login.css";
         successBox.textContent = "Sesión iniciada, redirigiendo...";
         successBox.hidden = false;
       }
-      const u =data.usuario; // Extraemos el usuario que devuelve tu authController
-      
-      if (u?.Rol === "Empresa" || u?.rol === "Empresa") {
-        window.location.href = `/Empresa/${u.UsuarioId || u.id}/Inicio`;
-      } else if (u?.Rol === "Paciente" || u?.rol === "Paciente") {
-        window.location.href = `/Paciente/${u.UsuarioId || u.id}/Inicio`;
+
+      // Redirección según el rol del usuario devuelto por la API (con soporte case-insensitive)
+      const rolRaw = String(data.usuario?.Rol ?? data.usuario?.rol ?? "");
+      const rol = rolRaw.toLowerCase().trim();
+
+      if (rol === "admin" || rol === "administrador") {
+        window.location.href = "/Administrador/inicio";
+      } else if (rol === "empresa") {
+        window.location.href = "/Empresa/Inicio";
       } else {
         window.location.href = "/";
       }
-
-      // Por ahora mandamos siempre a "/". Cuando tengas vistas por rol
-      // (Paciente / Empresa), aquí va el switch según data.usuario.Rol.
-      // window.location.href = "/";
     } catch (err) {
       if (errorBox) {
         errorBox.textContent = "No se pudo conectar con el servidor";
