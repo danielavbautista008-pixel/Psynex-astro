@@ -1,0 +1,1684 @@
+---
+import MenuAdmin from "../Menu/MenuAdmin.astro";
+import "./usuarios.css";
+---
+
+<div class="usuarios-page">
+
+  <MenuAdmin />
+
+  <main class="usuarios-content">
+
+    <!-- =====================================================
+         ENCABEZADO
+    ====================================================== -->
+
+    <header class="usuarios-header">
+
+      <div>
+        <span class="section-kicker">Administración</span>
+
+        <h1>
+          <i class="bi bi-people"></i>
+          Usuarios
+        </h1>
+
+        <p>
+          Consulta y administra los usuarios de la plataforma.
+        </p>
+      </div>
+
+      <button
+        id="btnAbrirResumen"
+        class="btn-resumen"
+        type="button"
+      >
+        <i class="bi bi-bar-chart"></i>
+        Ver resumen
+      </button>
+
+    </header>
+
+
+    <!-- =====================================================
+         FILTROS
+    ====================================================== -->
+
+    <section class="usuarios-filtros">
+
+      <div class="buscador-usuarios">
+
+        <i class="bi bi-search"></i>
+
+        <input
+          id="buscarUsuario"
+          type="text"
+          placeholder="Buscar por nombre, correo o documento..."
+        />
+
+      </div>
+
+
+      <select id="filtroTipo">
+
+        <option value="todos">
+          Todos los roles
+        </option>
+
+        <option value="Paciente">
+          Pacientes
+        </option>
+
+        <option value="Psicólogo">
+          Psicólogos
+        </option>
+
+        <option value="Empresa">
+          Empresas
+        </option>
+
+      </select>
+
+
+      <select id="filtroEstado">
+
+        <option value="todos">
+          Todos los estados
+        </option>
+
+        <option value="Activo">
+          Activos
+        </option>
+
+        <option value="Inactivo">
+          Inactivos
+        </option>
+
+      </select>
+
+
+      <button
+        id="btnAbrirReportes"
+        class="btn-reportes"
+        type="button"
+      >
+        <i class="bi bi-flag"></i>
+        Reportes
+      </button>
+
+    </section>
+
+
+    <!-- =====================================================
+         TABLA
+    ====================================================== -->
+
+    <section class="usuarios-table-card">
+
+      <div class="table-header">
+
+        <div>
+          <h2>Usuarios registrados</h2>
+
+          <p>
+            Pacientes, psicólogos y empresas.
+          </p>
+        </div>
+
+        <span class="total-usuarios">
+          8 usuarios
+        </span>
+
+      </div>
+
+
+      <div class="usuarios-table">
+
+        <!-- CABECERA -->
+
+        <div class="usuario-table-head">
+
+          <span>Usuario</span>
+          <span>Rol</span>
+          <span>Contacto</span>
+          <span>Estado</span>
+          <span>Acciones</span>
+
+        </div>
+
+
+        <!-- =================================================
+             USUARIO 1
+        ================================================== -->
+
+        <article
+          class="usuario-row"
+          data-id="1"
+          data-nombre="Laura Gómez"
+          data-tipo="Paciente"
+          data-tipo-class="tipo-paciente"
+          data-documento="1.025.456.789"
+          data-correo="laura@gmail.com"
+          data-telefono="300 456 7890"
+          data-iniciales="LG"
+          data-estado="Activo"
+        >
+
+          <div class="usuario-principal">
+
+            <div class="usuario-avatar tipo-paciente">
+              LG
+            </div>
+
+            <div>
+              <strong>Laura Gómez</strong>
+              <small>
+                laura@gmail.com
+              </small>
+            </div>
+
+          </div>
+
+
+          <span class="tipo-badge tipo-paciente">
+            Paciente
+          </span>
+
+
+          <div class="contacto-usuario">
+
+            <span>
+              300 456 7890
+            </span>
+
+            <small>
+              1.025.456.789
+            </small>
+
+          </div>
+
+
+          <span class="estado-badge estado-activo">
+            Activo
+          </span>
+
+
+          <div class="usuario-actions">
+
+            <button
+              type="button"
+              title="Ver detalle"
+              data-action="detalle"
+              data-id="1"
+            >
+              <i class="bi bi-eye"></i>
+            </button>
+
+            <button
+              type="button"
+              title="Cambiar estado"
+              data-action="estado"
+              data-id="1"
+              data-nombre="Laura Gómez"
+              data-estado="Activo"
+            >
+              <i class="bi bi-power"></i>
+            </button>
+
+          </div>
+
+        </article>
+
+
+        <!-- =================================================
+             USUARIO 2
+        ================================================== -->
+
+        <article
+          class="usuario-row"
+          data-id="2"
+          data-nombre="Andrés Ramírez"
+          data-tipo="Psicólogo"
+          data-tipo-class="tipo-psicologo"
+          data-documento="79.456.123"
+          data-correo="andres@psynex.com"
+          data-telefono="301 222 4567"
+          data-iniciales="AR"
+          data-estado="Activo"
+        >
+
+          <div class="usuario-principal">
+
+            <div class="usuario-avatar tipo-psicologo">
+              AR
+            </div>
+
+            <div>
+              <strong>Andrés Ramírez</strong>
+              <small>
+                andres@psynex.com
+              </small>
+            </div>
+
+          </div>
+
+
+          <span class="tipo-badge tipo-psicologo">
+            Psicólogo
+          </span>
+
+
+          <div class="contacto-usuario">
+
+            <span>
+              301 222 4567
+            </span>
+
+            <small>
+              79.456.123
+            </small>
+
+          </div>
+
+
+          <span class="estado-badge estado-activo">
+            Activo
+          </span>
+
+
+          <div class="usuario-actions">
+
+            <button
+              type="button"
+              title="Ver detalle"
+              data-action="detalle"
+              data-id="2"
+            >
+              <i class="bi bi-eye"></i>
+            </button>
+
+            <button
+              type="button"
+              title="Cambiar estado"
+              data-action="estado"
+              data-id="2"
+              data-nombre="Andrés Ramírez"
+              data-estado="Activo"
+            >
+              <i class="bi bi-power"></i>
+            </button>
+
+          </div>
+
+        </article>
+
+
+        <!-- =================================================
+             USUARIO 3
+        ================================================== -->
+
+        <article
+          class="usuario-row"
+          data-id="3"
+          data-nombre="Bienestar Laboral S.A.S."
+          data-tipo="Empresa"
+          data-tipo-class="tipo-empresa"
+          data-documento="900.456.789-1"
+          data-correo="contacto@bienestarlaboral.com"
+          data-telefono="601 456 7890"
+          data-iniciales="BL"
+          data-estado="Activo"
+        >
+
+          <div class="usuario-principal">
+
+            <div class="usuario-avatar tipo-empresa">
+              BL
+            </div>
+
+            <div>
+              <strong>
+                Bienestar Laboral S.A.S.
+              </strong>
+
+              <small>
+                contacto@bienestarlaboral.com
+              </small>
+            </div>
+
+          </div>
+
+
+          <span class="tipo-badge tipo-empresa">
+            Empresa
+          </span>
+
+
+          <div class="contacto-usuario">
+
+            <span>
+              601 456 7890
+            </span>
+
+            <small>
+              900.456.789-1
+            </small>
+
+          </div>
+
+
+          <span class="estado-badge estado-activo">
+            Activo
+          </span>
+
+
+          <div class="usuario-actions">
+
+            <button
+              type="button"
+              title="Ver detalle"
+              data-action="detalle"
+              data-id="3"
+            >
+              <i class="bi bi-eye"></i>
+            </button>
+
+            <button
+              type="button"
+              title="Cambiar estado"
+              data-action="estado"
+              data-id="3"
+              data-nombre="Bienestar Laboral S.A.S."
+              data-estado="Activo"
+            >
+              <i class="bi bi-power"></i>
+            </button>
+
+          </div>
+
+        </article>
+
+
+        <!-- =================================================
+             USUARIO 4
+        ================================================== -->
+
+        <article
+          class="usuario-row"
+          data-id="4"
+          data-nombre="Carlos Méndez"
+          data-tipo="Paciente"
+          data-tipo-class="tipo-paciente"
+          data-documento="1.014.785.632"
+          data-correo="carlos@gmail.com"
+          data-telefono="315 654 7890"
+          data-iniciales="CM"
+          data-estado="Inactivo"
+        >
+
+          <div class="usuario-principal">
+
+            <div class="usuario-avatar tipo-paciente">
+              CM
+            </div>
+
+            <div>
+              <strong>
+                Carlos Méndez
+              </strong>
+
+              <small>
+                carlos@gmail.com
+              </small>
+            </div>
+
+          </div>
+
+
+          <span class="tipo-badge tipo-paciente">
+            Paciente
+          </span>
+
+
+          <div class="contacto-usuario">
+
+            <span>
+              315 654 7890
+            </span>
+
+            <small>
+              1.014.785.632
+            </small>
+
+          </div>
+
+
+          <span class="estado-badge estado-inactivo">
+            Inactivo
+          </span>
+
+
+          <div class="usuario-actions">
+
+            <button
+              type="button"
+              title="Ver detalle"
+              data-action="detalle"
+              data-id="4"
+            >
+              <i class="bi bi-eye"></i>
+            </button>
+
+            <button
+              type="button"
+              title="Cambiar estado"
+              data-action="estado"
+              data-id="4"
+              data-nombre="Carlos Méndez"
+              data-estado="Inactivo"
+            >
+              <i class="bi bi-power"></i>
+            </button>
+
+          </div>
+
+        </article>
+
+
+      </div>
+
+
+      <!-- PAGINACIÓN -->
+
+      <div class="usuarios-pagination">
+
+        <span>
+          Mostrando 1–4 de 8 usuarios
+        </span>
+
+        <div>
+
+          <button disabled>
+            <i class="bi bi-chevron-left"></i>
+          </button>
+
+          <button class="pagina-activa">
+            1
+          </button>
+
+          <button>
+            2
+          </button>
+
+          <button>
+            <i class="bi bi-chevron-right"></i>
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- =======================================================
+       MODAL RESUMEN
+  ======================================================== -->
+
+  <div
+    id="modalResumen"
+    class="modal-overlay"
+  >
+
+    <div
+      class="modal-box modal-resumen"
+      role="dialog"
+      aria-modal="true"
+    >
+
+      <div class="modal-header">
+
+        <div>
+          <span class="modal-kicker">
+            Resumen
+          </span>
+
+          <h2>
+            Usuarios de la plataforma
+          </h2>
+
+          <p>
+            Distribución actual de usuarios.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="modal-close"
+          data-close="modalResumen"
+        >
+          <i class="bi bi-x"></i>
+        </button>
+
+      </div>
+
+
+      <div class="resumen-grid">
+
+        <div class="resumen-item">
+
+          <div class="resumen-icon icon-total">
+            <i class="bi bi-people"></i>
+          </div>
+
+          <div>
+            <strong>8</strong>
+            <span>Total usuarios</span>
+          </div>
+
+        </div>
+
+
+        <div class="resumen-item">
+
+          <div class="resumen-icon icon-paciente">
+            <i class="bi bi-person"></i>
+          </div>
+
+          <div>
+            <strong>4</strong>
+            <span>Pacientes</span>
+          </div>
+
+        </div>
+
+
+        <div class="resumen-item">
+
+          <div class="resumen-icon icon-psicologo">
+            <i class="bi bi-person-heart"></i>
+          </div>
+
+          <div>
+            <strong>2</strong>
+            <span>Psicólogos</span>
+          </div>
+
+        </div>
+
+
+        <div class="resumen-item">
+
+          <div class="resumen-icon icon-empresa">
+            <i class="bi bi-building"></i>
+          </div>
+
+          <div>
+            <strong>2</strong>
+            <span>Empresas</span>
+          </div>
+
+        </div>
+
+
+        <div class="resumen-item">
+
+          <div class="resumen-icon icon-activo">
+            <i class="bi bi-check-circle"></i>
+          </div>
+
+          <div>
+            <strong>7</strong>
+            <span>Activos</span>
+          </div>
+
+        </div>
+
+
+        <div class="resumen-item">
+
+          <div class="resumen-icon icon-inactivo">
+            <i class="bi bi-pause-circle"></i>
+          </div>
+
+          <div>
+            <strong>1</strong>
+            <span>Inactivos</span>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="modal-footer">
+
+        <button
+          type="button"
+          class="btn-secundario"
+          data-close="modalResumen"
+        >
+          Cerrar
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =======================================================
+       MODAL DETALLE
+  ======================================================== -->
+
+  <div
+    id="modalDetalle"
+    class="modal-overlay"
+  >
+
+    <div
+      class="modal-box modal-detalle"
+      role="dialog"
+      aria-modal="true"
+    >
+
+      <div class="modal-header">
+
+        <div>
+          <span class="modal-kicker">
+            Información
+          </span>
+
+          <h2>
+            Detalle del usuario
+          </h2>
+        </div>
+
+        <button
+          type="button"
+          class="modal-close"
+          data-close="modalDetalle"
+        >
+          <i class="bi bi-x"></i>
+        </button>
+
+      </div>
+
+
+      <div class="detalle-body">
+
+        <div class="detalle-profile">
+
+          <div
+            id="detalleAvatar"
+            class="detalle-avatar"
+          >
+            LG
+          </div>
+
+          <div>
+
+            <h3 id="detalleNombre">
+              Laura Gómez
+            </h3>
+
+            <span
+              id="detalleTipo"
+              class="tipo-badge"
+            >
+              Paciente
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="detalle-grid">
+
+          <div class="detalle-dato">
+
+            <span>
+              Documento
+            </span>
+
+            <strong id="detalleDocumento">
+              1.025.456.789
+            </strong>
+
+          </div>
+
+
+          <div class="detalle-dato">
+
+            <span>
+              Teléfono
+            </span>
+
+            <strong id="detalleTelefono">
+              300 456 7890
+            </strong>
+
+          </div>
+
+
+          <div class="detalle-dato detalle-dato-full">
+
+            <span>
+              Correo electrónico
+            </span>
+
+            <strong id="detalleCorreo">
+              laura@gmail.com
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="modal-footer detalle-footer">
+
+        <button
+          type="button"
+          class="btn-secundario"
+          data-close="modalDetalle"
+        >
+          Cerrar
+        </button>
+
+        <button
+          type="button"
+          class="btn-danger-outline"
+          id="btnDesactivarDesdeDetalle"
+        >
+          <i class="bi bi-power"></i>
+          Cambiar estado
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =======================================================
+       MODAL REPORTES
+  ======================================================== -->
+
+  <div
+    id="modalReportes"
+    class="modal-overlay"
+  >
+
+    <div
+      class="modal-box modal-reportes"
+      role="dialog"
+      aria-modal="true"
+    >
+
+      <div class="modal-header">
+
+        <div>
+          <span class="modal-kicker">
+            Moderación
+          </span>
+
+          <h2>
+            Reportes y quejas
+          </h2>
+
+          <p>
+            Revisa los reportes realizados entre usuarios.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="modal-close"
+          data-close="modalReportes"
+        >
+          <i class="bi bi-x"></i>
+        </button>
+
+      </div>
+
+
+      <div class="reportes-list">
+
+        <article class="reporte-item">
+
+          <div class="reporte-icon">
+            <i class="bi bi-flag"></i>
+          </div>
+
+          <div class="reporte-info">
+
+            <strong>
+              Reporte de usuario
+            </strong>
+
+            <p>
+              Un paciente reportó un comportamiento
+              inapropiado durante una consulta.
+            </p>
+
+            <small>
+              Hace 2 horas · Pendiente
+            </small>
+
+          </div>
+
+          <button
+            type="button"
+            class="reporte-ver"
+          >
+            Ver
+          </button>
+
+        </article>
+
+
+        <article class="reporte-item">
+
+          <div class="reporte-icon">
+            <i class="bi bi-chat-left-text"></i>
+          </div>
+
+          <div class="reporte-info">
+
+            <strong>
+              Queja recibida
+            </strong>
+
+            <p>
+              Se recibió una queja relacionada
+              con una cita.
+            </p>
+
+            <small>
+              Ayer · Revisado
+            </small>
+
+          </div>
+
+          <button
+            type="button"
+            class="reporte-ver"
+          >
+            Ver
+          </button>
+
+        </article>
+
+
+        <div class="sin-reportes">
+          <i class="bi bi-check-circle"></i>
+
+          <span>
+            No hay más reportes pendientes.
+          </span>
+        </div>
+
+      </div>
+
+
+      <div class="modal-footer">
+
+        <button
+          type="button"
+          class="btn-secundario"
+          data-close="modalReportes"
+        >
+          Cerrar
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =======================================================
+       MODAL ESTADO
+  ======================================================== -->
+
+  <div
+    id="modalEstado"
+    class="modal-overlay"
+  >
+
+    <div
+      class="modal-box modal-estado"
+      role="dialog"
+      aria-modal="true"
+    >
+
+      <div class="estado-icon">
+        <i class="bi bi-power"></i>
+      </div>
+
+
+      <div class="estado-content">
+
+        <h2 id="estadoTitulo">
+          ¿Desactivar usuario?
+        </h2>
+
+        <p id="estadoDescripcion">
+          El usuario no podrá acceder temporalmente
+          a la plataforma.
+        </p>
+
+
+        <div
+          id="estadoUsuario"
+          class="estado-usuario"
+        >
+          Laura Gómez
+        </div>
+
+      </div>
+
+
+      <div class="estado-actions">
+
+        <button
+          type="button"
+          class="btn-secundario"
+          data-close="modalEstado"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="btn-danger"
+          id="btnConfirmarEstado"
+        >
+          <i class="bi bi-power"></i>
+          Confirmar
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+  /* =========================================================
+     MODALES
+  ========================================================= */
+
+  const modalIds = [
+    "modalResumen",
+    "modalDetalle",
+    "modalReportes",
+    "modalEstado"
+  ];
+
+
+  const obtenerModal = (
+    id: string
+  ): HTMLElement | null => {
+
+    return document.getElementById(id);
+
+  };
+
+
+  const abrirModal = (
+    id: string
+  ): void => {
+
+    const modal =
+      obtenerModal(id);
+
+    if (!modal) return;
+
+    modal.classList.add("mostrar");
+
+    document.body.classList.add(
+      "modal-abierto"
+    );
+
+  };
+
+
+  const cerrarModal = (
+    id: string
+  ): void => {
+
+    const modal =
+      obtenerModal(id);
+
+    if (modal) {
+      modal.classList.remove("mostrar");
+    }
+
+
+    const hayOtroModal =
+      modalIds.some((modalId) => {
+
+        const elemento =
+          obtenerModal(modalId);
+
+        return (
+          elemento?.classList.contains(
+            "mostrar"
+          ) ?? false
+        );
+
+      });
+
+
+    if (!hayOtroModal) {
+
+      document.body.classList.remove(
+        "modal-abierto"
+      );
+
+    }
+
+  };
+
+
+  /* =========================================================
+     RESUMEN
+  ========================================================= */
+
+  document
+    .getElementById("btnAbrirResumen")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        abrirModal(
+          "modalResumen"
+        );
+
+      }
+    );
+
+
+  /* =========================================================
+     REPORTES
+  ========================================================= */
+
+  document
+    .getElementById("btnAbrirReportes")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        abrirModal(
+          "modalReportes"
+        );
+
+      }
+    );
+
+
+  /* =========================================================
+     CERRAR
+  ========================================================= */
+
+  document
+    .querySelectorAll<HTMLElement>(
+      "[data-close]"
+    )
+    .forEach((boton) => {
+
+      boton.addEventListener(
+        "click",
+        () => {
+
+          const id =
+            boton.dataset.close;
+
+          if (id) {
+            cerrarModal(id);
+          }
+
+        }
+      );
+
+    });
+
+
+  /* =========================================================
+     CLICK FUERA
+  ========================================================= */
+
+  document
+    .querySelectorAll<HTMLElement>(
+      ".modal-overlay"
+    )
+    .forEach((overlay) => {
+
+      overlay.addEventListener(
+        "click",
+        (event) => {
+
+          if (
+            event.target === overlay
+          ) {
+
+            cerrarModal(
+              overlay.id
+            );
+
+          }
+
+        }
+      );
+
+    });
+
+
+  /* =========================================================
+     FILTROS
+  ========================================================= */
+
+  const buscador =
+    document.getElementById(
+      "buscarUsuario"
+    ) as HTMLInputElement | null;
+
+
+  const filtroTipo =
+    document.getElementById(
+      "filtroTipo"
+    ) as HTMLSelectElement | null;
+
+
+  const filtroEstado =
+    document.getElementById(
+      "filtroEstado"
+    ) as HTMLSelectElement | null;
+
+
+  const filas =
+    document.querySelectorAll<HTMLElement>(
+      ".usuario-row"
+    );
+
+
+  const aplicarFiltros =
+    (): void => {
+
+      const texto =
+        buscador?.value
+          .toLowerCase()
+          .trim() ?? "";
+
+
+      const tipo =
+        filtroTipo?.value ??
+        "todos";
+
+
+      const estado =
+        filtroEstado?.value ??
+        "todos";
+
+
+      filas.forEach(
+        (fila) => {
+
+          const contenido =
+            fila.textContent
+              ?.toLowerCase() ?? "";
+
+
+          const filaTipo =
+            fila.dataset.tipo ?? "";
+
+
+          const filaEstado =
+            fila.dataset.estado ?? "";
+
+
+          const mostrar =
+            contenido.includes(texto) &&
+            (
+              tipo === "todos" ||
+              filaTipo === tipo
+            ) &&
+            (
+              estado === "todos" ||
+              filaEstado === estado
+            );
+
+
+          fila.style.display =
+            mostrar ? "" : "none";
+
+        }
+      );
+
+    };
+
+
+  buscador?.addEventListener(
+    "input",
+    aplicarFiltros
+  );
+
+
+  filtroTipo?.addEventListener(
+    "change",
+    aplicarFiltros
+  );
+
+
+  filtroEstado?.addEventListener(
+    "change",
+    aplicarFiltros
+  );
+
+
+  /* =========================================================
+     DETALLE
+  ========================================================= */
+
+  const abrirDetalle = (
+    fila: HTMLElement
+  ): void => {
+
+    const nombre =
+      fila.dataset.nombre ?? "";
+
+
+    const tipo =
+      fila.dataset.tipo ?? "";
+
+
+    const tipoClass =
+      fila.dataset.tipoClass ?? "";
+
+
+    const documento =
+      fila.dataset.documento ?? "";
+
+
+    const correo =
+      fila.dataset.correo ?? "";
+
+
+    const telefono =
+      fila.dataset.telefono ?? "";
+
+
+    const iniciales =
+      fila.dataset.iniciales ?? "";
+
+
+    const estado =
+      fila.dataset.estado ?? "";
+
+
+    const nombreDetalle =
+      document.getElementById(
+        "detalleNombre"
+      );
+
+
+    const tipoDetalle =
+      document.getElementById(
+        "detalleTipo"
+      );
+
+
+    const documentoDetalle =
+      document.getElementById(
+        "detalleDocumento"
+      );
+
+
+    const correoDetalle =
+      document.getElementById(
+        "detalleCorreo"
+      );
+
+
+    const telefonoDetalle =
+      document.getElementById(
+        "detalleTelefono"
+      );
+
+
+    const avatarDetalle =
+      document.getElementById(
+        "detalleAvatar"
+      );
+
+
+    if (nombreDetalle) {
+
+      nombreDetalle.textContent =
+        nombre;
+
+    }
+
+
+    if (tipoDetalle) {
+
+      tipoDetalle.textContent =
+        tipo;
+
+      tipoDetalle.className =
+        `tipo-badge ${tipoClass}`;
+
+    }
+
+
+    if (documentoDetalle) {
+
+      documentoDetalle.textContent =
+        documento;
+
+    }
+
+
+    if (correoDetalle) {
+
+      correoDetalle.textContent =
+        correo;
+
+    }
+
+
+    if (telefonoDetalle) {
+
+      telefonoDetalle.textContent =
+        telefono;
+
+    }
+
+
+    if (avatarDetalle) {
+
+      avatarDetalle.textContent =
+        iniciales;
+
+      avatarDetalle.className =
+        `detalle-avatar ${tipoClass}`;
+
+    }
+
+
+    const modalEstado =
+      document.getElementById(
+        "modalEstado"
+      );
+
+
+    if (modalEstado) {
+
+      modalEstado.dataset.usuarioId =
+        fila.dataset.id ?? "";
+
+      modalEstado.dataset.usuarioNombre =
+        nombre;
+
+      modalEstado.dataset.usuarioEstado =
+        estado;
+
+    }
+
+
+    abrirModal(
+      "modalDetalle"
+    );
+
+  };
+
+
+  document
+    .querySelectorAll<HTMLElement>(
+      '[data-action="detalle"]'
+    )
+    .forEach((boton) => {
+
+      boton.addEventListener(
+        "click",
+        (event) => {
+
+          event.stopPropagation();
+
+
+          const id =
+            boton.dataset.id ?? "";
+
+
+          const fila =
+            document.querySelector<HTMLElement>(
+              `.usuario-row[data-id="${id}"]`
+            );
+
+
+          if (fila) {
+
+            abrirDetalle(
+              fila
+            );
+
+          }
+
+        }
+      );
+
+    });
+
+
+  /* =========================================================
+     CAMBIAR ESTADO
+  ========================================================= */
+
+  document
+    .querySelectorAll<HTMLElement>(
+      '[data-action="estado"]'
+    )
+    .forEach((boton) => {
+
+      boton.addEventListener(
+        "click",
+        (event) => {
+
+          event.stopPropagation();
+
+
+          const nombre =
+            boton.dataset.nombre ?? "";
+
+
+          const estado =
+            boton.dataset.estado ?? "";
+
+
+          const modalEstado =
+            document.getElementById(
+              "modalEstado"
+            );
+
+
+          if (modalEstado) {
+
+            modalEstado.dataset.usuarioId =
+              boton.dataset.id ?? "";
+
+            modalEstado.dataset.usuarioNombre =
+              nombre;
+
+            modalEstado.dataset.usuarioEstado =
+              estado;
+
+          }
+
+
+          const titulo =
+            document.getElementById(
+              "estadoTitulo"
+            );
+
+
+          const descripcion =
+            document.getElementById(
+              "estadoDescripcion"
+            );
+
+
+          const usuario =
+            document.getElementById(
+              "estadoUsuario"
+            );
+
+
+          if (usuario) {
+
+            usuario.textContent =
+              nombre;
+
+          }
+
+
+          if (estado === "Activo") {
+
+            if (titulo) {
+
+              titulo.textContent =
+                "¿Desactivar usuario?";
+
+            }
+
+
+            if (descripcion) {
+
+              descripcion.textContent =
+                "El usuario no podrá acceder temporalmente a la plataforma.";
+
+            }
+
+          } else {
+
+            if (titulo) {
+
+              titulo.textContent =
+                "¿Activar usuario?";
+
+            }
+
+
+            if (descripcion) {
+
+              descripcion.textContent =
+                "El usuario podrá volver a acceder a la plataforma.";
+
+            }
+
+          }
+
+
+          abrirModal(
+            "modalEstado"
+          );
+
+        }
+      );
+
+    });
+
+
+  /* =========================================================
+     CAMBIAR ESTADO DESDE DETALLE
+  ========================================================= */
+
+  document
+    .getElementById(
+      "btnDesactivarDesdeDetalle"
+    )
+    ?.addEventListener(
+      "click",
+      () => {
+
+        const detalle =
+          document.getElementById(
+            "modalDetalle"
+          );
+
+
+        const estado =
+          document.getElementById(
+            "modalEstado"
+          );
+
+
+        if (
+          detalle &&
+          estado
+        ) {
+
+          estado.dataset.usuarioId =
+            detalle.dataset.usuarioId ?? "";
+
+          estado.dataset.usuarioNombre =
+            detalle.dataset.usuarioNombre ?? "";
+
+          estado.dataset.usuarioEstado =
+            detalle.dataset.usuarioEstado ?? "";
+
+        }
+
+
+        cerrarModal(
+          "modalDetalle"
+        );
+
+
+        abrirModal(
+          "modalEstado"
+        );
+
+      }
+    );
+
+
+  /* =========================================================
+     ESC
+  ========================================================= */
+
+  document.addEventListener(
+    "keydown",
+    (event) => {
+
+      if (
+        event.key === "Escape"
+      ) {
+
+        modalIds.forEach(
+          (id) => {
+
+            cerrarModal(id);
+
+          }
+        );
+
+      }
+
+    }
+  );
+
+</script>

@@ -1,8 +1,503 @@
 ---
 import MenuAdmin from "../Menu/MenuAdmin.astro";
+import "./inicio.css";
 
+const fechaActual = new Date().toLocaleDateString("es-CO", {
+  weekday: "long",
+  year: "numeric",
+  month: "long",
+  day: "numeric"
+});
+
+const horaActual = new Date().toLocaleTimeString("es-CO", {
+  hour: "2-digit",
+  minute: "2-digit"
+});
 ---
 
-<div>
-  <MenuAdmin/>
+<div class="admin-page">
+
+  <!-- MENÚ ADMINISTRADOR -->
+  <MenuAdmin />
+
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="admin-content">
+
+    <!-- =====================================
+         ENCABEZADO
+         ===================================== -->
+
+    <header class="inicio-header">
+
+      <div class="header-text">
+
+        <h1>Hola, Admin</h1>
+
+        <p>
+          Aquí está el resumen de hoy
+        </p>
+
+      </div>
+
+
+      <!-- FECHA -->
+      <div class="current-date">
+
+        <div class="date-icon">
+          <i class="bi bi-calendar3"></i>
+        </div>
+
+        <div class="date-info">
+
+          <span>
+            {fechaActual}
+          </span>
+
+          <small>
+            {horaActual}
+          </small>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+
+    <!-- =====================================
+         4 TARJETAS PRINCIPALES
+         ===================================== -->
+
+    <section class="stats-grid">
+
+
+      <!-- CITAS -->
+      <article class="stat-card">
+
+        <div class="stat-icon icon-blue">
+          <i class="bi bi-calendar3"></i>
+        </div>
+
+        <div class="stat-data">
+
+          <strong>12</strong>
+
+          <span>
+            Citas hoy
+          </span>
+
+        </div>
+
+      </article>
+
+
+
+      <!-- USUARIOS -->
+      <article class="stat-card">
+
+        <div class="stat-icon icon-green">
+          <i class="bi bi-people"></i>
+        </div>
+
+        <div class="stat-data">
+
+          <strong>8</strong>
+
+          <span>
+            Usuarios nuevos
+          </span>
+
+        </div>
+
+      </article>
+
+
+
+      <!-- PSICÓLOGOS -->
+      <article class="stat-card">
+
+        <div class="stat-icon icon-purple">
+          <i class="bi bi-person"></i>
+        </div>
+
+        <div class="stat-data">
+
+          <strong>5</strong>
+
+          <span>
+            Psicólogos registrados
+          </span>
+
+        </div>
+
+      </article>
+
+
+
+      <!-- CUESTIONARIOS -->
+      <article class="stat-card">
+
+        <div class="stat-icon icon-yellow">
+          <i class="bi bi-file-earmark-text"></i>
+        </div>
+
+        <div class="stat-data">
+
+          <strong>3</strong>
+
+          <span>
+            Cuestionarios activos
+          </span>
+
+        </div>
+
+      </article>
+
+    </section>
+
+
+
+    <!-- =====================================
+         SECCIONES INFERIORES
+         50% / 50%
+         ===================================== -->
+
+    <section class="bottom-grid">
+
+
+      <!-- =================================
+           ACTIVIDAD RECIENTE
+           ================================= -->
+
+      <section class="dashboard-panel">
+
+        <div class="panel-title">
+
+          <div>
+
+            <h2>
+              Actividad reciente
+            </h2>
+
+            <p>
+              Últimos movimientos
+            </p>
+
+          </div>
+
+
+          <a href="#" class="view-all">
+
+            Ver todo
+
+            <i class="bi bi-chevron-right"></i>
+
+          </a>
+
+        </div>
+
+
+
+        <div class="activity-list">
+
+
+          <!-- ACTIVIDAD 1 -->
+
+          <a href="#" class="activity-item">
+
+            <div class="item-icon icon-blue">
+
+              <i class="bi bi-calendar3"></i>
+
+            </div>
+
+
+            <div class="item-info">
+
+              <span>
+                Se agendó una nueva cita con la Dra. López
+              </span>
+
+              <small>
+                Hace 12 minutos
+              </small>
+
+            </div>
+
+
+            <i class="bi bi-chevron-right item-arrow"></i>
+
+          </a>
+
+
+
+          <!-- ACTIVIDAD 2 -->
+
+          <a href="#" class="activity-item">
+
+            <div class="item-icon icon-purple">
+
+              <i class="bi bi-person"></i>
+
+            </div>
+
+
+            <div class="item-info">
+
+              <span>
+                El psicólogo Carlos Martínez se registró
+              </span>
+
+              <small>
+                Hace 35 minutos
+              </small>
+
+            </div>
+
+
+            <i class="bi bi-chevron-right item-arrow"></i>
+
+          </a>
+
+
+
+          <!-- ACTIVIDAD 3 -->
+
+          <a href="#" class="activity-item">
+
+            <div class="item-icon icon-green">
+
+              <i class="bi bi-file-earmark-text"></i>
+
+            </div>
+
+
+            <div class="item-info">
+
+              <span>
+                Se completó un cuestionario de ansiedad
+              </span>
+
+              <small>
+                Hace 1 hora
+              </small>
+
+            </div>
+
+
+            <i class="bi bi-chevron-right item-arrow"></i>
+
+          </a>
+
+
+
+          <!-- ACTIVIDAD 4 -->
+
+          <a href="#" class="activity-item">
+
+            <div class="item-icon icon-orange">
+
+              <i class="bi bi-envelope"></i>
+
+            </div>
+
+
+            <div class="item-info">
+
+              <span>
+                Nuevo mensaje de consulta
+              </span>
+
+              <small>
+                Hace 2 horas
+              </small>
+
+            </div>
+
+
+            <i class="bi bi-chevron-right item-arrow"></i>
+
+          </a>
+
+
+
+          <!-- ACTIVIDAD 5 -->
+
+          <a href="#" class="activity-item">
+
+            <div class="item-icon icon-red">
+
+              <i class="bi bi-shield-check"></i>
+
+            </div>
+
+
+            <div class="item-info">
+
+              <span>
+                Se generó un reporte de actividad
+              </span>
+
+              <small>
+                Hace 3 horas
+              </small>
+
+            </div>
+
+
+            <i class="bi bi-chevron-right item-arrow"></i>
+
+          </a>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- =================================
+           PENDIENTES POR REVISAR
+           ================================= -->
+
+      <section class="dashboard-panel">
+
+        <div class="panel-title">
+
+          <div>
+
+            <h2>
+              Pendientes por revisar
+            </h2>
+
+            <p>
+              Acciones que requieren atención
+            </p>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="pending-list">
+
+
+          <!-- PENDIENTE 1 -->
+
+          <a href="#" class="pending-item">
+
+            <div class="item-icon icon-blue">
+
+              <i class="bi bi-calendar3"></i>
+
+            </div>
+
+
+            <span>
+              Citas pendientes de confirmación
+            </span>
+
+
+            <i class="bi bi-chevron-right item-arrow"></i>
+
+          </a>
+
+
+
+          <!-- PENDIENTE 2 -->
+
+          <a href="#" class="pending-item">
+
+            <div class="item-icon icon-purple">
+
+              <i class="bi bi-person"></i>
+
+            </div>
+
+
+            <span>
+              Nuevos usuarios por validar
+            </span>
+
+
+            <i class="bi bi-chevron-right item-arrow"></i>
+
+          </a>
+
+
+
+          <!-- PENDIENTE 3 -->
+
+          <a href="#" class="pending-item">
+
+            <div class="item-icon icon-green">
+
+              <i class="bi bi-file-earmark-text"></i>
+
+            </div>
+
+
+            <span>
+              Cuestionarios por revisar
+            </span>
+
+
+            <i class="bi bi-chevron-right item-arrow"></i>
+
+          </a>
+
+
+
+          <!-- PENDIENTE 4 -->
+
+          <a href="#" class="pending-item">
+
+            <div class="item-icon icon-orange">
+
+              <i class="bi bi-envelope"></i>
+
+            </div>
+
+
+            <span>
+              Mensajes sin leer
+            </span>
+
+
+            <i class="bi bi-chevron-right item-arrow"></i>
+
+          </a>
+
+
+
+          <!-- PENDIENTE 5 -->
+
+          <a href="#" class="pending-item">
+
+            <div class="item-icon icon-red">
+
+              <i class="bi bi-shield"></i>
+
+            </div>
+
+
+            <span>
+              Reportes de actividad
+            </span>
+
+
+            <i class="bi bi-chevron-right item-arrow"></i>
+
+          </a>
+
+        </div>
+
+      </section>
+
+    </section>
+
+  </main>
+
 </div>

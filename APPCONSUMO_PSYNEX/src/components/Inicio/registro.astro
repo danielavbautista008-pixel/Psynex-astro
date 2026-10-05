@@ -1,0 +1,597 @@
+---
+/**
+ * registro.astro
+ * -------------------------------------------------------------------------
+ * Página de registro de Psynex. Reemplaza tu @page "/registro" de Blazor.
+ *
+ * CAMBIOS DE FONDO respecto a tu C#:
+ * 1. Se quitó por completo la verificación automática con ReTHUS (los 2
+ *    checkboxes y el info-box que la mencionaban). En su lugar, el
+ *    Psicólogo sube 4 documentos (Tarjeta profesional, Cédula, Diploma,
+ *    Certificado de vigencia) a través de una ventana modal reutilizable,
+ *    y la cuenta queda "pendiente" hasta que el ADMINISTRADOR la revise
+ *    manualmente en un panel aparte (eso se arma después).
+ * 2. La Empresa ahora también sube un documento: el RUT (obligatorio) y,
+ *    opcionalmente, el Certificado de Cámara de Comercio — usando el
+ *    mismo modal reutilizable que el Psicólogo.
+ * 3. Como no hay Blazor ni @code, el cambio de rol, el mostrar/ocultar
+ *    contraseña y el modal de subida se manejan con JS normal al final
+ *    del archivo (nada de esto llama todavía a tu backend real: eso se
+ *    conecta cuando migres AuthService a Deno — quedan marcados los TODO).
+ * 4. Todo el tamaño se redujo bastante (títulos, tarjetas de rol, inputs)
+ *    para que no se vea tan "basto" como en la versión de C#.
+ */
+
+export interface Props {
+  // Imagen del panel izquierdo. OJO: en tu C# original decía
+  // "/imagenes/imagenderegistro.jpeg", pero en tu carpeta real (la que
+  // me mostraste antes) el archivo se llama "imagen2deregistro.jpeg"
+  // (con el "2"), dentro de /Imagenes con mayúscula. Verifica cuál es el
+  // nombre correcto en tu carpeta y ajusta este valor si hace falta.
+  heroImage?: string;
+}
+
+const { heroImage = "/Imagenes/imagen2deregistro.jpeg" } = Astro.props;
+
+import "./registro.css";
+
+// Los 4 documentos que debe subir el Psicólogo.
+const documentosPsicologo = [
+  { id: "tarjetaProfesional", label: "Tarjeta profesional (COLPSIC)", required: true },
+  { id: "cedula", label: "Cédula de ciudadanía", required: true },
+  { id: "diploma", label: "Diploma / título profesional", required: true },
+  { id: "certificadoVigencia", label: "Certificado de antecedentes/vigencia", required: true },
+];
+
+// Los documentos de la Empresa: el RUT obligatorio, Cámara de Comercio opcional.
+const documentosEmpresa = [
+  { id: "rut", label: "RUT", required: true },
+  { id: "camaraComercio", label: "Certificado Cámara de Comercio", required: false },
+];
+---
+
+<div class="reg-page">
+
+  <!-- PANEL IZQUIERDO: imagen + frase rotativa -->
+  <div class="reg-hero">
+    <a href="/" class="reg-home-btn" aria-label="Volver al inicio">
+      <i class="fas fa-home"></i>
+    </a>
+
+    <img src={heroImage} alt="Psynex" class="reg-hero-img" />
+    <div class="reg-hero-overlay"></div>
+
+    <div class="reg-hero-content">
+      <h1>Psynex</h1>
+      <p id="mensajeHero">Encuentra apoyo profesional cuando lo necesites.</p>
+    </div>
+  </div>
+
+  <!-- PANEL DERECHO: selector de rol + formularios -->
+  <div class="reg-form-side">
+    <div class="reg-form-card">
+
+      <div class="reg-header">
+        <h1>Crear una cuenta</h1>
+        <p>Selecciona el tipo de cuenta que deseas crear.</p>
+      </div>
+
+      <!-- Selector de rol. El activo por defecto es Paciente,
+           igual que tu "rolSeleccionado = "Paciente"" original. -->
+      <div class="reg-roles" id="regRoles">
+        <button type="button" class="reg-role-card" data-role="Psicologo">
+          <i class="bi bi-heart-pulse-fill"></i>
+          <span>Psicólogo</span>
+        </button>
+
+        <button type="button" class="reg-role-card active" data-role="Paciente">
+          <i class="bi bi-person-fill"></i>
+          <span>Paciente</span>
+        </button>
+
+        <button type="button" class="reg-role-card" data-role="Empresa">
+          <i class="bi bi-building-fill"></i>
+          <span>Empresa</span>
+        </button>
+      </div>
+
+      <!-- ================= FORMULARIO: PACIENTE ================= -->
+      <form class="reg-form-section" id="formPaciente" data-role-form="Paciente">
+        <h3>Información personal</h3>
+
+        <div id="pacienteError" class="reg-alert reg-alert-error" hidden></div>
+
+        <div class="reg-grid">
+          <div class="reg-field">
+            <label for="pacienteNombre">Nombre completo</label>
+            <input id="pacienteNombre" type="text" placeholder="Ingresa tu nombre completo" required />
+          </div>
+
+          <div class="reg-field">
+            <label for="pacienteCorreo">Correo electrónico</label>
+            <input id="pacienteCorreo" type="email" placeholder="ejemplo@correo.com" required />
+          </div>
+
+          <div class="reg-field">
+            <label for="pacientePassword">Contraseña</label>
+            <div class="reg-password-wrapper">
+              <input id="pacientePassword" type="password" required />
+              <button type="button" id="pacienteEyeBtn" class="reg-eye-btn" hidden aria-label="Mostrar contraseña">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="reg-field">
+            <label for="pacienteConfirmar">Confirmar contraseña</label>
+            <div class="reg-password-wrapper">
+              <input id="pacienteConfirmar" type="password" required />
+              <button type="button" id="pacienteConfirmarEyeBtn" class="reg-eye-btn" hidden aria-label="Mostrar contraseña">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="reg-field">
+            <label for="pacienteFecha">Fecha de nacimiento</label>
+            <input id="pacienteFecha" type="date" required />
+          </div>
+
+          <div class="reg-field">
+            <label for="pacienteGenero">Género (opcional)</label>
+            <select id="pacienteGenero">
+              <option value="">Selecciona una opción</option>
+              <option>Femenino</option>
+              <option>Masculino</option>
+              <option>Otro</option>
+              <option>Prefiero no decirlo</option>
+            </select>
+          </div>
+
+          <div class="reg-field">
+            <label for="pacienteTelefono">Teléfono (opcional)</label>
+            <input id="pacienteTelefono" type="tel" placeholder="3001234567" />
+          </div>
+        </div>
+
+        <div class="reg-checkbox-group">
+          <input type="checkbox" id="pacienteAnonima" />
+          <label for="pacienteAnonima">Crear cuenta anónima para mayor privacidad</label>
+        </div>
+
+        <button type="submit" class="reg-btn-register">Crear cuenta</button>
+
+        <p class="reg-login-link">¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+      </form>
+
+      <!-- ================= FORMULARIO: PSICÓLOGO ================= -->
+      <form class="reg-form-section" id="formPsicologo" data-role-form="Psicologo" hidden>
+        <h3>Información profesional</h3>
+
+        <div id="psicologoError" class="reg-alert reg-alert-error" hidden></div>
+
+        <div class="reg-grid">
+          <div class="reg-field">
+            <label for="psicoNombre">Nombre completo</label>
+            <input id="psicoNombre" type="text" placeholder="Ingresa tu nombre completo" required />
+          </div>
+
+          <div class="reg-field">
+            <label for="psicoCorreo">Correo electrónico</label>
+            <input id="psicoCorreo" type="email" placeholder="ejemplo@correo.com" required />
+          </div>
+
+          <div class="reg-field">
+            <label for="psicoPassword">Contraseña</label>
+            <div class="reg-password-wrapper">
+              <input id="psicoPassword" type="password" required />
+              <button type="button" id="psicoEyeBtn" class="reg-eye-btn" hidden aria-label="Mostrar contraseña">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="reg-field">
+            <label for="psicoConfirmar">Confirmar contraseña</label>
+            <div class="reg-password-wrapper">
+              <input id="psicoConfirmar" type="password" required />
+              <button type="button" id="psicoConfirmarEyeBtn" class="reg-eye-btn" hidden aria-label="Mostrar contraseña">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="reg-field">
+            <label for="psicoFecha">Fecha de nacimiento</label>
+            <input id="psicoFecha" type="date" required />
+          </div>
+
+          <div class="reg-field">
+            <label for="psicoDocumento">Número de documento</label>
+            <input id="psicoDocumento" type="text" placeholder="Ingresa tu documento" required />
+          </div>
+        </div>
+
+        <!-- Documentos de verificación: reemplaza por completo los
+             checkboxes de ReTHUS que tenías antes. -->
+        <h4 class="reg-docs-title">Documentos de verificación</h4>
+        <div class="reg-docs" data-doc-list="psicologo">
+          {documentosPsicologo.map((doc) => (
+            <div class="reg-doc-card" data-doc-card={doc.id}>
+              <div class="reg-doc-icon"><i class="bi bi-file-earmark-text"></i></div>
+              <div class="reg-doc-info">
+                <h5>{doc.label}</h5>
+                <p class="reg-doc-status">Sin subir</p>
+              </div>
+              <button
+                type="button"
+                class="reg-doc-upload-btn"
+                data-doc-target={doc.id}
+                data-doc-label={doc.label}
+              >
+                Subir archivo
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div class="reg-info-box">
+          <i class="bi bi-info-circle-fill"></i>
+          <span>
+            Tu cuenta quedará marcada como <strong>pendiente de verificación</strong> hasta
+            que un administrador revise los documentos que subiste.
+          </span>
+        </div>
+
+        <button type="submit" class="reg-btn-register">Crear cuenta</button>
+
+        <p class="reg-login-link">¿Ya tienes cuenta? <a href="/Inicio/login">Inicia sesión</a></p>
+      </form>
+
+      <!-- ================= FORMULARIO: EMPRESA ================= -->
+      <form class="reg-form-section" id="formEmpresa" data-role-form="Empresa" hidden>
+        <h3>Información de la empresa</h3>
+
+        <div id="empresaError" class="reg-alert reg-alert-error" hidden></div>
+        <div id="empresaExito" class="reg-alert reg-alert-success" hidden></div>
+
+        <div class="reg-grid">
+          <div class="reg-field">
+            <label for="empresaNombre">Nombre de la empresa</label>
+            <input id="empresaNombre" type="text" placeholder="Nombre de la empresa" autocomplete="organization" required />
+          </div>
+
+          <div class="reg-field">
+            <label for="empresaNit">NIT</label>
+            <input id="empresaNit" type="text" placeholder="Número de NIT" required />
+          </div>
+
+          <div class="reg-field">
+            <label for="empresaCorreo">Correo electrónico</label>
+            <input id="empresaCorreo" type="email" placeholder="empresa@correo.com" autocomplete="username" required />
+          </div>
+
+          <div class="reg-field">
+            <label for="empresaTelefono">Teléfono</label>
+            <input id="empresaTelefono" type="tel" placeholder="3001234567" autocomplete="tel" required />
+          </div>
+
+          <div class="reg-field">
+            <label for="empresaSector">Sector empresarial</label>
+            <select id="empresaSector">
+              <option value="">Selecciona una opción</option>
+              <option value="Salud">Salud</option>
+              <option value="Educacion">Educación</option>
+              <option value="Corporativo">Corporativo</option>
+              <option value="Gobierno">Gobierno</option>
+            </select>
+          </div>
+
+          <div class="reg-field">
+            <label for="empresaEmpleados">Cantidad de empleados</label>
+            <input id="empresaEmpleados" type="number" placeholder="Ej: 50" />
+          </div>
+
+          <div class="reg-field">
+            <label for="empresaPassword">Contraseña</label>
+            <div class="reg-password-wrapper">
+              <input id="empresaPassword" type="password" autocomplete="new-password" required />
+              <button type="button" id="empresaEyeBtn" class="reg-eye-btn" hidden aria-label="Mostrar contraseña">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="reg-field">
+            <label for="empresaConfirmar">Confirmar contraseña</label>
+            <div class="reg-password-wrapper">
+              <input id="empresaConfirmar" type="password" autocomplete="new-password" required />
+              <button type="button" id="empresaConfirmarEyeBtn" class="reg-eye-btn" hidden aria-label="Mostrar contraseña">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Documento(s) de la empresa: RUT obligatorio + Cámara opcional -->
+        <h4 class="reg-docs-title">Documentos</h4>
+        <div class="reg-docs" data-doc-list="empresa">
+          {documentosEmpresa.map((doc) => (
+            <div class="reg-doc-card" data-doc-card={doc.id}>
+              <div class="reg-doc-icon"><i class="bi bi-file-earmark-text"></i></div>
+              <div class="reg-doc-info">
+                <h5>{doc.label}{!doc.required && <span class="reg-doc-optional"> (opcional)</span>}</h5>
+                <p class="reg-doc-status">Sin subir</p>
+              </div>
+              <button
+                type="button"
+                class="reg-doc-upload-btn"
+                data-doc-target={doc.id}
+                data-doc-label={doc.label}
+              >
+                Subir archivo
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div class="reg-info-box">
+          <i class="bi bi-info-circle-fill"></i>
+          <span>El RUT será revisado manualmente antes de habilitar los servicios empresariales.</span>
+        </div>
+
+        <button type="submit" class="reg-btn-register">Crear cuenta</button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================================
+     MODAL DE SUBIDA DE ARCHIVOS (uno solo, reutilizado por todos los
+     botones "Subir archivo" de cualquier rol/documento). Usamos <dialog>,
+     un elemento nativo del navegador que ya trae "modal" gratis (fondo
+     oscuro, foco atrapado, cerrar con Esc) sin necesitar una librería.
+     ========================================================================= -->
+<dialog id="uploadModal" class="reg-upload-modal">
+  <form method="dialog" class="reg-upload-modal-form">
+    <h3 id="uploadModalTitle">Subir documento</h3>
+    <p class="reg-upload-modal-hint">Formatos permitidos: PDF, JPG o PNG. Máximo 5MB.</p>
+
+    <input type="file" id="uploadModalInput" accept=".pdf,.jpg,.jpeg,.png" />
+    <p id="uploadModalFileName" class="reg-upload-modal-filename"></p>
+
+    <div class="reg-upload-modal-actions">
+      <button type="button" id="uploadModalCancel" class="reg-upload-modal-cancel">Cancelar</button>
+      <button type="submit" id="uploadModalConfirm" class="reg-upload-modal-confirm">Guardar</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  // =========================================================================
+  // 1. FRASE ROTATIVA DEL HERO (igual a tu <script> original, solo que
+  //    ahora vive dentro de un <script> de Astro en vez de al final de
+  //    tu .razor).
+  // =========================================================================
+  const mensajes = [
+    "Encuentra apoyo profesional cuando lo necesites.",
+    "Conecta con psicólogos certificados.",
+    "Tu bienestar emocional es nuestra prioridad.",
+  ];
+  let indiceMensaje = 0;
+
+  setInterval(() => {
+    indiceMensaje = (indiceMensaje + 1) % mensajes.length;
+    const elemento = document.getElementById("mensajeHero");
+    if (!elemento) return;
+    elemento.style.opacity = "0";
+    setTimeout(() => {
+      elemento.textContent = mensajes[indiceMensaje];
+      elemento.style.opacity = "1";
+    }, 400);
+  }, 4000);
+
+  // =========================================================================
+  // 2. SELECTOR DE ROL: muestra un solo <form data-role-form="..."> a la
+  //    vez, según el botón de rol que se haya clicado. Reemplaza los
+  //    @if (rolSeleccionado == "...") de Blazor.
+  // =========================================================================
+  const roleButtons = document.querySelectorAll<HTMLButtonElement>(".reg-role-card");
+  const roleForms = document.querySelectorAll<HTMLFormElement>("[data-role-form]");
+
+  roleButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      roleButtons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const rol = btn.dataset.role;
+      roleForms.forEach((form) => {
+        form.hidden = form.dataset.roleForm !== rol;
+      });
+    });
+  });
+
+  // =========================================================================
+  // 3. MOSTRAR/OCULTAR CONTRASEÑA, reutilizable para los 6 campos de
+  //    contraseña (Paciente, Psicólogo, Empresa x2 cada uno).
+  // =========================================================================
+  function configurarCampoPassword(inputId: string, botonId: string) {
+    const input = document.getElementById(inputId) as HTMLInputElement | null;
+    const boton = document.getElementById(botonId) as HTMLButtonElement | null;
+    if (!input || !boton) return;
+
+    input.addEventListener("input", () => {
+      boton.hidden = input.value.length === 0;
+    });
+
+    boton.addEventListener("click", () => {
+      const estaOculta = input.type === "password";
+      input.type = estaOculta ? "text" : "password";
+      boton.innerHTML = estaOculta
+        ? '<i class="bi bi-eye-slash"></i>'
+        : '<i class="bi bi-eye"></i>';
+    });
+  }
+
+  configurarCampoPassword("pacientePassword", "pacienteEyeBtn");
+  configurarCampoPassword("pacienteConfirmar", "pacienteConfirmarEyeBtn");
+  configurarCampoPassword("psicoPassword", "psicoEyeBtn");
+  configurarCampoPassword("psicoConfirmar", "psicoConfirmarEyeBtn");
+  configurarCampoPassword("empresaPassword", "empresaEyeBtn");
+  configurarCampoPassword("empresaConfirmar", "empresaConfirmarEyeBtn");
+
+  // =========================================================================
+  // 4. MODAL DE SUBIDA DE ARCHIVOS.
+  //    Guardamos los archivos elegidos en memoria (docFiles) mientras el
+  //    usuario llena el formulario; el envío real a tu backend en Deno
+  //    se conecta después (ver TODO más abajo).
+  // =========================================================================
+  const docFiles: Record<string, File> = {};
+
+  const modal = document.getElementById("uploadModal") as HTMLDialogElement | null;
+  const modalTitle = document.getElementById("uploadModalTitle");
+  const modalInput = document.getElementById("uploadModalInput") as HTMLInputElement | null;
+  const modalFileName = document.getElementById("uploadModalFileName");
+  const modalCancel = document.getElementById("uploadModalCancel");
+  const modalConfirm = document.getElementById("uploadModalConfirm");
+
+  let docActual: string | null = null; // qué documento se está subiendo ahora
+
+  document.querySelectorAll<HTMLButtonElement>(".reg-doc-upload-btn").forEach((boton) => {
+    boton.addEventListener("click", () => {
+      docActual = boton.dataset.docTarget ?? null;
+      if (modalTitle) modalTitle.textContent = `Subir: ${boton.dataset.docLabel}`;
+      if (modalInput) modalInput.value = "";
+      if (modalFileName) modalFileName.textContent = "";
+      modal?.showModal();
+    });
+  });
+
+  modalInput?.addEventListener("change", () => {
+    const archivo = modalInput.files?.[0];
+    if (modalFileName) {
+      modalFileName.textContent = archivo ? `Seleccionado: ${archivo.name}` : "";
+    }
+  });
+
+  modalCancel?.addEventListener("click", () => {
+    docActual = null;
+    modal?.close();
+  });
+
+  modalConfirm?.addEventListener("click", (e) => {
+    e.preventDefault();
+    const archivo = modalInput?.files?.[0];
+
+    if (!archivo || !docActual) {
+      modal?.close();
+      return;
+    }
+
+    docFiles[docActual] = archivo;
+
+    // Actualiza la tarjeta del documento correspondiente (icono ✓ + nombre)
+    const card = document.querySelector(`[data-doc-card="${docActual}"]`);
+    const estado = card?.querySelector(".reg-doc-status");
+    if (estado) estado.textContent = `✓ ${archivo.name}`;
+    card?.classList.add("uploaded");
+
+    docActual = null;
+    modal?.close();
+  });
+
+  // =========================================================================
+  // 5. Conexión de formularios con el API real en Deno (http://localhost:8001/api/auth/register)
+  // =========================================================================
+  function conectarFormularioRegistro(
+    formId: string,
+    nombreId: string,
+    correoId: string,
+    passwordId: string,
+    confirmarId: string,
+    fechaId: string | null,
+    rol: "Paciente" | "Psicologo" | "Empresa",
+    errorId: string
+  ) {
+    const form = document.getElementById(formId) as HTMLFormElement | null;
+    if (!form) return;
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errorBox = document.getElementById(errorId) as HTMLElement | null;
+      if (errorBox) { errorBox.hidden = true; errorBox.textContent = ""; }
+
+      const nombreCompleto = (document.getElementById(nombreId) as HTMLInputElement)?.value.trim() ?? "";
+      const email = (document.getElementById(correoId) as HTMLInputElement)?.value.trim() ?? "";
+      const password = (document.getElementById(passwordId) as HTMLInputElement)?.value ?? "";
+      const confirmar = (document.getElementById(confirmarId) as HTMLInputElement)?.value ?? "";
+      const fechaNacimiento = fechaId ? ((document.getElementById(fechaId) as HTMLInputElement)?.value ?? "") : "2000-01-01";
+
+      if (password !== confirmar) {
+        if (errorBox) {
+          errorBox.textContent = "Las contraseñas no coinciden.";
+          errorBox.hidden = false;
+        }
+        return;
+      }
+      if (password.length < 6) {
+        if (errorBox) {
+          errorBox.textContent = "La contraseña debe tener al menos 6 caracteres.";
+          errorBox.hidden = false;
+        }
+        return;
+      }
+
+      const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Creando cuenta...";
+      }
+
+      try {
+        const res = await fetch("http://localhost:8001/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // Permite recibir y guardar la cookie en el navegador
+          body: JSON.stringify({
+            nombreCompleto,
+            email,
+            password,
+            fechaNacimiento,
+            rol,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          if (errorBox) {
+            errorBox.textContent = Array.isArray(data.error)
+              ? data.error.join(", ")
+              : data.error || data.mensaje || "Error al crear la cuenta";
+            errorBox.hidden = false;
+          }
+          return;
+        }
+
+        // Éxito: Cookie asignada, redirigimos al inicio o panel correspondiente
+        window.location.href = "/";
+      } catch (err) {
+        if (errorBox) {
+          errorBox.textContent = "No se pudo conectar con el servidor backend";
+          errorBox.hidden = false;
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Crear cuenta";
+        }
+      }
+    });
+  }
+
+  conectarFormularioRegistro("formPaciente", "pacienteNombre", "pacienteCorreo", "pacientePassword", "pacienteConfirmar", "pacienteFecha", "Paciente", "pacienteError");
+  conectarFormularioRegistro("formPsicologo", "psicoNombre", "psicoCorreo", "psicoPassword", "psicoConfirmar", "psicoFecha", "Psicologo", "psicologoError");
+  conectarFormularioRegistro("formEmpresa", "empresaNombre", "empresaCorreo", "empresaPassword", "empresaConfirmar", null, "Empresa", "empresaError");
+</script>

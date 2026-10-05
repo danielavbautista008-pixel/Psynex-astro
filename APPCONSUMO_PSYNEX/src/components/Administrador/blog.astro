@@ -1,0 +1,1022 @@
+---
+import MenuAdmin from "../Menu/MenuAdmin.astro";
+import "./blog.css";
+
+const publicaciones = [
+  {
+    id: 1,
+    titulo: "Cómo reconocer las señales de la ansiedad",
+    categoria: "Salud mental",
+    estado: "Publicado",
+    fecha: "24 sep 2026",
+    lectura: "5 min",
+    resumen: "La ansiedad puede manifestarse de diferentes formas. Conoce sus señales más comunes.",
+    imagen: "/imagenes/blog-ansiedad.jpg"
+  },
+  {
+    id: 2,
+    titulo: "5 consejos para mejorar tu sueño",
+    categoria: "Bienestar",
+    estado: "Borrador",
+    fecha: "22 sep 2026",
+    lectura: "4 min",
+    resumen: "Dormir bien es clave para tu salud mental y física.",
+    imagen: "/imagenes/blog-sueno.jpg"
+  },
+  {
+    id: 3,
+    titulo: "Equilibrio entre vida personal y laboral",
+    categoria: "Desarrollo personal",
+    estado: "Publicado",
+    fecha: "18 sep 2026",
+    lectura: "6 min",
+    resumen: "Mantener un equilibrio saludable puede mejorar tu bienestar.",
+    imagen: "/imagenes/blog-equilibrio.jpg"
+  },
+  {
+    id: 4,
+    titulo: "La importancia del autocuidado",
+    categoria: "Bienestar",
+    estado: "Programada",
+    fecha: "15 sep 2026",
+    lectura: "5 min",
+    resumen: "El autocuidado no es un lujo, es una necesidad.",
+    imagen: "/imagenes/blog-autocuidado.jpg"
+  },
+  {
+    id: 5,
+    titulo: "Manejo del estrés en el trabajo",
+    categoria: "Salud mental",
+    estado: "Publicado",
+    fecha: "10 sep 2026",
+    lectura: "4 min",
+    resumen: "El estrés laboral puede afectar tu salud mental.",
+    imagen: "/imagenes/blog-estres.jpg"
+  },
+  {
+    id: 6,
+    titulo: "La empatía como herramienta terapéutica",
+    categoria: "Terapia",
+    estado: "Borrador",
+    fecha: "5 sep 2026",
+    lectura: "6 min",
+    resumen: "La empatía fortalece la conexión y mejora el proceso terapéutico.",
+    imagen: "/imagenes/blog-empatia.jpg"
+  }
+];
+---
+
+<div class="blog-page">
+
+  <MenuAdmin />
+
+  <main class="blog-content">
+
+    <!-- =========================================
+         BARRA SUPERIOR
+    ========================================== -->
+
+    <div class="blog-topbar">
+
+      <div class="blog-search-global">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          placeholder="Buscar publicaciones, categorías o autor..."
+        />
+      </div>
+
+     
+
+    </div>
+
+
+    <!-- =========================================
+         ENCABEZADO
+    ========================================== -->
+
+    <header class="blog-header">
+
+      <div class="blog-title-area">
+
+        <div class="blog-title-icon">
+          <i class="bi bi-file-earmark-richtext"></i>
+        </div>
+
+        <div>
+          <h1>Blog</h1>
+          <p>Administra y publica contenido para la plataforma.</p>
+        </div>
+
+      </div>
+
+      <button
+        class="btn-nueva-publicacion"
+        id="btnNuevaPublicacion"
+        type="button"
+      >
+        <i class="bi bi-plus-lg"></i>
+        Nueva publicación
+      </button>
+
+    </header>
+
+
+    <!-- =========================================
+         BOTÓN PARA MOSTRAR RESUMEN
+    ========================================== -->
+
+    <div class="resumen-control">
+
+      <button
+        class="btn-estadisticas"
+        id="btnMostrarResumen"
+        type="button"
+      >
+        <i class="bi bi-bar-chart"></i>
+        <span>Mostrar resumen</span>
+        <i class="bi bi-chevron-down"></i>
+      </button>
+
+    </div>
+
+
+    <!-- =========================================
+         4 TARJETAS OCULTAS
+    ========================================== -->
+
+    <section
+      class="resumen-grid"
+      id="resumenGrid"
+      aria-hidden="true"
+    >
+
+      <article class="resumen-card resumen-purple">
+
+        <div class="resumen-icon">
+          <i class="bi bi-file-text"></i>
+        </div>
+
+        <div>
+          <strong>24</strong>
+          <span>Total publicaciones</span>
+        </div>
+
+      </article>
+
+
+      <article class="resumen-card resumen-green">
+
+        <div class="resumen-icon">
+          <i class="bi bi-eye"></i>
+        </div>
+
+        <div>
+          <strong>18</strong>
+          <span>Publicadas</span>
+        </div>
+
+      </article>
+
+
+      <article class="resumen-card resumen-orange">
+
+        <div class="resumen-icon">
+          <i class="bi bi-clock"></i>
+        </div>
+
+        <div>
+          <strong>4</strong>
+          <span>Borradores</span>
+        </div>
+
+      </article>
+
+
+      <article class="resumen-card resumen-blue">
+
+        <div class="resumen-icon">
+          <i class="bi bi-calendar-event"></i>
+        </div>
+
+        <div>
+          <strong>2</strong>
+          <span>Programadas</span>
+        </div>
+
+      </article>
+
+    </section>
+
+
+    <!-- =========================================
+         FILTROS
+    ========================================== -->
+
+    <section class="blog-filtros">
+
+      <div class="blog-search">
+
+        <i class="bi bi-search"></i>
+
+        <input
+          id="buscarPublicacion"
+          type="text"
+          placeholder="Buscar publicaciones..."
+        />
+
+      </div>
+
+
+      <select id="filtroCategoria">
+        <option value="todas">Categoría: Todas</option>
+        <option value="Salud mental">Salud mental</option>
+        <option value="Bienestar">Bienestar</option>
+        <option value="Desarrollo personal">Desarrollo personal</option>
+        <option value="Terapia">Terapia</option>
+      </select>
+
+
+      <select id="filtroEstado">
+        <option value="todos">Estado: Todos</option>
+        <option value="Publicado">Publicado</option>
+        <option value="Borrador">Borrador</option>
+        <option value="Programada">Programada</option>
+      </select>
+
+
+      <select id="ordenPublicaciones">
+        <option>Más recientes</option>
+        <option>Más antiguas</option>
+        <option>Nombre A-Z</option>
+      </select>
+
+    </section>
+
+
+    <!-- =========================================
+         LISTADO
+    ========================================== -->
+
+    <section class="blog-listado">
+
+      <div class="listado-header">
+
+        <div>
+          <h2>Publicaciones</h2>
+          <p>Gestiona el contenido publicado en Psynex.</p>
+        </div>
+
+        <span class="cantidad-publicaciones">
+          24 publicaciones
+        </span>
+
+      </div>
+
+
+      <div class="publicaciones-grid" id="publicacionesGrid">
+
+        {publicaciones.map((publicacion) => (
+
+          <article
+            class="publicacion-card"
+            data-id={publicacion.id}
+            data-categoria={publicacion.categoria}
+            data-estado={publicacion.estado}
+            data-titulo={publicacion.titulo}
+          >
+
+            <!-- IMAGEN -->
+
+            <div
+              class={`publicacion-imagen imagen-${publicacion.id}`}
+            >
+
+              <div class="imagen-overlay"></div>
+
+              <button
+                class="btn-menu-publicacion"
+                type="button"
+                aria-label="Opciones"
+              >
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+
+
+              <div class="menu-publicacion">
+
+                <button
+                  type="button"
+                  class="btn-editar-publicacion"
+                  data-id={publicacion.id}
+                >
+                  <i class="bi bi-pencil"></i>
+                  Editar
+                </button>
+
+                <button type="button">
+                  <i class="bi bi-eye"></i>
+                  Vista previa
+                </button>
+
+                <button
+                  type="button"
+                  class="btn-eliminar-publicacion"
+                >
+                  <i class="bi bi-trash"></i>
+                  Eliminar
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <!-- CONTENIDO -->
+
+            <div class="publicacion-body">
+
+              <span class={`categoria-blog categoria-${publicacion.id}`}>
+                {publicacion.categoria}
+              </span>
+
+              <h3>{publicacion.titulo}</h3>
+
+              <p>{publicacion.resumen}</p>
+
+
+              <div class="publicacion-footer">
+
+                <div class="publicacion-meta">
+
+                  <span>
+                    <i class="bi bi-calendar3"></i>
+                    {publicacion.fecha}
+                  </span>
+
+                  <span>
+                    <i class="bi bi-clock"></i>
+                    {publicacion.lectura}
+                  </span>
+
+                </div>
+
+
+                <span
+                  class={`estado-blog estado-${publicacion.estado.toLowerCase()}`}
+                >
+                  {publicacion.estado}
+                </span>
+
+              </div>
+
+            </div>
+
+          </article>
+
+        ))}
+
+      </div>
+
+
+      <!-- =========================================
+           PAGINACIÓN
+      ========================================== -->
+
+      <div class="blog-pagination">
+
+        <span>
+          Mostrando 1–6 de 24 publicaciones
+        </span>
+
+        <div class="pagination-buttons">
+
+          <button type="button">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+
+          <button class="activo" type="button">1</button>
+
+          <button type="button">2</button>
+          <button type="button">3</button>
+          <button type="button">4</button>
+
+          <span>...</span>
+
+          <button type="button">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- =========================================
+       PANEL LATERAL EDITAR
+  ========================================== -->
+
+  <aside
+    class="editor-panel"
+    id="editorPanel"
+    aria-hidden="true"
+  >
+
+    <div class="editor-header">
+
+      <div>
+
+        <button
+          class="volver-blog"
+          id="cerrarEditorSuperior"
+          type="button"
+        >
+          <i class="bi bi-arrow-left"></i>
+          Volver al blog
+        </button>
+
+        <h2>Editar publicación</h2>
+
+      </div>
+
+      <button
+        class="btn-cerrar-editor"
+        id="cerrarEditor"
+        type="button"
+        aria-label="Cerrar"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+
+    </div>
+
+
+    <div class="editor-tabs">
+
+      <button class="editor-tab activo" type="button">
+        Contenido
+      </button>
+
+      <button class="editor-tab" type="button">
+        Configuración
+      </button>
+
+    </div>
+
+
+    <div class="editor-body">
+
+      <div class="editor-group">
+
+        <label for="tituloBlog">
+          Título <span>*</span>
+        </label>
+
+        <input
+          id="tituloBlog"
+          type="text"
+          value="Cómo reconocer las señales de la ansiedad"
+        />
+
+        <small>42/100</small>
+
+      </div>
+
+
+      <div class="editor-row">
+
+        <div class="editor-group">
+
+          <label for="categoriaBlog">
+            Categoría <span>*</span>
+          </label>
+
+          <select id="categoriaBlog">
+            <option>Salud mental</option>
+            <option>Bienestar</option>
+            <option>Desarrollo personal</option>
+            <option>Terapia</option>
+          </select>
+
+        </div>
+
+
+        <div class="editor-group">
+
+          <label for="estadoBlog">
+            Estado <span>*</span>
+          </label>
+
+          <select id="estadoBlog">
+            <option>Publicado</option>
+            <option>Borrador</option>
+            <option>Programada</option>
+          </select>
+
+        </div>
+
+      </div>
+
+
+      <!-- PORTADA -->
+
+      <div class="editor-group">
+
+        <label>Imagen de portada</label>
+
+        <div class="portada-editor">
+
+          <div class="portada-preview">
+            <div class="portada-placeholder">
+              <i class="bi bi-image"></i>
+            </div>
+          </div>
+
+          <button
+            class="cambiar-imagen"
+            type="button"
+          >
+            <i class="bi bi-image"></i>
+
+            <div>
+              <strong>Cambiar imagen</strong>
+              <small>JPG, PNG o WebP · Máx. 5 MB</small>
+            </div>
+
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- RESUMEN -->
+
+      <div class="editor-group">
+
+        <label for="resumenBlog">
+          Resumen <span>*</span>
+        </label>
+
+        <textarea id="resumenBlog">La ansiedad puede manifestarse de diferentes formas. Conoce sus señales más comunes y qué hacer si las identificas en ti o en alguien cercano.</textarea>
+
+        <small>142/160</small>
+
+      </div>
+
+
+      <!-- CONTENIDO -->
+
+      <div class="editor-group">
+
+        <label>
+          Contenido <span>*</span>
+        </label>
+
+        <div class="editor-textarea">
+
+          <div class="editor-toolbar">
+
+            <button type="button">
+              <strong>B</strong>
+            </button>
+
+            <button type="button">
+              <em>I</em>
+            </button>
+
+            <button type="button">
+              <u>U</u>
+            </button>
+
+            <span></span>
+
+            <button type="button">
+              <i class="bi bi-list-ul"></i>
+            </button>
+
+            <button type="button">
+              <i class="bi bi-list-ol"></i>
+            </button>
+
+            <button type="button">
+              <i class="bi bi-link-45deg"></i>
+            </button>
+
+            <button type="button">
+              <i class="bi bi-image"></i>
+            </button>
+
+          </div>
+
+          <div
+            class="editor-content"
+            contenteditable="true"
+          >
+            <h3>¿Qué es la ansiedad?</h3>
+
+            <p>
+              La ansiedad es una respuesta natural del cuerpo ante
+              situaciones de estrés. Sin embargo, cuando se vuelve
+              frecuente o intensa, puede afectar la calidad de vida.
+            </p>
+
+            <h3>Señales comunes</h3>
+
+            <ul>
+              <li>Preocupación constante</li>
+              <li>Dificultad para concentrarse</li>
+              <li>Alteraciones del sueño</li>
+              <li>Tensión muscular</li>
+            </ul>
+
+          </div>
+
+          <small class="contador-contenido">
+            284/5000
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <!-- VISTA PREVIA -->
+
+      <button
+        class="preview-blog"
+        type="button"
+      >
+
+        <div class="preview-icon">
+          <i class="bi bi-eye"></i>
+        </div>
+
+        <div>
+          <strong>Vista previa</strong>
+          <span>Ver cómo se verá la publicación</span>
+        </div>
+
+        <i class="bi bi-chevron-right"></i>
+
+      </button>
+
+
+      <div class="ultima-edicion">
+
+        <div>
+          <i class="bi bi-clock-history"></i>
+        </div>
+
+        <div>
+          <strong>Última edición</strong>
+          <span>24 sep 2026 · 10:32 a. m.</span>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- FOOTER EDITOR -->
+
+    <div class="editor-footer">
+
+      <button
+        class="btn-guardar"
+        type="button"
+      >
+        Guardar borrador
+      </button>
+
+      <button
+        class="btn-publicar"
+        type="button"
+      >
+        <i class="bi bi-send"></i>
+        Publicar
+      </button>
+
+    </div>
+
+  </aside>
+
+
+  <div
+    class="editor-overlay"
+    id="editorOverlay"
+  ></div>
+
+</div>
+
+
+<script>
+  const resumenButton =
+    document.getElementById("btnMostrarResumen") as HTMLButtonElement | null;
+
+  const resumenGrid =
+    document.getElementById("resumenGrid") as HTMLElement | null;
+
+  const editor =
+    document.getElementById("editorPanel") as HTMLElement | null;
+
+  const overlay =
+    document.getElementById("editorOverlay") as HTMLElement | null;
+
+  const cerrarEditor =
+    document.getElementById("cerrarEditor") as HTMLButtonElement | null;
+
+  const cerrarEditorSuperior =
+    document.getElementById("cerrarEditorSuperior") as HTMLButtonElement | null;
+
+  const nuevaPublicacion =
+    document.getElementById("btnNuevaPublicacion") as HTMLButtonElement | null;
+
+  const buscar =
+    document.getElementById("buscarPublicacion") as HTMLInputElement | null;
+
+  const filtroCategoria =
+    document.getElementById("filtroCategoria") as HTMLSelectElement | null;
+
+  const filtroEstado =
+    document.getElementById("filtroEstado") as HTMLSelectElement | null;
+
+  const tarjetas =
+    document.querySelectorAll<HTMLElement>(".publicacion-card");
+
+
+  /* =========================================
+     MOSTRAR / OCULTAR RESUMEN
+  ========================================== */
+
+  resumenButton?.addEventListener("click", () => {
+
+    if (!resumenGrid) return;
+
+    const visible =
+      resumenGrid.classList.toggle("mostrar");
+
+    resumenGrid.setAttribute(
+      "aria-hidden",
+      visible ? "false" : "true"
+    );
+
+    const texto =
+      resumenButton.querySelector("span");
+
+    if (texto) {
+      texto.textContent =
+        visible ? "Ocultar resumen" : "Mostrar resumen";
+    }
+
+    const flecha =
+      resumenButton.querySelector(".bi-chevron-down");
+
+    if (flecha) {
+      flecha.classList.toggle("rotada", visible);
+    }
+
+  });
+
+
+  /* =========================================
+     ABRIR EDITOR
+  ========================================== */
+
+  const abrirEditor = () => {
+
+    editor?.classList.add("abierto");
+    overlay?.classList.add("mostrar");
+
+    editor?.setAttribute("aria-hidden", "false");
+
+    document.body.classList.add("blog-editor-abierto");
+
+  };
+
+
+  /* =========================================
+     CERRAR EDITOR
+  ========================================== */
+
+  const cerrarPanel = () => {
+
+    editor?.classList.remove("abierto");
+    overlay?.classList.remove("mostrar");
+
+    editor?.setAttribute("aria-hidden", "true");
+
+    document.body.classList.remove("blog-editor-abierto");
+
+  };
+
+
+  nuevaPublicacion?.addEventListener(
+    "click",
+    abrirEditor
+  );
+
+
+  cerrarEditor?.addEventListener(
+    "click",
+    cerrarPanel
+  );
+
+
+  cerrarEditorSuperior?.addEventListener(
+    "click",
+    cerrarPanel
+  );
+
+
+  overlay?.addEventListener(
+    "click",
+    cerrarPanel
+  );
+
+
+  /* =========================================
+     MENÚ ⋮ DE CADA PUBLICACIÓN
+  ========================================== */
+
+  const menus =
+    document.querySelectorAll<HTMLElement>(
+      ".btn-menu-publicacion"
+    );
+
+  menus.forEach((boton) => {
+
+    boton.addEventListener("click", (evento) => {
+
+      evento.stopPropagation();
+
+      const card =
+        boton.closest(".publicacion-card");
+
+      if (!card) return;
+
+      const menu =
+        card.querySelector<HTMLElement>(
+          ".menu-publicacion"
+        );
+
+      document
+        .querySelectorAll<HTMLElement>(
+          ".menu-publicacion.abierto"
+        )
+        .forEach((item) => {
+
+          if (item !== menu) {
+            item.classList.remove("abierto");
+          }
+
+        });
+
+      menu?.classList.toggle("abierto");
+
+    });
+
+  });
+
+
+  /* =========================================
+     EDITAR
+  ========================================== */
+
+  const botonesEditar =
+    document.querySelectorAll<HTMLButtonElement>(
+      ".btn-editar-publicacion"
+    );
+
+  botonesEditar.forEach((boton) => {
+
+    boton.addEventListener(
+      "click",
+      (evento) => {
+
+        evento.stopPropagation();
+
+        document
+          .querySelectorAll<HTMLElement>(
+            ".menu-publicacion.abierto"
+          )
+          .forEach((menu) => {
+            menu.classList.remove("abierto");
+          });
+
+        abrirEditor();
+
+      }
+    );
+
+  });
+
+
+  /* =========================================
+     CERRAR MENÚS
+  ========================================== */
+
+  document.addEventListener(
+    "click",
+    () => {
+
+      document
+        .querySelectorAll<HTMLElement>(
+          ".menu-publicacion.abierto"
+        )
+        .forEach((menu) => {
+
+          menu.classList.remove("abierto");
+
+        });
+
+    }
+  );
+
+
+  /* =========================================
+     FILTROS
+  ========================================== */
+
+  const aplicarFiltros = () => {
+
+    const texto =
+      buscar?.value.toLowerCase().trim() || "";
+
+    const categoria =
+      filtroCategoria?.value || "todas";
+
+    const estado =
+      filtroEstado?.value || "todos";
+
+
+    tarjetas.forEach((tarjeta) => {
+
+      const titulo =
+        tarjeta.dataset.titulo?.toLowerCase() || "";
+
+      const categoriaTarjeta =
+        tarjeta.dataset.categoria || "";
+
+      const estadoTarjeta =
+        tarjeta.dataset.estado || "";
+
+      const coincideTexto =
+        titulo.includes(texto);
+
+      const coincideCategoria =
+        categoria === "todas" ||
+        categoriaTarjeta === categoria;
+
+      const coincideEstado =
+        estado === "todos" ||
+        estadoTarjeta === estado;
+
+
+      tarjeta.style.display =
+        coincideTexto &&
+        coincideCategoria &&
+        coincideEstado
+          ? ""
+          : "none";
+
+    });
+
+  };
+
+
+  buscar?.addEventListener(
+    "input",
+    aplicarFiltros
+  );
+
+  filtroCategoria?.addEventListener(
+    "change",
+    aplicarFiltros
+  );
+
+  filtroEstado?.addEventListener(
+    "change",
+    aplicarFiltros
+  );
+
+
+  /* =========================================
+     ESC PARA CERRAR
+  ========================================== */
+
+  document.addEventListener(
+    "keydown",
+    (evento) => {
+
+      if (evento.key === "Escape") {
+        cerrarPanel();
+      }
+
+    }
+  );
+</script>

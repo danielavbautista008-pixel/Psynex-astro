@@ -1,0 +1,611 @@
+/* =========================================================================
+   registro.css
+   -------------------------------------------------------------------------
+   OJO — corrección importante respecto a tu CSS original:
+   Tu archivo usaba var(--primary-color), var(--bg-color), var(--text-color),
+   var(--border-color) y rgba(var(--primary-rgb), .15). NINGUNA de esas
+   variables existe en tu colores-globales.css real (ahí solo hay --primary,
+   --bg, --surface, --text, --border, --primary-hover, --text-muted, etc.).
+   Si hubieras pegado el CSS tal cual, todo el color se habría ido al valor
+   por defecto del navegador (negro/transparente) sin avisarte con ningún
+   error. Aquí ya están todas corregidas a los nombres reales.
+   ========================================================================= */
+
+
+/* -------------------------------------------------------------------------
+   1. CONTENEDOR GENERAL
+   ------------------------------------------------------------------------- */
+.reg-page {
+  display: flex;
+  height: 100vh;
+  font-family: "Poppins", sans-serif;
+}
+
+
+/* -------------------------------------------------------------------------
+   2. PANEL IZQUIERDO (imagen + frase)
+   ------------------------------------------------------------------------- */
+.reg-hero {
+  width: 50%;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.reg-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.reg-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.35));
+}
+
+.reg-hero-content {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 40px;
+
+  color: white;
+}
+
+.reg-hero-content h1 {
+  /* Más pequeño que el original (80px -> 46px) */
+  font-family: "Playfair Display", serif;
+  font-weight: 300;
+  font-size: 46px;
+  margin-bottom: 14px;
+}
+
+.reg-hero-content p {
+  /* Antes 24px / max-width 500px */
+  font-size: 15px;
+  max-width: 340px;
+  line-height: 1.5;
+  transition: opacity 0.4s ease;
+}
+
+.reg-home-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--primary);
+  color: var(--on-primary);
+  text-decoration: none;
+
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.reg-home-btn:hover {
+  transform: translateY(-2px);
+}
+
+
+/* -------------------------------------------------------------------------
+   3. PANEL DERECHO (formularios)
+   ------------------------------------------------------------------------- */
+.reg-form-side {
+  width: 50%;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--bg);
+  padding: 24px 32px; /* antes 30px 40px */
+  box-sizing: border-box;
+}
+
+.reg-form-card {
+  width: 100%;
+  max-width: 480px; /* antes 640px */
+  margin: 0 auto;
+}
+
+.reg-header {
+  text-align: center;
+  margin-top: 6px;
+  margin-bottom: 14px; /* antes 20px */
+}
+
+.reg-header h1 {
+  font-family: "Playfair Display", serif;
+  font-size: 24px; /* antes 28px */
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.reg-header p {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+
+/* -------------------------------------------------------------------------
+   4. SELECTOR DE ROL
+   ------------------------------------------------------------------------- */
+.reg-roles {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px; /* antes 28px */
+}
+
+.reg-role-card {
+  /* Antes 110px x 110px, que ya venía de 200px x 200px */
+  width: 86px;
+  height: 86px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+
+  border: 2px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.reg-role-card i {
+  font-size: 20px; /* antes 26px */
+  color: var(--primary);
+}
+
+.reg-role-card span {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.reg-role-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.06);
+}
+
+.reg-role-card.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+
+.reg-role-card.active i,
+.reg-role-card.active span {
+  color: var(--on-primary);
+}
+
+
+/* -------------------------------------------------------------------------
+   5. FORMULARIOS (los 3 roles comparten estos estilos)
+   ------------------------------------------------------------------------- */
+.reg-form-section h3 {
+  text-align: center;
+  font-family: "Playfair Display", serif;
+  font-size: 19px; /* antes 22px, ya venía de 55px */
+  font-weight: 500;
+  color: var(--primary);
+  margin-bottom: 14px;
+}
+
+.reg-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 20px; /* antes 14px parejo: menos espacio vertical que horizontal */
+}
+
+.reg-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 4px;
+}
+
+.reg-field label {
+  /* Estilo "etiqueta discreta" en vez de negrita grande: minúscula
+     pequeña, separada en letras, en gris — igual que en login.css —
+     para que se sienta más profesional que un label normal de formulario. */
+  font-family: "Poppins", sans-serif;
+  margin-bottom: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.reg-field input,
+.reg-field select {
+  /* Caja blanca de nuevo (no solo línea inferior), pero manteniendo el
+     tamaño compacto: más baja y con menos padding que la versión
+     original de 44px/55px. */
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13.5px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.reg-field input:focus,
+.reg-field select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
+.reg-password-wrapper {
+  position: relative;
+}
+
+.reg-password-wrapper input {
+  width: 100%;
+  padding-right: 44px;
+}
+
+.reg-eye-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--primary);
+  font-size: 17px;
+}
+
+.reg-checkbox-group {
+  margin-top: 12px; /* antes 16px */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.reg-alert {
+  padding: 8px 12px; /* antes 10px 14px */
+  border-radius: 10px;
+  margin-bottom: 10px; /* antes 14px */
+  font-size: 12px;
+  border-left: 3px solid;
+}
+
+.reg-alert-error {
+  background: var(--danger-bg);
+  color: var(--danger-fg);
+  border-left-color: var(--danger-fg);
+}
+
+.reg-alert-success {
+  background: var(--success-bg);
+  color: var(--success-fg);
+  border-left-color: var(--success-fg);
+}
+
+.reg-btn-register {
+  width: 100%;
+  height: 42px; /* antes 46px, que ya venía de 60px */
+  margin-top: 16px; /* antes 22px */
+
+  border: none;
+  border-radius: 50px;
+  background: var(--primary);
+  color: var(--on-primary);
+
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+
+  /* Sombra del mismo color del botón (no gris genérico) para que se
+     sienta "elevado" en vez de una barra plana. */
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 30%, transparent);
+  transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.reg-btn-register:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--primary) 45%, transparent);
+}
+
+.reg-login-link {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.reg-login-link a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.reg-info-box {
+  margin-top: 12px; /* antes 16px */
+  padding: 10px 12px; /* antes 12px 14px */
+  border-radius: 12px;
+
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+}
+
+.reg-info-box i {
+  color: var(--primary);
+  font-size: 14px;
+  margin-top: 1px;
+}
+
+.reg-info-box span {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+
+/* -------------------------------------------------------------------------
+   6. TARJETAS DE DOCUMENTOS (Psicólogo y Empresa)
+   ------------------------------------------------------------------------- */
+.reg-docs-title {
+  margin-top: 16px; /* antes 22px */
+  margin-bottom: 8px; /* antes 10px */
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.reg-docs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* antes 10px */
+}
+
+.reg-doc-card {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* antes 12px */
+
+  padding: 8px 12px; /* antes 10px 14px */
+  border: 1px solid var(--border);
+  border-radius: 12px; /* antes 14px */
+  background: var(--surface);
+
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+
+/* Cuando ya se subió el archivo, la tarjeta se resalta sutilmente */
+.reg-doc-card.uploaded {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 6%, var(--surface));
+}
+
+.reg-doc-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  color: var(--primary);
+  font-size: 15px;
+}
+
+.reg-doc-info {
+  flex: 1;
+  min-width: 0; /* permite que el texto largo no rompa el flex */
+}
+
+.reg-doc-info h5 {
+  font-family: "Poppins", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.reg-doc-optional {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.reg-doc-status {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.reg-doc-card.uploaded .reg-doc-status {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.reg-doc-upload-btn {
+  flex-shrink: 0;
+
+  padding: 7px 14px;
+  border-radius: 30px;
+  border: 1px solid var(--primary);
+  background: transparent;
+  color: var(--primary);
+
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.reg-doc-upload-btn:hover {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+
+/* -------------------------------------------------------------------------
+   7. MODAL DE SUBIDA DE ARCHIVOS (<dialog>)
+   ------------------------------------------------------------------------- */
+/* <dialog> trae su propio fondo oscuro nativo (::backdrop); solo hay que
+   estilizar la "caja" en sí y, opcionalmente, el backdrop. */
+.reg-upload-modal {
+  border: none;
+  border-radius: 24px;
+  padding: 0;
+  width: 90%;
+  max-width: 380px;
+
+  background: var(--surface);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+
+  /* Por defecto <dialog> se centra en TODA la ventana. Aquí lo forzamos
+     a centrarse dentro del panel derecho (el del formulario) en vez de
+     la pantalla completa — así no queda montado sobre la foto de la
+     izquierda. En móvil (ver media query al final) esto se desactiva
+     y vuelve a centrarse en toda la pantalla, porque ahí los paneles
+     ya no están lado a lado sino apilados. */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  transform: translate(-50%, -50%);
+}
+
+.reg-upload-modal::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.reg-upload-modal-form {
+  padding: 26px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.reg-upload-modal-form h3 {
+  font-size: 17px;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.reg-upload-modal-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+#uploadModalInput {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.reg-upload-modal-filename {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.reg-upload-modal-actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.reg-upload-modal-cancel,
+.reg-upload-modal-confirm {
+  padding: 9px 18px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.reg-upload-modal-cancel {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.reg-upload-modal-confirm {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.reg-upload-modal-confirm:hover {
+  background: var(--primary-hover);
+}
+
+
+/* -------------------------------------------------------------------------
+   8. RESPONSIVE
+   ------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .reg-page {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .reg-hero,
+  .reg-form-side {
+    width: 100%;
+  }
+
+  .reg-hero {
+    height: 220px;
+  }
+
+  .reg-form-side {
+    height: auto;
+    padding: 24px 20px;
+  }
+
+  .reg-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reg-role-card {
+    width: 90px;
+    height: 90px;
+  }
+}
+
+/* Solo en pantallas de escritorio (donde sí hay 2 paneles lado a lado):
+   el modal se centra a la mitad del panel derecho, que empieza en el
+   50% de la pantalla y ocupa hasta el 100% — su centro está en el 75%. */
+@media (min-width: 901px) {
+  .reg-upload-modal {
+    left: 75%;
+  }
+}
