@@ -1,4 +1,13 @@
      /* DASHBOARD SECTION */
+ .landing-container {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg);
+}
+     body {
+  background: var(--bg);
+  overflow-x: hidden;
+}
 
      /* DASHBOARD SECTION */
 
@@ -10,6 +19,7 @@
     display: flex;
     flex-direction: column;
     gap: 32px;
+    background: var(--bg);
   }
 
   @media (max-width: 768px) {

@@ -206,10 +206,19 @@ import "./login.css";
         successBox.textContent = "Sesión iniciada, redirigiendo...";
         successBox.hidden = false;
       }
+      const u =data.usuario; // Extraemos el usuario que devuelve tu authController
+      
+      if (u?.Rol === "Empresa" || u?.rol === "Empresa") {
+        window.location.href = `/Empresa/${u.UsuarioId || u.id}/Inicio`;
+      } else if (u?.Rol === "Paciente" || u?.rol === "Paciente") {
+        window.location.href = `/Paciente/${u.UsuarioId || u.id}/Inicio`;
+      } else {
+        window.location.href = "/";
+      }
 
       // Por ahora mandamos siempre a "/". Cuando tengas vistas por rol
       // (Paciente / Empresa), aquí va el switch según data.usuario.Rol.
-      window.location.href = "/";
+      // window.location.href = "/";
     } catch (err) {
       if (errorBox) {
         errorBox.textContent = "No se pudo conectar con el servidor";

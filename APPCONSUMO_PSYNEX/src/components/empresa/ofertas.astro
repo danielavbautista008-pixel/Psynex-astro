@@ -3,167 +3,175 @@ import MenuE from "./menuE.astro";
 import "./ofertas.css";
 ---
 
-<div class="gestion-ofertas-container">
-    <MenuE />
-  <div class="header-ofertas">
-    <h1>Gestión de Ofertas</h1>
-    <p>Publica vacantes para psicólogos especializados.</p>
-  </div>
+<div class="landing-container">
+  <MenuE />
+  <main class="Bienvenida-Em">
+    
+    <!-- Encabezado igual a Inicio -->
+    <header class="dashboard-header">
+      <h1>Gestión de Ofertas</h1>
+      <p>Publica vacantes para psicólogos especializados.</p>
+    </header>
 
-  <div class="ofertas-grid-layout">
-    <!-- Formulario para crear oferta -->
-    <div class="oferta-form-card">
-      <h2>Crear nueva oferta</h2>
+    <div class="ofertas-grid-layout">
+      <!-- Formulario para crear oferta -->
+      <div class="oferta-form-card">
+        <h2>Crear nueva oferta</h2>
 
-      <div id="alert-exito" class="alert alert-success" style="color: green; margin-bottom: 15px; display: none;"></div>
-      <div id="alert-error" class="alert alert-danger" style="color: red; margin-bottom: 15px; display: none;"></div>
+        <div id="alert-exito" class="alert alert-success" style="color: green; margin-bottom: 15px; display: none;"></div>
+        <div id="alert-error" class="alert alert-danger" style="color: red; margin-bottom: 15px; display: none;"></div>
 
-      <form id="form-crear-oferta">
-        <div class="form-group-custom">
-          <label for="titulo">Título de la oferta</label>
-          <input type="text" id="titulo" name="Titulo" placeholder="Ej. Psicólogo Organizacional" required />
-        </div>
-
-        <div class="form-group-custom">
-          <label for="descripcion">Descripción</label>
-          <textarea id="descripcion" name="Descripcion" rows="4" placeholder="Describe las funciones y responsabilidades..." required></textarea>
-        </div>
-
-        <div class="form-group-custom">
-          <label for="requisitos">Requisitos</label>
-          <textarea id="requisitos" name="Requisitos" rows="3" placeholder="Describe los requisitos necesarios..." required></textarea>
-        </div>
-
-        <div class="form-row-custom">
-          <div class="form-group-custom input-salario">
-            <label for="salario">Salario</label>
-            <input type="number" id="salario" name="Salario" placeholder="Ej. 2500000" />
+        <form id="form-crear-oferta">
+          <div class="form-group-custom">
+            <label for="titulo">Título de la oferta</label>
+            <input type="text" id="titulo" name="Titulo" placeholder="Ej. Psicólogo Organizacional" required />
           </div>
 
-          <div class="form-group-custom input-modalidad">
-            <label>Modalidad</label>
-            <div class="radio-group-custom">
-              <label class="radio-option">
-                <input type="radio" name="modalidad" value="Virtual" checked />
-                <span>Virtual</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="modalidad" value="Presencial" />
-                <span>Presencial</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="modalidad" value="Hibrido" />
-                <span>Híbrido</span>
-              </label>
+          <div class="form-group-custom">
+            <label for="descripcion">Descripción</label>
+            <textarea id="descripcion" name="Descripcion" rows="4" placeholder="Describe las funciones y responsabilidades..." required></textarea>
+          </div>
+
+          <div class="form-group-custom">
+            <label for="requisitos">Requisitos</label>
+            <textarea id="requisitos" name="Requisitos" rows="3" placeholder="Describe los requisitos necesarios..." required></textarea>
+          </div>
+
+          <div class="form-row-custom">
+            <div class="form-group-custom input-salario">
+              <label for="salario">Salario</label>
+              <input type="number" id="salario" name="Salario" placeholder="Ej. 2500000" />
+            </div>
+
+            <div class="form-group-custom input-modalidad">
+              <label>Modalidad</label>
+              <div class="radio-group-custom">
+                <label class="radio-option">
+                  <input type="radio" name="modalidad" value="Virtual" checked />
+                  <span>Virtual</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="modalidad" value="Presencial" />
+                  <span>Presencial</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="modalidad" value="Hibrido" />
+                  <span>Híbrido</span>
+                </label>
+              </div>
             </div>
           </div>
-        </div>
 
-        <button type="submit" class="btn-publicar-oferta">Publicar Oferta</button>
-      </form>
-    </div>
-
-    <!-- Columna de tablas de datos -->
-    <div class="ofertas-data-column">
-      
-      <!-- Tabla: Mis ofertas publicadas -->
-      <div class="data-card">
-        <h2>Mis ofertas publicadas</h2>
-        <table class="custom-table">
-          <thead>
-            <tr>
-              <th>Oferta</th>
-              <th>Modalidad</th>
-              <th>Estado</th>
-              <th>Postulaciones</th>
-              <th class="text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tabla-ofertas-body">
-            <tr>
-              <td colspan="5" style="text-align: center;">Cargando ofertas...</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- Bloque de Paginación UI -->
-        <div id="pagination-container" class="pagination-wrapper" style="display: none;">
-          <button type="button" id="btn-page-prev" class="page-arrow">
-            <i class="bi bi-chevron-left"></i>
-          </button>
-          <div id="page-numbers" style="display: flex; gap: 8px;"></div>
-          <button type="button" id="btn-page-next" class="page-arrow">
-            <i class="bi bi-chevron-right"></i>
-          </button>
-        </div>
+          <button type="submit" class="btn-publicar-oferta">Publicar Oferta</button>
+        </form>
       </div>
 
-      <!-- Tabla: Postulantes -->
-      <div class="data-card">
-        <h2>Postulantes - Psicólogo Organizacional</h2>
-        <table class="custom-table v-align-middle">
-          <thead>
-            <tr>
-              <th>Psicólogo</th>
-              <th>Fecha</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <div class="user-profile-cell">
-                  <img src="https://images.pexels.com/photos/4158293/pexels-photo-4158293.jpeg" alt="Ana" />
-                  <span>Ana Martínez</span>
-                </div>
-              </td>
-              <td>10/05/2025</td>
-              <td>
-                <div class="action-buttons-group">
-                  <button class="btn-table btn-accept">Aceptar</button>
-                  <button class="btn-table btn-reject">Rechazar</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <div class="user-profile-cell">
-                  <img src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg" alt="Juan" />
-                  <span>Juan Gómez</span>
-                </div>
-              </td>
-              <td>08/05/2025</td>
-              <td>
-                <div class="action-buttons-group">
-                  <button class="btn-table btn-accept">Aceptar</button>
-                  <button class="btn-table btn-reject">Rechazar</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <div class="user-profile-cell">
-                  <img src="https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg" alt="Maria" />
-                  <span>María López</span>
-                </div>
-              </td>
-              <td>08/05/2025</td>
-              <td>
-                <div class="action-buttons-group">
-                  <button class="btn-table btn-accept">Aceptar</button>
-                  <button class="btn-table btn-reject">Rechazar</button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="card-footer-link">
-          <a href="/Empresa/Gestion/Postulantes">Ver todos los postulantes <i class="bi bi-arrow-right"></i></a>
-        </div>
-      </div>
+      <!-- Columna de tablas de datos -->
+      <div class="ofertas-data-column">
+        
+        <!-- Tabla: Mis ofertas publicadas -->
+        <div class="data-card">
+          <h2>Mis ofertas publicadas</h2>
+          <div class="responsive-table-holder">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Oferta</th>
+                  <th>Modalidad</th>
+                  <th>Estado</th>
+                  <th>Postulaciones</th>
+                  <th class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-ofertas-body">
+                <tr>
+                  <td colspan="5" style="text-align: center;">Cargando ofertas...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
+          <!-- Bloque de Paginación UI -->
+          <div id="pagination-container" class="pagination-wrapper" style="display: none;">
+            <button type="button" id="btn-page-prev" class="page-arrow">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <div id="page-numbers" style="display: flex; gap: 8px;"></div>
+            <button type="button" id="btn-page-next" class="page-arrow">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla: Postulantes -->
+        <div class="data-card">
+          <h2>Postulantes - Psicólogo Organizacional</h2>
+          <div class="responsive-table-holder">
+            <table class="custom-table v-align-middle">
+              <thead>
+                <tr>
+                  <th>Psicólogo</th>
+                  <th>Fecha</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="user-profile-cell">
+                      <img src="https://images.pexels.com/photos/4158293/pexels-photo-4158293.jpeg" alt="Ana" />
+                      <span>Ana Martínez</span>
+                    </div>
+                  </td>
+                  <td>10/05/2025</td>
+                  <td>
+                    <div class="action-buttons-group">
+                      <button class="btn-table btn-accept">Aceptar</button>
+                      <button class="btn-table btn-reject">Rechazar</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="user-profile-cell">
+                      <img src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg" alt="Juan" />
+                      <span>Juan Gómez</span>
+                    </div>
+                  </td>
+                  <td>08/05/2025</td>
+                  <td>
+                    <div class="action-buttons-group">
+                      <button class="btn-table btn-accept">Aceptar</button>
+                      <button class="btn-table btn-reject">Rechazar</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="user-profile-cell">
+                      <img src="https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg" alt="Maria" />
+                      <span>María López</span>
+                    </div>
+                  </td>
+                  <td>08/05/2025</td>
+                  <td>
+                    <div class="action-buttons-group">
+                      <button class="btn-table btn-accept">Aceptar</button>
+                      <button class="btn-table btn-reject">Rechazar</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer-link">
+            <a href="/Empresa/Gestion/Postulantes" class="view-more-btn">Ver todos los postulantes &rarr;</a>
+          </div>
+        </div>
+
+      </div>
     </div>
-  </div>
+  </main>
 </div>
 
 <!-- Modal para Editar Oferta -->
@@ -227,278 +235,3 @@ import "./ofertas.css";
     </div>
   </div>
 </div>
-
-<!-- <script>
-  interface OfertaLaboral {
-    ofertaId: string;
-    perfileId: string;
-    titulo: string;
-    descripcion: string;
-    requisitos: string;
-    salario?: number;
-    modalidad: string;
-    estado: string;
-  }
-
-  const PERFIL_ID_AUTENTICADO = "087218F3-B131-4596-9D84-C5FCB2FF80BF";
-  const API_BASE_URL = "/api/OfertasLaborales"; // Ajusta según la URL base de tu backend
-
-  let listaOfertas: OfertaLaboral[] = [];
-  let paginaActual = 1;
-  const itemsPorPagina = 3;
-  let idOfertaSeleccionada: string | null = null;
-
-  // Elementos del DOM
-  const tablaBody = document.getElementById("tabla-ofertas-body")!;
-  const formCrear = document.getElementById("form-crear-oferta") as HTMLFormElement;
-  const formEditar = document.getElementById("form-editar-oferta") as HTMLFormElement;
-  const modalEditar = document.getElementById("modal-editar")!;
-  const btnCerrarModal = document.getElementById("btn-cerrar-modal")!;
-  const btnCancelarModal = document.getElementById("btn-cancelar-modal")!;
-
-  const alertExito = document.getElementById("alert-exito")!;
-  const alertError = document.getElementById("alert-error")!;
-
-  // Cargar ofertas al iniciar
-  async function cargarOfertas() {
-    try {
-      const response = await fetch(`${API_BASE_URL}?perfilId=${PERFIL_ID_AUTENTICADO}`);
-      if (response.ok) {
-        listaOfertas = await response.json();
-      } else {
-        listaOfertas = [];
-      }
-    } catch (e) {
-      console.error("Error al cargar ofertas:", e);
-      listaOfertas = [];
-    }
-    renderizarTabla();
-  }
-
-  function renderizarTabla() {
-    const totalPaginas = Math.ceil(listaOfertas.length / itemsPorPagina);
-    if (paginaActual > totalPaginas && totalPaginas > 0) {
-      paginaActual = totalPaginas;
-    }
-
-    if (!listaOfertas || listaOfertas.length === 0) {
-      tablaBody.innerHTML = `
-        <tr>
-          <td colspan="5" style="text-align: center;">No hay ofertas activas publicadas.</td>
-        </tr>`;
-      document.getElementById("pagination-container")!.style.display = "none";
-      return;
-    }
-
-    const inicio = (paginaActual - 1) * itemsPorPagina;
-    const ofertasEnPagina = listaOfertas.slice(inicio, inicio + itemsPorPagina);
-
-    let html = "";
-    ofertasEnPagina.forEach((oferta) => {
-      html += `
-        <tr>
-          <td class="font-semibold">${oferta.titulo}</td>
-          <td class="text-center">${oferta.modalidad}</td>
-          <td class="text-center"><span class="badge status-activa">${oferta.estado}</span></td>
-          <td class="text-center">0</td>
-          <td>
-            <div class="action-buttons-container">
-              <button class="btn-actions btn-editar" data-id="${oferta.ofertaId}" title="Editar oferta">
-                <i class="bi bi-pencil-fill" style="color: #c69a63;"></i>
-              </button>
-              <button class="btn-actions btn-eliminar" data-id="${oferta.ofertaId}" title="Desactivar Oferta">
-                <i class="bi bi-trash-fill" style="color: #dc3545;"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      `;
-    });
-
-    // Relleno de filas vacías
-    const filasFaltantes = itemsPorPagina - ofertasEnPagina.length;
-    for (let i = 0; i < filasFaltantes; i++) {
-      html += `
-        <tr class="fila-relleno-vacia">
-          <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
-        </tr>`;
-    }
-
-    tablaBody.innerHTML = html;
-    renderizarPaginacion(totalPaginas);
-    asignarEventosTabla();
-  }
-
-  function renderizarPaginacion(totalPaginas: number) {
-    const paginationContainer = document.getElementById("pagination-container")!;
-    if (totalPaginas <= 1) {
-      paginationContainer.style.display = "none";
-      return;
-    }
-    paginationContainer.style.display = "flex";
-
-    const pageNumbersContainer = document.getElementById("page-numbers")!;
-    let html = "";
-    for (let i = 1; i <= totalPaginas; i++) {
-      html += `
-        <button type="button" class="page-num ${paginaActual === i ? "active" : ""}" data-page="${i}">
-          ${i}
-        </button>
-      `;
-    }
-    pageNumbersContainer.innerHTML = html;
-
-    const btnPrev = document.getElementById("btn-page-prev") as HTMLButtonElement;
-    const btnNext = document.getElementById("btn-page-next") as HTMLButtonElement;
-
-    btnPrev.disabled = paginaActual === 1;
-    btnNext.disabled = paginaActual === totalPaginas;
-
-    btnPrev.onclick = () => { if (paginaActual > 1) { paginaActual--; renderizarTabla(); } };
-    btnNext.onclick = () => { if (paginaActual < totalPaginas) { paginaActual++; renderizarTabla(); } };
-
-    pageNumbersContainer.querySelectorAll(".page-num").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const target = e.currentTarget as HTMLElement;
-        paginaActual = Number(target.getAttribute("data-page"));
-        renderizarTabla();
-      });
-    });
-  }
-
-  function asignarEventosTabla() {
-    document.querySelectorAll(".btn-editar").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const id = (e.currentTarget as HTMLElement).getAttribute("data-id");
-        if (id) abrirModalEditar(id);
-      });
-    });
-
-    document.querySelectorAll(".btn-eliminar").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const id = (e.currentTarget as HTMLElement).getAttribute("data-id");
-        if (id) desactivarOferta(id);
-      });
-    });
-  }
-
-  // Manejo de Formulario Crear
-  formCrear.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    alertExito.style.display = "none";
-    alertError.style.display = "none";
-
-    const tituloInput = (document.getElementById("titulo") as HTMLInputElement).value;
-    const descripcionInput = (document.getElementById("descripcion") as HTMLTextAreaElement).value;
-    const requisitosInput = (document.getElementById("requisitos") as HTMLTextAreaElement).value;
-    const salarioInput = (document.getElementById("salario") as HTMLInputElement).value;
-    const modalidadInput = (document.querySelector('input[name="modalidad"]:checked') as HTMLInputElement).value;
-
-    if (!tituloInput.trim()) {
-      alertError.innerText = "El título es obligatorio.";
-      alertError.style.display = "block";
-      return;
-    }
-
-    const nuevaOferta = {
-      perfileId: PERFIL_ID_AUTENTICADO,
-      titulo: tituloInput,
-      descripcion: descripcionInput,
-      requisitos: requisitosInput,
-      salario: salarioInput ? parseFloat(salarioInput) : null,
-      modalidad: modalidadInput
-    };
-
-    try {
-      const response = await fetch(API_BASE_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nuevaOferta)
-      });
-
-      if (response.ok) {
-        alertExito.innerText = "¡La oferta laboral se ha publicado con éxito!";
-        alertExito.style.display = "block";
-        formCrear.reset();
-        await cargarOfertas();
-      } else {
-        alertError.innerText = "Hubo un error al intentar publicar la oferta.";
-        alertError.style.display = "block";
-      }
-    } catch (ex) {
-      alertError.innerText = "Error de conexión al servidor.";
-      alertError.style.display = "block";
-    }
-  });
-
-  // Funciones de Modal y Edición
-  function abrirModalEditar(id: string) {
-    const ofertaActual = listaOfertas.find((o) => o.ofertaId === id);
-    if (!ofertaActual) return;
-
-    idOfertaSeleccionada = id;
-    (document.getElementById("edit-titulo") as HTMLInputElement).value = ofertaActual.titulo;
-    (document.getElementById("edit-descripcion") as HTMLTextAreaElement).value = ofertaActual.descripcion;
-    (document.getElementById("edit-requisitos") as HTMLTextAreaElement).value = ofertaActual.requisitos;
-    (document.getElementById("edit-salario") as HTMLInputElement).value = ofertaActual.salario ? ofertaActual.salario.toString() : "";
-
-    const radioModalidad = document.querySelector(`input[name="edit-modalidad"][value="${ofertaActual.modalidad}"]`) as HTMLInputElement;
-    if (radioModalidad) radioModalidad.checked = true;
-
-    modalEditar.style.display = "flex";
-  }
-
-  function cerrarModal() {
-    modalEditar.style.display = "none";
-    idOfertaSeleccionada = null;
-  }
-
-  btnCerrarModal.addEventListener("click", cerrarModal);
-  btnCancelarModal.addEventListener("click", cerrarModal);
-
-  formEditar.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!idOfertaSeleccionada) return;
-
-    const ofertaEditada = {
-      perfileId: PERFIL_ID_AUTENTICADO,
-      titulo: (document.getElementById("edit-titulo") as HTMLInputElement).value,
-      descripcion: (document.getElementById("edit-descripcion") as HTMLTextAreaElement).value,
-      requisitos: (document.getElementById("edit-requisitos") as HTMLTextAreaElement).value,
-      salario: parseFloat((document.getElementById("edit-salario") as HTMLInputElement).value) || null,
-      modalidad: (document.querySelector('input[name="edit-modalidad"]:checked') as HTMLInputElement).value
-    };
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/${idOfertaSeleccionada}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(ofertaEditada)
-      });
-
-      if (response.ok) {
-        cerrarModal();
-        await cargarOfertas();
-      } else {
-        console.error("Error al guardar cambios");
-      }
-    } catch (ex) {
-      console.error("Excepción:", ex);
-    }
-  });
-
-  async function desactivarOferta(id: string) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/${id}`, { method: "DELETE" });
-      if (response.ok) {
-        await cargarOfertas();
-      }
-    } catch (ex) {
-      console.error("Error al desactivar la oferta:", ex);
-    }
-  }
-
-  // Carga inicial
-  cargarOfertas();
-</script> -->
-
