@@ -1,0 +1,524 @@
+---
+import MenuAdmin from "../Menu/MenuAdmin.astro";
+import "./finanzas.css";
+
+const empresas = [
+  {
+    iniciales: "BL",
+    nombre: "Bienestar Laboral S.A.S.",
+    nit: "NIT 900.456.789-1",
+    plan: "Plan Corporativo Pro",
+    usuarios: "50 usuarios",
+    monto: "$1.800.000",
+    estado: "Al día",
+    estadoClass: "al-dia"
+  },
+  {
+    iniciales: "TS",
+    nombre: "Talento Saludable Ltda.",
+    nit: "NIT 901.123.456-7",
+    plan: "Plan Empresarial",
+    usuarios: "20 usuarios",
+    monto: "$1.200.000",
+    estado: "Al día",
+    estadoClass: "al-dia"
+  },
+  {
+    iniciales: "RC",
+    nombre: "Río Claro S.A.S.",
+    nit: "NIT 900.987.654-3",
+    plan: "Plan Corporativo",
+    usuarios: "30 usuarios",
+    monto: "$1.500.000",
+    estado: "Pendiente",
+    estadoClass: "pendiente"
+  },
+  {
+    iniciales: "IN",
+    nombre: "Innovar Ltda.",
+    nit: "NIT 901.654.321-0",
+    plan: "Plan Básico",
+    usuarios: "10 usuarios",
+    monto: "$800.000",
+    estado: "Al día",
+    estadoClass: "al-dia"
+  },
+  {
+    iniciales: "VM",
+    nombre: "Vita Mental S.A.S.",
+    nit: "NIT 900.321.654-8",
+    plan: "Plan Corporativo Pro",
+    usuarios: "40 usuarios",
+    monto: "$1.600.000",
+    estado: "Al día",
+    estadoClass: "al-dia"
+  }
+];
+
+const psicologos = [
+  { inicial: "1", nombre: "Andrés Ramírez", citas: "42" },
+  { inicial: "2", nombre: "Laura Castro", citas: "35" },
+  { inicial: "3", nombre: "Sofía Vargas", citas: "28" },
+  { inicial: "4", nombre: "Julián Arango", citas: "24" },
+  { inicial: "5", nombre: "Ricardo Silva", citas: "20" }
+];
+---
+
+<div class="finanzas-page">
+
+  <MenuAdmin />
+
+  <main class="finanzas-content">
+
+    <!-- ENCABEZADO -->
+    <header class="finanzas-header">
+
+      <div class="header-info">
+
+        <div class="header-icon">
+          <i class="bi bi-wallet2"></i>
+        </div>
+
+        <div>
+          <span class="section-label">FINANZAS</span>
+          <h1>Finanzas</h1>
+          <p>Consulta los ingresos, pagos y gastos de la plataforma.</p>
+        </div>
+
+      </div>
+
+      <div class="periodo-general">
+        <i class="bi bi-calendar3"></i>
+
+        <select aria-label="Periodo general">
+          <option>Septiembre 2026</option>
+          <option>Agosto 2026</option>
+          <option>Julio 2026</option>
+        </select>
+
+        <i class="bi bi-chevron-down"></i>
+      </div>
+
+    </header>
+
+
+    <!-- RESUMEN FINANCIERO -->
+    <section class="resumen-finanzas">
+
+      <!-- PRINCIPAL -->
+      <article class="finanza-card principal">
+
+        <div class="finanza-card-top">
+
+          <div class="finanza-icon">
+            <i class="bi bi-wallet2"></i>
+          </div>
+
+          <span class="finanza-label">
+            Ingresos totales este mes
+          </span>
+
+        </div>
+
+        <strong class="finanza-value">
+          $8.450.000
+        </strong>
+
+        <div class="finanza-change">
+          <i class="bi bi-arrow-up"></i>
+          12% vs. mes anterior
+        </div>
+
+      </article>
+
+
+      <!-- EMPRESAS -->
+      <article class="finanza-card">
+
+        <div class="finanza-card-top">
+
+          <div class="finanza-icon empresas">
+            <i class="bi bi-buildings"></i>
+          </div>
+
+          <span class="finanza-label">
+            Pagado por empresas
+          </span>
+
+        </div>
+
+        <strong class="finanza-value">
+          $5.200.000
+        </strong>
+
+        <span class="finanza-description">
+          Planes contratados
+        </span>
+
+      </article>
+
+
+      <!-- PSICÓLOGOS -->
+      <article class="finanza-card">
+
+        <div class="finanza-card-top">
+
+          <div class="finanza-icon psicologos">
+            <i class="bi bi-person-check"></i>
+          </div>
+
+          <span class="finanza-label">
+            Retenido de psicólogos
+          </span>
+
+        </div>
+
+        <strong class="finanza-value">
+          $1.980.000
+        </strong>
+
+        <span class="finanza-description">
+          Comisión Psynex
+        </span>
+
+      </article>
+
+
+      <!-- CITAS GRATIS -->
+      <article class="finanza-card recompensa">
+
+        <div class="finanza-card-top">
+
+          <div class="finanza-icon">
+            <i class="bi bi-gift"></i>
+          </div>
+
+          <span class="finanza-label">
+            Gastado en citas gratis
+          </span>
+
+        </div>
+
+        <strong class="finanza-value">
+          $270.000
+        </strong>
+
+        <span class="finanza-description">
+          Fondo de recompensas
+        </span>
+
+      </article>
+
+    </section>
+
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <section class="finanzas-grid">
+
+      <!-- EMPRESAS Y PLANES -->
+      <section class="panel-finanzas empresas-panel">
+
+        <div class="panel-header">
+
+          <div class="panel-heading">
+
+            <div class="panel-icon">
+              <i class="bi bi-buildings"></i>
+            </div>
+
+            <div>
+              <h2>Empresas y sus planes</h2>
+              <p>
+                Controla los planes contratados y el estado de pago.
+              </p>
+            </div>
+
+          </div>
+
+          <div class="periodo-panel">
+
+            <span>Período</span>
+
+            <select aria-label="Periodo de empresas">
+              <option>Septiembre 2026</option>
+              <option>Agosto 2026</option>
+              <option>Julio 2026</option>
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <div class="tabla-wrapper">
+
+          <table class="tabla-empresas">
+
+            <thead>
+              <tr>
+                <th>Empresa</th>
+                <th>Plan contratado</th>
+                <th>Monto mensual</th>
+                <th>Estado de pago</th>
+                <th></th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {
+                empresas.map((empresa) => (
+                  <tr>
+
+                    <td>
+
+                      <div class="empresa-info">
+
+                        <div class="empresa-avatar">
+                          {empresa.iniciales}
+                        </div>
+
+                        <div>
+                          <strong>{empresa.nombre}</strong>
+                          <small>{empresa.nit}</small>
+                        </div>
+
+                      </div>
+
+                    </td>
+
+                    <td>
+
+                      <div class="plan-info">
+                        <strong>{empresa.plan}</strong>
+                        <small>{empresa.usuarios}</small>
+                      </div>
+
+                    </td>
+
+                    <td>
+                      <span class="monto">
+                        {empresa.monto}
+                      </span>
+                    </td>
+
+                    <td>
+
+                      <span class={`estado-pago ${empresa.estadoClass}`}>
+                        <span></span>
+                        {empresa.estado}
+                      </span>
+
+                    </td>
+
+                    <td>
+                      <button
+                        class="btn-tabla"
+                        aria-label={`Opciones de ${empresa.nombre}`}
+                      >
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                    </td>
+
+                  </tr>
+                ))
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+
+        <div class="tabla-footer">
+
+          <span>
+            Mostrando 1–5 de 5 empresas
+          </span>
+
+          <div class="paginacion">
+
+            <button disabled>
+              <i class="bi bi-chevron-left"></i>
+            </button>
+
+            <button class="activo">1</button>
+
+            <button disabled>
+              <i class="bi bi-chevron-right"></i>
+            </button>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- COLUMNA DERECHA -->
+      <div class="columna-finanzas">
+
+        <!-- DESCUENTO POR TERAPIA -->
+        <section class="panel-finanzas descuento-panel">
+
+          <div class="panel-heading">
+
+            <div class="panel-icon">
+              <i class="bi bi-percent"></i>
+            </div>
+
+            <div>
+              <h2>Descuento por terapia</h2>
+
+              <p>
+                Por cada cita se descuenta un porcentaje de la tarifa.
+                Este es el total de comisión de Psynex en el mes.
+              </p>
+            </div>
+
+          </div>
+
+
+          <div class="comision-resumen">
+
+            <div class="comision-icon">
+              <i class="bi bi-percent"></i>
+            </div>
+
+            <div class="comision-dato">
+
+              <strong>30% por terapia</strong>
+
+              <span>
+                Porcentaje de comisión
+              </span>
+
+            </div>
+
+            <div class="comision-separador"></div>
+
+            <div class="comision-dato monto-comision">
+
+              <strong>$1.980.000</strong>
+
+              <span>
+                Total en el mes
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="ranking-header">
+
+            <h3>
+              Psicólogos con más citas atendidas
+            </h3>
+
+            <button>
+              Ver todos
+              <i class="bi bi-chevron-right"></i>
+            </button>
+
+          </div>
+
+
+          <div class="ranking-list">
+
+            {
+              psicologos.map((psicologo) => (
+                <div class="ranking-item">
+
+                  <span class="ranking-number">
+                    {psicologo.inicial}
+                  </span>
+
+                  <span class="ranking-name">
+                    {psicologo.nombre}
+                  </span>
+
+                  <strong>
+                    {psicologo.citas} citas
+                  </strong>
+
+                </div>
+              ))
+            }
+
+          </div>
+
+        </section>
+
+
+        <!-- FONDO DE CITAS GRATIS -->
+        <section class="panel-finanzas recompensa-panel">
+
+          <div class="panel-heading">
+
+            <div class="panel-icon recompensa-icon">
+              <i class="bi bi-gift"></i>
+            </div>
+
+            <div>
+              <h2>Fondo de citas gratuitas</h2>
+
+              <p>
+                Controla el uso del fondo y el porcentaje de descuento
+                de los ingresos.
+              </p>
+            </div>
+
+          </div>
+
+
+          <div class="recompensa-resumen">
+
+            <div>
+              <strong>10</strong>
+              <span>Tope mensual</span>
+            </div>
+
+            <div>
+              <strong>4</strong>
+              <span>Usadas este mes</span>
+            </div>
+
+            <div>
+              <strong>40%</strong>
+              <span>Descuento en ingresos</span>
+            </div>
+
+          </div>
+
+
+          <div class="progreso-container">
+
+            <div class="progreso-barra">
+              <span></span>
+            </div>
+
+            <div class="progreso-info">
+
+              <span>
+                40% del total
+              </span>
+
+              <span>
+                6 disponibles
+              </span>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
