@@ -1,353 +1,411 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
-  }
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', sans-serif;
+}
 
-  body {
-    background: #f8f3ed;
-    overflow-x: hidden;
-  }
+body {
+  background: var(--bg);
+  overflow-x: hidden;
+}
 
-  .landing-container {
-    width: 100%;
-    min-height: 100vh;
-    background: #f8f3ed;
-  }
-  .gestion-ofertas-container {
-    max-width: 1200px;
-    margin: 40px auto;
-    padding: 0 40px;
-  }
+.landing-container {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg);
+}
 
-  .header-ofertas h1 {
-    font-size: 28px;
-    font-weight: 700;
-    color: #4b3425;
-    margin-bottom: 5px;
-  }
+/* Layout y Contenedor Principal (Idéntico a Inicio) */
+.Bienvenida-Em {
+  font-family: 'Roboto', sans-serif;
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 0 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  background: var(--bg);
+}
 
-  .header-ofertas p {
-    font-size: 15px;
-    color: #6e5e53;
-    margin-bottom: 30px;
+@media (max-width: 768px) {
+  .Bienvenida-Em {
+    padding: 0 20px;
+    margin: 20px auto;
   }
+}
 
+/* Encabezado */
+.dashboard-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text, #4b3425);
+  margin-bottom: 6px;
+}
+
+.dashboard-header p {
+  font-size: 13px;
+  color: var(--text, #3d3028);
+  opacity: 0.8;
+}
+
+/* Disposición Grid de Ofertas */
+.ofertas-grid-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+@media (max-width: 992px) {
   .ofertas-grid-layout {
-    display: flex;
-    gap: 30px;
-    align-items: flex-start;
+    flex-direction: column;
   }
+}
 
+/* Tarjeta Formulario Creación */
+.oferta-form-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 4px 20px rgba(75, 52, 37, 0.04);
+}
+
+@media (max-width: 992px) {
   .oferta-form-card {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 35px;
-    width: 100%;
-    max-width: 480px;
-    box-shadow: 0 4px 20px rgba(75, 52, 37, 0.04);
-  }
-
-  .oferta-form-card h2 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #4b3425;
-    margin-bottom: 25px;
-  }
-
-  .form-group-custom {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 22px;
-  }
-
-  .form-group-custom label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #3d3028;
-    margin-bottom: 8px;
-  }
-
-  .form-group-custom input[type="text"],
-  .form-group-custom input[type="number"],
-  .form-group-custom textarea {
-    width: 100%;
-    padding: 14px;
-    border: 1px solid #e8e1da;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #3d3028;
-    background-color: #fdfcfb;
-    outline: none;
-    transition: border-color 0.3s;
-  }
-
-  .form-group-custom input:focus,
-  .form-group-custom textarea:focus {
-    border-color: #c69a63;
-  }
-
-  .form-row-custom {
-    display: flex;
-    gap: 25px;
-  }
-
-  .input-salario {
-    flex: 1.2;
-  }
-
-  .input-modalidad {
-    flex: 1;
-  }
-
-  .radio-group-custom {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 5px;
-  }
-
-  .radio-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    color: #3d3028;
-    cursor: pointer;
-  }
-
-  .radio-option input[type="radio"] {
-    accent-color: #c69a63;
-  }
-
-  .btn-publicar-oferta {
-    width: 100%;
-    background: linear-gradient(135deg, #d7a86e, #b88343);
-    border: none;
-    color: white;
-    padding: 14px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-
-  .btn-publicar-oferta:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(198, 154, 99, 0.4);
-  }
-
-  .ofertas-data-column {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-  }
-
-  .data-card {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 25px;
-    box-shadow: 0 4px 20px rgba(75, 52, 37, 0.04);
-  }
-
-  .data-card h2 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #4b3425;
-    margin-bottom: 20px;
-  }
-
-  .custom-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .custom-table th {
-    text-align: left;
-    font-size: 13px;
-    font-weight: 600;
-    color: #8c7a6b;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #f0e8e0;
-  }
-
-  .custom-table td {
-    padding: 14px 0;
-    font-size: 14px;
-    color: #3d3028;
-    border-bottom: 1px solid #f8f3ed;
-  }
-
-  .text-center {
-    text-align: center !important;
-  }
-
-  .font-semibold {
-    font-weight: 600;
-  }
-
-  .badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-  }
-
-  .status-activa {
-    background: #e6f4ea;
-    color: #1e8e3e;
-  }
-
-  .action-buttons-container {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-  }
-
-  .btn-actions {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    padding: 4px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-  }
-
-  .btn-actions:hover {
-    background-color: #f8f3ed;
-  }
-
-  .pagination-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin-top: 20px;
-  }
-
-  .page-arrow, .page-num {
-    background: #fdfcfb;
-    border: 1px solid #e8e1da;
-    border-radius: 8px;
-    padding: 8px 14px;
-    cursor: pointer;
-    color: #4b3425;
-    font-weight: 500;
-  }
-
-  .page-num.active {
-    background: #c69a63;
-    color: white;
-    border-color: #c69a63;
-  }
-
-  .page-arrow:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  /* Modal Estilos */
-  .modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    z-index: 1050;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .modal-dialog {
-    max-width: 600px;
-    width: 90%;
-  }
-
-  .modal-card {
-    position: relative;
     max-width: 100%;
-    margin: 0;
   }
+}
 
-  .btn-close-modal {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: #8c7a6b;
-  }
+.oferta-form-card h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text, #4b3425);
+  margin-bottom: 20px;
+}
 
-  .modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 20px;
-  }
+/* Campos de Formulario */
+.form-group-custom {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+}
 
-  .btn-cancelar-oferta {
-    background-color: #e0e0e0;
-    color: #333;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-  }
+.form-group-custom label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text, #3d3028);
+  margin-bottom: 6px;
+}
 
-  .user-profile-cell {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+.form-group-custom input[type="text"],
+.form-group-custom input[type="number"],
+.form-group-custom textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e8e1da;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text, #3d3028);
+  background-color: #fdfcfb;
+  outline: none;
+  transition: border-color 0.3s;
+}
 
-  .user-profile-cell img {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
+.form-group-custom input:focus,
+.form-group-custom textarea:focus {
+  border-color: var(--primary, #c69a63);
+}
 
-  .action-buttons-group {
-    display: flex;
-    gap: 8px;
-  }
+.form-row-custom {
+  display: flex;
+  gap: 16px;
+}
 
-  .btn-table {
-    padding: 6px 14px;
-    border-radius: 6px;
-    border: none;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-  }
+.input-salario {
+  flex: 1.2;
+}
 
-  .btn-accept {
-    background: #e6f4ea;
-    color: #1e8e3e;
-  }
+.input-modalidad {
+  flex: 1;
+}
 
-  .btn-reject {
-    background: #fce8e6;
-    color: #d93025;
-  }
+.radio-group-custom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
 
-  .card-footer-link {
-    margin-top: 15px;
-    text-align: right;
-  }
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text, #3d3028);
+  cursor: pointer;
+}
 
-  .card-footer-link a {
-    color: #c69a63;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 13px;
-  }
+.radio-option input[type="radio"] {
+  accent-color: var(--primary, #c69a63);
+}
+
+.btn-publicar-oferta {
+  width: 100%;
+  background: var(--primary, #c69a63);
+  border: none;
+  color: #ffffff;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s;
+}
+
+.btn-publicar-oferta:hover {
+  background: var(--text, #4b3425);
+  transform: translateY(-1px);
+}
+
+/* Columna Derecha (Tablas) */
+.ofertas-data-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.data-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 4px 20px rgba(75, 52, 37, 0.04);
+}
+
+.data-card h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text, #4b3425);
+  margin-bottom: 20px;
+}
+
+/* Estilos de Tabla Homologados */
+.responsive-table-holder {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.custom-table th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text, #3d3028);
+  opacity: 0.6;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f5ede4;
+}
+
+.custom-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #fcfaf7;
+  font-size: 12px;
+  color: var(--text, #3d3028);
+  vertical-align: middle;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+/* Badges y Usuarios */
+.badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-activa {
+  background: #e6f4ea;
+  color: #1e8e3e;
+}
+
+.user-profile-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+}
+
+.user-profile-cell img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Botones de Acción en Tablas */
+.action-buttons-container {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-actions {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.btn-actions:hover {
+  background-color: #f8f3ed;
+}
+
+.action-buttons-group {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-table {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.btn-table:hover {
+  transform: scale(1.03);
+}
+
+.btn-accept {
+  background: #e6f4ea;
+  color: #1e8e3e;
+}
+
+.btn-reject {
+  background: #fce8e6;
+  color: #d93025;
+}
+
+/* Footer & Enlaces */
+.card-footer-link {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.view-more-btn {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary, #c69a63);
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.view-more-btn:hover {
+  color: var(--text, #4b3425);
+}
+
+/* Paginación */
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.page-arrow, .page-num {
+  background: #fdfcfb;
+  border: 1px solid #e8e1da;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: #4b3425;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.page-num.active {
+  background: var(--primary, #c69a63);
+  color: white;
+  border-color: var(--primary, #c69a63);
+}
+
+.page-arrow:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Modal Estilos */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-dialog {
+  max-width: 550px;
+  width: 90%;
+}
+
+.modal-card {
+  position: relative;
+  max-width: 100%;
+  margin: 0;
+}
+
+.btn-close-modal {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #8c7a6b;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn-cancelar-oferta {
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
