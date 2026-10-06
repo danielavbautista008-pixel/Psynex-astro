@@ -102,6 +102,8 @@ import "./menuE.css";
     const trigger = document.getElementById('perfil-trigger');
     const dropdown = document.getElementById('dropdown-perfil');
     const btnLogout = document.getElementById('btn-logout');
+    const ftoperfil = document.getElementById('nav-perfil-img');
+
 
     if (trigger && dropdown) {
       trigger.addEventListener('click', (e) => {
@@ -119,7 +121,7 @@ import "./menuE.css";
     if (btnLogout) {
       btnLogout.addEventListener('click', () => {
         sessionStorage.removeItem('usuarioId');
-        window.location.href = '/Inicio/login';
+        window.location.href = '/';
       });
     }
   });

@@ -1,0 +1,363 @@
+---
+import MenuE from "./menuE.astro";
+import "./perfil.css";
+---
+
+<div class="landing-container">
+    <MenuE />
+    <main class="Bienvenida-Em">
+        <div class="perfil-empresa-container">
+            <!-- Header -->
+            <div class="header-perfil">
+                <h1 id="header-titulo">Cargando Empresa...</h1>
+                <p>Gestiona la información de tu empresa.</p>
+            </div>
+
+            <!-- Tarjeta Izquierda: Avatar / Logo -->
+            <div class="perfil-avatar-card">
+                <div class="avatar-uploader-zone">
+                    <img
+                        id="avatar-preview"
+                        src="/imagenes/PerfilEmpresa.jpg"
+                        alt="Logo de la Empresa"
+                        class="avatar-preview"
+                    />
+
+                    <button
+                        type="button"
+                        id="btn-trigger-file"
+                        class="btn-cambiar-foto"
+                        title="Cambiar foto de perfil"
+                    >
+                        <i class="bi bi-camera-fill"></i>
+                    </button>
+
+                    <!-- Input oculto para subir la imagen -->
+                    <input
+                        type="file"
+                        id="file-input-logo"
+                        accept="image/*"
+                        style="display: none;"
+                    />
+                </div>
+
+                <h2 id="empresa-nombre-title" class="empresa-nombre-title">
+                    Cargando Empresa...
+                </h2>
+
+                <div class="badge-verificado">
+                    <span>Empresa Verificada</span>
+                    <i class="bi bi-check-lg"></i>
+                </div>
+            </div>
+
+            <!-- Tarjeta Derecha: Formulario -->
+            <div class="perfil-form-card">
+                <!-- Mensajes de Alerta -->
+                <div
+                    id="alerta-exito"
+                    class="alerta-exito"
+                    style="display: none;"
+                >
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span id="texto-exito"></span>
+                </div>
+                <div
+                    id="alerta-error"
+                    class="alerta-error"
+                    style="display: none;"
+                >
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    <span id="texto-error"></span>
+                </div>
+
+                <form id="perfil-form">
+                    <div class="form-group-custom full-width">
+                        <label for="nombre-empresa">Nombre de la empresa</label>
+                        <input
+                            type="text"
+                            id="nombre-empresa"
+                            placeholder="Empresa XYZ SAS"
+                            required
+                        />
+                    </div>
+
+                    <div class="form-row-custom">
+                        <div class="form-group-custom">
+                            <label for="nit">NIT</label>
+                            <input type="text" id="nit" required />
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label for="sector">Sector</label>
+                            <select id="sector" class="select-custom">
+                                <option value="Salud">Salud y Bienestar</option>
+                                <option value="Educacion">Educación</option>
+                                <option value="Tecnologia">Tecnología</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group-custom full-width">
+                        <label for="descripcion-empresa"
+                            >Descripción de la empresa</label
+                        >
+                        <textarea
+                            id="descripcion-empresa"
+                            rows="4"
+                            placeholder="Somos una empresa dedicada al bienestar emocional y mental..."
+                        ></textarea>
+                    </div>
+
+                    <div class="form-row-custom">
+                        <div class="form-group-custom">
+                            <label for="sitio-web">Sitio web</label>
+                            <input
+                                type="url"
+                                id="sitio-web"
+                                placeholder="https://ejemplo.com"
+                            />
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label for="telefono">Teléfono</label>
+                            <input
+                                type="tel"
+                                id="telefono"
+                                placeholder="+57 300 123 4567"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="form-actions-row">
+                        <button
+                            type="submit"
+                            id="btn-guardar"
+                            class="btn-guardar-cambios"
+                        >
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- <script>
+    const API_URL = "http://localhost:8000/api";
+
+    // Referencias DOM
+    const headerTitulo = document.getElementById(
+        "header-titulo",
+    ) as HTMLHeadingElement;
+    const nombreTitle = document.getElementById(
+        "empresa-nombre-title",
+    ) as HTMLHeadingElement;
+    const avatarPreview = document.getElementById(
+        "avatar-preview",
+    ) as HTMLImageElement;
+    const fileInput = document.getElementById(
+        "file-input-logo",
+    ) as HTMLInputElement;
+    const btnTriggerFile = document.getElementById(
+        "btn-trigger-file",
+    ) as HTMLButtonElement;
+
+    // Campos del formulario
+    const inputNombre = document.getElementById(
+        "nombre-empresa",
+    ) as HTMLInputElement;
+    const inputNit = document.getElementById("nit") as HTMLInputElement;
+    const selectSector = document.getElementById("sector") as HTMLSelectElement;
+    const inputDescripcion = document.getElementById(
+        "descripcion-empresa",
+    ) as HTMLTextAreaElement;
+    const inputSitioWeb = document.getElementById(
+        "sitio-web",
+    ) as HTMLInputElement;
+    const inputTelefono = document.getElementById(
+        "telefono",
+    ) as HTMLInputElement;
+    const btnGuardar = document.getElementById(
+        "btn-guardar",
+    ) as HTMLButtonElement;
+    const form = document.getElementById("perfil-form") as HTMLFormElement;
+
+    // Alertas
+    const alertaExito = document.getElementById(
+        "alerta-exito",
+    ) as HTMLDivElement;
+    const alertaError = document.getElementById(
+        "alerta-error",
+    ) as HTMLDivElement;
+    const textoExito = document.getElementById(
+        "texto-exito",
+    ) as HTMLSpanElement;
+    const textoError = document.getElementById(
+        "texto-error",
+    ) as HTMLSpanElement;
+
+    let empresaData: any = null;
+    let logoBase64: string | null = null;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        await cargarPerfil();
+
+        // Evento disparador del File Input
+        btnTriggerFile?.addEventListener("click", () => {
+            fileInput?.click();
+        });
+
+        // Evento al seleccionar archivo de imagen
+        fileInput?.addEventListener("change", procesarImagen);
+
+        // Evento Submit del formulario
+        form?.addEventListener("submit", guardarCambios);
+    });
+
+    async function cargarPerfil() {
+        const usuarioId = sessionStorage.getItem("usuarioId");
+
+        if (!usuarioId) {
+            mostrarError("No se pudo identificar la sesión de la empresa.");
+            if (headerTitulo) headerTitulo.textContent = "Sin Sesión Activa";
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/empresa/usuario/${usuarioId}`);
+            if (!res.ok)
+                throw new Error("Error al obtener los datos de la empresa");
+
+            empresaData = await res.json();
+
+            // Mapear datos a la interfaz
+            if (empresaData) {
+                if (headerTitulo)
+                    headerTitulo.textContent =
+                        empresaData.nombreEmpresa || "Empresa";
+                if (nombreTitle)
+                    nombreTitle.textContent =
+                        empresaData.nombreEmpresa || "Empresa";
+
+                if (inputNombre)
+                    inputNombre.value = empresaData.nombreEmpresa || "";
+                if (inputNit) inputNit.value = empresaData.nit || "";
+                if (selectSector)
+                    selectSector.value = empresaData.sector || "Salud";
+                if (inputDescripcion)
+                    inputDescripcion.value = empresaData.descripcion || "";
+                if (inputSitioWeb)
+                    inputSitioWeb.value = empresaData.sitioWeb || "";
+                if (inputTelefono)
+                    inputTelefono.value = empresaData.telefono || "";
+
+                if (empresaData.logo) {
+                    avatarPreview.src = empresaData.logo;
+                    logoBase64 = empresaData.logo;
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            mostrarError("Error al cargar los datos de la empresa.");
+            if (headerTitulo) headerTitulo.textContent = "Error al cargar";
+        }
+    }
+
+    function procesarImagen(e: Event) {
+        const target = e.target as HTMLInputElement;
+        const file = target.files?.[0];
+
+        if (file) {
+            // Validar tamaño máx. 5MB
+            if (file.size > 5 * 1024 * 1024) {
+                mostrarError("La imagen no debe superar los 5MB.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const result = event.target?.result as string;
+                avatarPreview.src = result;
+                logoBase64 = result;
+
+                // Dispatch evento personalizado para actualizar fotos en otros componentes (Navbar/Menú)
+                window.dispatchEvent(
+                    new CustomEvent("fotoPerfilActualizada", {
+                        detail: { logo: result },
+                    }),
+                );
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    async function guardarCambios(e: Event) {
+        e.preventDefault();
+        ocultarAlertas();
+
+        if (!empresaData) return;
+
+        btnGuardar.disabled = true;
+        btnGuardar.textContent = "Guardando...";
+
+        const payload = {
+            ...empresaData,
+            nombreEmpresa: inputNombre.value,
+            nit: inputNit.value,
+            sector: selectSector.value,
+            descripcion: inputDescripcion.value,
+            sitioWeb: inputSitioWeb.value,
+            telefono: inputTelefono.value,
+            logo: logoBase64 || empresaData.logo,
+        };
+
+        try {
+            const res = await fetch(
+                `${API_URL}/empresa/${empresaData.id || empresaData.perfilId}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                },
+            );
+
+            if (!res.ok) throw new Error("Error al guardar los cambios.");
+
+            mostrarExito("Cambios guardados con éxito.");
+
+            // Actualizar encabezados
+            if (headerTitulo) headerTitulo.textContent = payload.nombreEmpresa;
+            if (nombreTitle) nombreTitle.textContent = payload.nombreEmpresa;
+        } catch (err) {
+            console.error(err);
+            mostrarError("Ocurrió un error al intentar guardar los cambios.");
+        } finally {
+            btnGuardar.disabled = false;
+            btnGuardar.textContent = "Guardar Cambios";
+        }
+    }
+
+    function mostrarExito(msj: string) {
+        if (alertaExito && textoExito) {
+            textoExito.textContent = msj;
+            alertaExito.style.display = "flex";
+        }
+    }
+
+    function mostrarError(msj: string) {
+        if (alertaError && textoError) {
+            textoError.textContent = msj;
+            alertaError.style.display = "flex";
+        }
+    }
+
+    function ocultarAlertas() {
+        if (alertaExito) alertaExito.style.display = "none";
+        if (alertaError) alertaError.style.display = "none";
+    }
+</script> -->
