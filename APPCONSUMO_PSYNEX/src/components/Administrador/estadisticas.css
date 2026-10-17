@@ -726,9 +726,11 @@
 }
 
 
+/* Mismo color que la porción "Individual" de la rueda y de las barras
+   (el color principal del tema), para que la leyenda coincida. */
 .legend-color.purple {
 
-    background: #8b63f5;
+    background: var(--primary, #8b63f5);
 
 }
 

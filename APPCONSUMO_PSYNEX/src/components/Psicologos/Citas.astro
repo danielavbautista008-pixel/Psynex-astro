@@ -1,0 +1,456 @@
+---
+import "./Citas.css";
+import NavbarPsicologo from "../Menu/NavbarPsicologo.astro";
+import Aceptarcita from "./Aceptarcita.astro";
+import {
+  apiGet, fechaLarga, fechaCorta, hora, textoModalidad, edad, fotoIniciales,
+} from "../../lib/api";
+
+// ---------------------------------------------------------------
+// Datos reales desde el backend: GET /api/psicologo/citas
+// (solo trae las citas de ESTE psicólogo; lo controla el backend).
+// ---------------------------------------------------------------
+const nombre = Astro.locals.usuario?.NombreCompleto ?? "Psicólogo";
+
+const cookie = Astro.request.headers.get("cookie");
+const respuesta = await apiGet(cookie, "/api/psicologo/citas?porPagina=50");
+const citas: any[] = respuesta?.citas ?? [];
+
+const ahora = new Date();
+
+// Convierte una cita del backend a la misma forma que usa el diseño.
+const aTarjeta = (c: any) => ({
+  id: c.CitaId,
+  nombre: c.PacienteNombre,
+  edad: edad(c.PacienteFechaNacimiento),
+  tipo: c.TipoCita === "Individual" ? "Terapia individual" : `Plan ${String(c.TipoCita).toLowerCase()}`,
+  fecha: fechaLarga(c.FechaHora),
+  hora: hora(c.FechaHora),
+  duracion: c.DuracionMinutos,
+  modalidad: textoModalidad(c.Modalidad),
+  cita: c.Estado === "Completada" ? "Realizada" : c.Estado,
+  pago: c.EstadoPago === "Completado" ? "Pagado" : "Pendiente",
+  foto: fotoIniciales(c.PacienteNombre ?? "Paciente"),
+});
+
+const porFecha = (a: any, b: any) =>
+  new Date(a.FechaHora).getTime() - new Date(b.FechaHora).getTime();
+
+// 1. Solicitudes: citas que el psicólogo aún no ha aceptado ni rechazado.
+const solicitudes = citas
+  .filter((c) => c.Estado === "Pendiente")
+  .sort(porFecha)
+  .map(aTarjeta);
+
+// 2. Próximas: confirmadas y en el futuro (la más cercana primero).
+const proximasCitas = citas
+  .filter((c) => c.Estado === "Confirmada" && new Date(c.FechaHora) >= ahora)
+  .sort(porFecha)
+  .map(aTarjeta);
+
+// 3. Anteriores: realizadas, o confirmadas cuya fecha ya pasó
+//    (la más reciente primero). Las canceladas no se muestran.
+const citasAnteriores = citas
+  .filter((c) =>
+    c.Estado === "Completada" ||
+    (c.Estado === "Confirmada" && new Date(c.FechaHora) < ahora))
+  .sort((a, b) => porFecha(b, a))
+  .map((c) => ({ ...aTarjeta(c), fecha: fechaCorta(c.FechaHora) }));
+---
+
+<NavbarPsicologo nombre={nombre} />
+
+<main class="appointments-page">
+
+  <!-- ENCABEZADO -->
+  <section class="appointments-header">
+
+    <div class="header-copy">
+      <span class="eyebrow">AGENDA PROFESIONAL</span>
+
+      <h1>Citas</h1>
+
+      <p>
+        Gestiona tus sesiones y organiza tu agenda.
+      </p>
+    </div>
+
+    <a
+      href="/Psicologos/Agenda"
+      class="agenda-button"
+    >
+     <span class="agenda-leaf" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none">
+    <path
+      d="M20.5 3.5C13.2 3.8 7.4 6.1 5 10.2c-1.8 3.1-.5 6.4 2.2 7.6 2.8 1.3 6.1-.1 7.9-2.8 2.1-3.1 2.6-7.1 5.4-11.5Z"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M4 20c2.8-4.4 6.2-7.1 11.5-9.5"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+    />
+  </svg>
+</span>
+
+<span>Tu agenda, tu espacio</span>
+<span class="agenda-arrow">→</span>
+    </a>
+
+  </section>
+
+
+  <!-- SOLICITUDES -->
+  <section class="appointments-section">
+
+    <div class="section-title">
+      <div>
+        <h2>Solicitudes pendientes</h2>
+        <span class="count">{solicitudes.length}</span>
+      </div>
+
+      <span class="collapse-mark">⌃</span>
+    </div>
+
+
+    <div class="request-list">
+
+      {solicitudes.map((solicitud) => (
+
+        <article class="request-card">
+
+          <div class="patient-main">
+
+            <img
+              src={solicitud.foto}
+              alt={`Foto de ${solicitud.nombre}`}
+              class="patient-photo"
+            />
+
+            <div class="patient-name">
+
+              <strong>{solicitud.nombre}</strong>
+
+              <span>
+                {solicitud.edad !== null ? `${solicitud.edad} años · ` : ""}{solicitud.tipo}
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="appointment-date">
+
+            <span class="date-icon">□</span>
+
+            <div>
+              <strong>
+                {solicitud.fecha} · {solicitud.hora}
+              </strong>
+
+              <span>
+                {solicitud.modalidad}
+              </span>
+            </div>
+
+          </div>
+
+
+          <div class="request-actions">
+
+  <button
+    type="button"
+    class="accept-button abrir-aceptar-cita"
+    data-modalidad={solicitud.modalidad}
+    data-cita-id={solicitud.id}
+    data-nombre={solicitud.nombre}
+    data-detalle={solicitud.edad !== null ? `${solicitud.edad} años · ${solicitud.tipo}` : solicitud.tipo}
+    data-fecha={solicitud.fecha}
+    data-hora={solicitud.hora}
+    data-duracion={solicitud.duracion}
+    data-foto={solicitud.foto}
+  >
+    Aceptar
+  </button>
+
+  <button
+    type="button"
+    class="reject-button rechazar-cita"
+    data-cita-id={solicitud.id}
+  >
+    Rechazar
+  </button>
+
+</div>
+
+        </article>
+
+      ))}
+
+    </div>
+
+  </section>
+
+
+  <!-- PRÓXIMAS CITAS -->
+  <section class="appointments-section">
+
+    <div class="section-title">
+      <div>
+        <h2>Próximas citas</h2>
+        <span class="count">{proximasCitas.length}</span>
+      </div>
+
+      <span class="collapse-mark">⌃</span>
+    </div>
+
+
+    <div class="upcoming-list">
+
+      {proximasCitas.map((cita) => (
+
+        <article class="upcoming-card">
+
+          <div class="patient-main">
+
+            <img
+              src={cita.foto}
+              alt={`Foto de ${cita.nombre}`}
+              class="patient-photo"
+            />
+
+            <div class="patient-name">
+
+              <strong>{cita.nombre}</strong>
+
+              <span>{cita.tipo}</span>
+
+            </div>
+
+          </div>
+
+
+          <div class="appointment-date">
+
+            <span class="date-icon">□</span>
+
+            <div>
+              <strong>
+                {cita.fecha} · {cita.hora}
+              </strong>
+
+              <span>
+                {cita.modalidad}
+              </span>
+            </div>
+
+          </div>
+
+
+          <div class="status-column">
+
+            <small>Cita</small>
+
+            <span class="status confirmed">
+              <i></i>
+              {cita.cita}
+            </span>
+
+          </div>
+
+
+          <div class="status-column">
+
+            <small>Pago</small>
+
+            <span
+              class:list={[
+                "status",
+                cita.pago === "Pagado"
+                  ? "paid"
+                  : "pending",
+              ]}
+            >
+              <i></i>
+              {cita.pago}
+            </span>
+
+          </div>
+
+
+          <a
+            href="/Psicologos/Pacientes"
+            class="view-link"
+          >
+            Ver cita
+            <span>→</span>
+          </a>
+
+        </article>
+
+      ))}
+
+    </div>
+
+  </section>
+
+
+  <!-- CITAS ANTERIORES -->
+  <section class="appointments-section previous-section">
+
+    <div class="section-title">
+      <div>
+        <h2>Citas anteriores</h2>
+        <span class="count">{citasAnteriores.length}</span>
+      </div>
+    </div>
+
+
+    <div class="upcoming-list">
+
+      {citasAnteriores.map((cita) => (
+
+        <article class="upcoming-card">
+
+          <div class="patient-main">
+
+            <img
+              src={cita.foto}
+              alt={`Foto de ${cita.nombre}`}
+              class="patient-photo"
+            />
+
+            <div class="patient-name">
+
+              <strong>{cita.nombre}</strong>
+
+              <span>{cita.tipo}</span>
+
+            </div>
+
+          </div>
+
+
+          <div class="appointment-date">
+
+            <span class="date-icon">□</span>
+
+            <div>
+              <strong>
+                {cita.fecha} · {cita.hora}
+              </strong>
+
+              <span>
+                {cita.modalidad}
+              </span>
+            </div>
+
+          </div>
+
+
+          <div class="status-column">
+
+            <small>Cita</small>
+
+            <span class="status completed">
+              <i></i>
+              {cita.cita}
+            </span>
+
+          </div>
+
+
+          <div class="status-column">
+
+            <small>Pago</small>
+
+            <span class="status paid">
+              <i></i>
+              {cita.pago}
+            </span>
+
+          </div>
+
+
+          <a
+            href="/Psicologos/Pacientes"
+            class="view-link"
+          >
+            Ver cita
+            <span>→</span>
+          </a>
+
+        </article>
+
+      ))}
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<Aceptarcita />
+
+<script>
+  import { API_URL } from "../../lib/api";
+
+  // ---- Aceptar: abre el modal con los datos de esa cita ----
+  document.querySelectorAll<HTMLButtonElement>(".abrir-aceptar-cita")
+    .forEach((boton) => {
+      boton.addEventListener("click", () => {
+        const d = boton.dataset;
+        window.dispatchEvent(
+          new CustomEvent("abrirAceptarCita", {
+            detail: {
+              citaId: d.citaId,
+              modalidad: d.modalidad || "Consulta virtual",
+              nombre: d.nombre,
+              detalle: d.detalle,
+              fecha: d.fecha,
+              hora: d.hora,
+              duracion: d.duracion,
+              foto: d.foto,
+            },
+          }),
+        );
+      });
+    });
+
+  // ---- Rechazar: PATCH /api/psicologo/citas/:id/estado -> Cancelada ----
+  document.querySelectorAll<HTMLButtonElement>(".rechazar-cita")
+    .forEach((boton) => {
+      boton.addEventListener("click", async () => {
+        const citaId = boton.dataset.citaId;
+        if (!citaId) return;
+
+        boton.disabled = true;
+        try {
+          const res = await fetch(`${API_URL}/api/psicologo/citas/${citaId}/estado`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include", // envía la cookie de sesión
+            body: JSON.stringify({ estado: "Cancelada" }),
+          });
+
+          if (res.status === 401) {
+            window.location.href = "/Inicio/login"; // la sesión venció
+            return;
+          }
+          if (!res.ok) throw new Error(`Respuesta ${res.status}`);
+
+          // Recargamos para que la lista se vuelva a pedir al backend
+          window.location.reload();
+        } catch (error) {
+          console.error("No se pudo rechazar la cita:", error);
+          boton.disabled = false;
+        }
+      });
+    });
+</script>

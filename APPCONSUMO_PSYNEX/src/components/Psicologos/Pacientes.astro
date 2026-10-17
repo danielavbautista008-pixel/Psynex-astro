@@ -1,0 +1,487 @@
+---
+import "./Pacientes.css";
+import NavbarPsicologo from "../Menu/NavbarPsicologo.astro";
+import HistorialPaciente from "./HistorialPaciente.astro";
+import { apiGet, edad, fechaCorta, fotoIniciales, hora, textoModalidad } from "../../lib/api";
+
+// GET /api/psicologo/pacientes -> personas con citas con este psicólogo
+const datos = await apiGet(Astro.request.headers.get("cookie"), "/api/psicologo/pacientes");
+
+const cuando = (f: string | null) => (f ? `${fechaCorta(f)} · ${hora(f)}` : "—");
+
+const pacientes = ((datos?.pacientes ?? []) as any[]).map((p) => ({
+  id: String(p.pacienteId),
+  nombre: String(p.nombre),
+  edad: edad(p.fechaNacimiento),
+  tipo: p.tipoCita ? `Cita ${String(p.tipoCita).toLowerCase()}` : textoModalidad(p.modalidad),
+  estado: String(p.estado),
+  foto: fotoIniciales(String(p.nombre)),
+  ultimaCita: cuando(p.ultimaCita),
+  proximaCita: cuando(p.proximaCita),
+  modalidad: textoModalidad(p.modalidad),
+  sesiones: Number(p.sesiones ?? 0),
+}));
+---
+
+<NavbarPsicologo />
+
+<main class="patients-page">
+
+  <section class="patients-header">
+    <div class="header-content">
+      <span class="eyebrow">ESPACIO PROFESIONAL</span>
+
+      <h1>Mis pacientes</h1>
+
+      <p class="patients-description">
+        Personas que has atendido y cuyo proceso puedes consultar.
+      </p>
+    </div>
+
+    <div class="patient-count">
+      <strong>{pacientes.length}</strong>
+      <span>pacientes</span>
+    </div>
+  </section>
+
+
+  <section class="patients-section">
+
+    <div class="patients-toolbar">
+
+      <div class="patient-filters" role="tablist">
+        <button
+          type="button"
+          class="filter-button active"
+          data-filter="todos"
+        >
+          Todos
+        </button>
+
+        <button
+          type="button"
+          class="filter-button"
+          data-filter="Activa"
+        >
+          Activos
+        </button>
+
+        <button
+          type="button"
+          class="filter-button"
+          data-filter="En seguimiento"
+        >
+          En seguimiento
+        </button>
+
+        <button
+          type="button"
+          class="filter-button"
+          data-filter="Finalizada"
+        >
+          Finalizados
+        </button>
+      </div>
+
+    </div>
+
+
+    <div class="patients-list">
+
+      {
+        pacientes.map((paciente) => (
+          <article
+            class="patient-card"
+            data-status={paciente.estado}
+          >
+
+            <div class="patient-main">
+
+              <div class="patient-identity">
+
+                <div class="patient-photo-wrapper">
+                  <img
+                    src={paciente.foto}
+                    alt={`Foto de ${paciente.nombre}`}
+                    class="patient-photo"
+                  />
+
+                  <span class="photo-fallback">
+                    {paciente.nombre
+                      .split(" ")
+                      .map((parte) => parte[0])
+                      .join("")
+                      .slice(0, 2)}
+                  </span>
+                </div>
+
+                <div class="patient-name-block">
+                  <div class="patient-name-row">
+                    <h2>{paciente.nombre}</h2>
+
+                    <span
+                      class:list={[
+                        "patient-status",
+                        {
+                          active: paciente.estado === "Activa",
+                          tracking:
+                            paciente.estado === "En seguimiento",
+                          finished:
+                            paciente.estado === "Finalizada",
+                        },
+                      ]}
+                    >
+                      <span class="status-point"></span>
+                      {paciente.estado}
+                    </span>
+                  </div>
+
+                  <p>
+                    {paciente.edad !== null ? `${paciente.edad} años` : "Edad no registrada"}
+                    <span>·</span>
+                    {paciente.tipo}
+                  </p>
+                </div>
+
+              </div>
+
+
+              <div class="patient-details">
+
+                <div class="detail">
+                  <span>Última sesión</span>
+                  <strong>{paciente.ultimaCita}</strong>
+                </div>
+
+                <div class="detail">
+                  <span>Próxima sesión</span>
+                  <strong>{paciente.proximaCita}</strong>
+                </div>
+
+                <div class="detail">
+                  <span>Sesiones</span>
+                  <strong>{paciente.sesiones}</strong>
+                </div>
+
+              </div>
+
+
+              <button
+                type="button"
+                class="history-button"
+                data-patient={paciente.id}
+                aria-label={`Ver historial de ${paciente.nombre}`}
+              >
+                <span>Ver historial</span>
+                <span class="history-arrow">→</span>
+              </button>
+
+            </div>
+
+          </article>
+        ))
+      }
+
+    </div>
+
+    <p
+      class:list={["empty-state", { visible: pacientes.length === 0 }]}
+      id="emptyPatients"
+    >
+      {pacientes.length === 0
+        ? "Todavía no tienes pacientes. Aparecerán cuando alguien agende una cita contigo."
+        : "No hay pacientes en esta categoría."}
+    </p>
+
+  </section>
+
+</main>
+
+<HistorialPaciente />
+
+<script>
+  import { apiEnviar, edad, fechaCorta, fotoIniciales, hora, textoError, textoModalidad, API_URL } from "../../lib/api";
+
+  const filterButtons =
+    document.querySelectorAll<HTMLButtonElement>(".filter-button");
+
+  const patientCards =
+    document.querySelectorAll<HTMLElement>(".patient-card");
+
+  const emptyState =
+    document.querySelector<HTMLElement>("#emptyPatients");
+
+  filterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const filter = button.dataset.filter;
+
+      filterButtons.forEach((item) => {
+        item.classList.remove("active");
+      });
+
+      button.classList.add("active");
+
+      let visiblePatients = 0;
+
+      patientCards.forEach((card) => {
+        const status = card.dataset.status;
+
+        const visible =
+          filter === "todos" || status === filter;
+
+        card.classList.toggle("hidden", !visible);
+
+        if (visible) {
+          visiblePatients++;
+        }
+      });
+
+      if (emptyState) {
+        emptyState.classList.toggle(
+          "visible",
+          visiblePatients === 0
+        );
+      }
+    });
+  });
+
+
+  // =========================================================
+  // HISTORIAL: GET /api/psicologo/pacientes/:id
+  // (citas, resultados de cuestionarios y notas de seguimiento)
+  // =========================================================
+
+  const historyButtons =
+    document.querySelectorAll<HTMLButtonElement>(".history-button");
+
+  const historyModal =
+    document.querySelector<HTMLElement>("#patientHistoryModal");
+
+  const closeHistory =
+    document.querySelector<HTMLButtonElement>("#closePatientHistory");
+
+  const $ = (id: string) => document.getElementById(id);
+
+  const texto = (id: string, valor: string) => {
+    const el = $(id);
+    if (el) el.textContent = valor;
+  };
+
+  const cuando = (f: string | null | undefined) => (f ? `${fechaCorta(f)} · ${hora(f)}` : "—");
+
+  const ESTADO_CITA: Record<string, string> = {
+    Completada: "Atendida",
+    Confirmada: "Confirmada",
+    Pendiente: "Pendiente",
+    Cancelada: "Cancelada",
+  };
+
+  let pacienteActual = "";
+
+  const pintarNotas = (notas: any[]) => {
+    const lista = $("historyNotes");
+    if (!lista) return;
+    lista.replaceChildren();
+    if (!notas.length) {
+      const vacio = document.createElement("p");
+      vacio.textContent = "Todavía no hay notas de seguimiento.";
+      lista.append(vacio);
+      return;
+    }
+    notas.forEach((n) => {
+      const bloque = document.createElement("div");
+      bloque.className = "follow-up-block";
+      const titulo = document.createElement("span");
+      titulo.textContent = `NOTA · ${fechaCorta(n.CreadoEn)} ${new Date(n.CreadoEn).getFullYear()}`;
+      const contenido = document.createElement("p");
+      contenido.textContent = String(n.Contenido ?? "");
+      bloque.append(titulo, contenido);
+      lista.append(bloque);
+    });
+  };
+
+  const cargarHistorial = async (id: string) => {
+    const res = await fetch(`${API_URL}/api/psicologo/pacientes/${encodeURIComponent(id)}`, {
+      credentials: "include",
+    }).catch(() => null);
+    if (res?.status === 401) {
+      window.location.href = "/Inicio/login";
+      return null;
+    }
+    return res?.ok ? await res.json().catch(() => null) : null;
+  };
+
+  historyButtons.forEach((button) => {
+    button.addEventListener("click", async () => {
+      const id = button.dataset.patient;
+      if (!id || !historyModal) return;
+
+      const datos = await cargarHistorial(id);
+      if (!datos?.paciente) return;
+      pacienteActual = id;
+
+      const p = datos.paciente;
+      const citas = (datos.citas ?? []) as any[];
+      const ahora = Date.now();
+      const proxima = [...citas]
+        .filter((c) => new Date(c.FechaHora).getTime() >= ahora && ["Pendiente", "Confirmada"].includes(c.Estado))
+        .sort((a, b) => new Date(a.FechaHora).getTime() - new Date(b.FechaHora).getTime())[0];
+      const ultima = citas.find((c) => new Date(c.FechaHora).getTime() < ahora && c.Estado !== "Cancelada");
+      const primera = citas[citas.length - 1];
+
+      // Cabecera
+      texto("modalPatientName", p.nombre);
+      const anos = edad(p.fechaNacimiento);
+      texto("modalPatientAge", anos !== null ? `${anos} años` : "Edad no registrada");
+      texto("modalPatientType", citas[0]?.TipoCita ? `Cita ${String(citas[0].TipoCita).toLowerCase()}` : "Paciente");
+      const foto = $("modalPatientPhoto") as HTMLImageElement | null;
+      if (foto) {
+        foto.src = fotoIniciales(String(p.nombre));
+        foto.alt = `Foto de ${p.nombre}`;
+      }
+
+      // Resumen
+      texto("modalNextSession", cuando(proxima?.FechaHora));
+      texto("modalNextSessionType", proxima ? textoModalidad(proxima.Modalidad) : "Sin cita próxima");
+      texto("modalLastSession", cuando(ultima?.FechaHora));
+      texto("modalLastSessionType", ultima ? textoModalidad(ultima.Modalidad) : "—");
+      texto("modalPatientSessions", `${p.sesiones} ${p.sesiones === 1 ? "sesión" : "sesiones"}`);
+      texto(
+        "modalPatientSince",
+        primera
+          ? `Desde ${new Date(primera.FechaHora).toLocaleDateString("es-CO", { month: "long", year: "numeric", timeZone: "America/Bogota" })}`
+          : "—",
+      );
+      const resultados = (datos.resultados ?? []) as any[];
+      texto(
+        "modalPatientState",
+        proxima
+          ? "El proceso está activo: el paciente tiene una cita próxima."
+          : ultima
+          ? "El paciente no tiene citas próximas. Puedes revisar su historial y notas."
+          : "Aún no hay sesiones realizadas con este paciente.",
+      );
+
+      // Historial de citas
+      const linea = $("historyTimeline");
+      if (linea) {
+        linea.replaceChildren();
+        if (!citas.length) {
+          const vacio = document.createElement("p");
+          vacio.textContent = "Sin citas registradas.";
+          linea.append(vacio);
+        }
+        citas.forEach((c, i) => {
+          const d = new Date(c.FechaHora);
+          const item = document.createElement("article");
+          item.className = "timeline-item";
+
+          const fecha = document.createElement("div");
+          fecha.className = "timeline-date";
+          const dia = document.createElement("strong");
+          dia.textContent = d.toLocaleDateString("es-CO", { day: "2-digit", timeZone: "America/Bogota" });
+          const mes = document.createElement("span");
+          mes.textContent = d.toLocaleDateString("es-CO", { month: "short", timeZone: "America/Bogota" }).replace(".", "").toUpperCase();
+          fecha.append(dia, mes);
+          item.append(fecha);
+
+          if (i < citas.length - 1) {
+            const l = document.createElement("div");
+            l.className = "timeline-line";
+            item.append(l);
+          }
+
+          const info = document.createElement("div");
+          info.className = "timeline-info";
+          const h3 = document.createElement("h3");
+          h3.textContent = c.TipoCita ? `Cita ${String(c.TipoCita).toLowerCase()}` : "Cita";
+          const det = document.createElement("p");
+          det.textContent = `${hora(c.FechaHora)} · ${textoModalidad(c.Modalidad)}`;
+          const est = document.createElement("span");
+          est.className = "timeline-status";
+          est.textContent = ESTADO_CITA[c.Estado] ?? c.Estado;
+          info.append(h3, det, est);
+          item.append(info);
+          linea.append(item);
+        });
+      }
+
+      // Seguimiento: resultados de cuestionarios + notas
+      const res = $("historyResults");
+      if (res) {
+        res.replaceChildren();
+        if (!resultados.length) {
+          const li = document.createElement("li");
+          li.textContent = "Sin cuestionarios respondidos.";
+          res.append(li);
+        }
+        resultados.slice(0, 5).forEach((r) => {
+          const li = document.createElement("li");
+          li.textContent = `${r.NombreCuestionario}: ${r.Interpretacion} (${r.PuntajeTotal}/${r.PuntajeMaximo ?? "?"}) · ${fechaCorta(r.FechaRespuesta)}`;
+          res.append(li);
+        });
+      }
+      texto("historyUpdated", resultados[0] || (datos.notas ?? [])[0]
+        ? `Última actualización · ${fechaCorta((datos.notas ?? [])[0]?.CreadoEn ?? resultados[0].FechaRespuesta)}`
+        : "Sin registros todavía");
+      texto("historyNextFollowUp", proxima
+        ? new Date(proxima.FechaHora).toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric", timeZone: "America/Bogota" })
+        : "Sin cita programada");
+      pintarNotas(datos.notas ?? []);
+
+      // Siempre abre en la pestaña Resumen
+      document.querySelector<HTMLButtonElement>('.history-tab[data-tab="resumen"]')?.click();
+
+      historyModal.classList.add("is-open");
+      document.body.classList.add("modal-open");
+    });
+  });
+
+
+  // NUEVA NOTA: POST /api/psicologo/pacientes/:id/notas
+  const formNota = document.getElementById("historyNoteForm") as HTMLFormElement | null;
+  formNota?.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    const campo = document.getElementById("historyNoteText") as HTMLTextAreaElement | null;
+    const error = document.getElementById("historyNoteError");
+    const contenido = campo?.value.trim() ?? "";
+    if (contenido.length < 3 || !pacienteActual) {
+      if (error) error.textContent = "Escribe la nota (mínimo 3 caracteres).";
+      return;
+    }
+    const r = await apiEnviar("POST", `/api/psicologo/pacientes/${encodeURIComponent(pacienteActual)}/notas`, { contenido });
+    if (!r.ok) {
+      if (error) error.textContent = textoError(r.data, "No se pudo guardar la nota.");
+      return;
+    }
+    if (error) error.textContent = "";
+    if (campo) campo.value = "";
+    const datos = await cargarHistorial(pacienteActual);
+    pintarNotas(datos?.notas ?? []);
+  });
+
+
+  const closeModal = () => {
+    if (!historyModal) return;
+
+    historyModal.classList.remove("is-open");
+    document.body.classList.remove("modal-open");
+  };
+
+
+  closeHistory?.addEventListener("click", closeModal);
+
+
+  historyModal?.addEventListener("click", (event) => {
+    if (event.target === historyModal) {
+      closeModal();
+    }
+  });
+
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeModal();
+    }
+  });
+</script>

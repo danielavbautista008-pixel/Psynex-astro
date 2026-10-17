@@ -1,0 +1,198 @@
+/* =========================================================================
+   recuperar.css
+   Lo que la página "Recuperar contraseña" agrega encima de login.css.
+   Usa las mismas variables del tema (--primary, --text, --surface...).
+   ========================================================================= */
+
+.rec-paso[hidden] {
+  display: none;
+}
+
+.rec-centro {
+  text-align: center;
+}
+
+/* "contraseña" es más larga que "Psynex": un poco más pequeña */
+.rec-brand {
+  font-size: 34px;
+  margin-bottom: 18px;
+}
+
+.rec-titulo {
+  font-family: "Playfair Display", serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 12px;
+}
+
+.rec-texto {
+  margin: 0 0 22px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.rec-texto strong {
+  color: var(--text);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Círculo con la hojita */
+.rec-icono {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--primary-soft, color-mix(in srgb, var(--primary) 14%, transparent));
+  color: var(--primary);
+  font-size: 26px;
+}
+
+.rec-icono svg {
+  width: 30px;
+  height: 30px;
+}
+
+.rec-icono-ok svg {
+  animation: recHoja 1.2s ease-out 1;
+}
+
+.rec-icono-alerta {
+  background: var(--danger-bg);
+  color: var(--danger-fg);
+}
+
+/* La hojita "respira" mientras se revisa el enlace */
+.rec-respira svg {
+  animation: recRespira 1.4s ease-in-out infinite;
+}
+
+@keyframes recRespira {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(.86); opacity: .55; }
+}
+
+@keyframes recHoja {
+  0% { transform: rotate(-35deg) scale(.6); opacity: 0; }
+  60% { transform: rotate(8deg) scale(1.08); opacity: 1; }
+  100% { transform: rotate(0) scale(1); }
+}
+
+/* Consejos después de enviar el correo */
+.rec-pistas {
+  margin: -6px 0 22px;
+  padding: 12px 14px 12px 30px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary) 7%, transparent);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: left;
+}
+
+/* Requisitos de la contraseña: se marcan con ✓ al cumplirse */
+.rec-requisitos {
+  list-style: none;
+  margin: -4px 0 20px;
+  padding: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.rec-requisitos li {
+  position: relative;
+  padding-left: 22px;
+  color: var(--text-muted);
+  font-size: 12px;
+  transition: color .2s ease;
+}
+
+.rec-requisitos li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  transform: translateY(-50%);
+  box-sizing: border-box;
+  transition: background .2s ease, border-color .2s ease;
+}
+
+.rec-requisitos li.cumple {
+  color: var(--text);
+}
+
+.rec-requisitos li.cumple::before {
+  border-color: var(--primary);
+  background: var(--primary)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.3l2.4 2.4L12 5.2' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / 10px no-repeat;
+}
+
+/* Botón secundario (reenviar) */
+.rec-secundario {
+  width: 100%;
+  padding: 11px;
+  border: 1.5px solid var(--primary);
+  border-radius: 50px;
+  background: transparent;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s ease, color .2s ease, opacity .2s ease;
+}
+
+.rec-secundario:hover:not(:disabled) {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.rec-secundario:disabled {
+  opacity: .55;
+  cursor: default;
+}
+
+/* El enlace "Iniciar sesión" con la forma del botón principal */
+.rec-boton-enlace {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+
+.rec-boton-enlace:hover {
+  color: var(--on-primary);
+}
+
+.rec-volver {
+  display: block;
+  margin-top: 18px;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.rec-volver:hover {
+  color: var(--primary);
+}
+
+.login-submit:disabled {
+  opacity: .7;
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rec-respira svg,
+  .rec-icono-ok svg {
+    animation: none;
+  }
+}

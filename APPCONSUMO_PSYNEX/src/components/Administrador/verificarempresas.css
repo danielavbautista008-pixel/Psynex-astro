@@ -2642,3 +2642,110 @@ body.modal-abierto {
     }
 
 }
+
+/* =====================================================
+   AVISO PEQUEÑO (reemplaza las alertas del navegador)
+===================================================== */
+
+.aviso-admin {
+    position: fixed;
+    inset: 0;
+    z-index: 1000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(30, 25, 35, .28);
+}
+
+.aviso-admin[hidden] {
+    display: none;
+}
+
+.aviso-admin-caja {
+    width: min(320px, 100%);
+    padding: 18px 20px 16px;
+    border: 1px solid var(--border, #ece6f2);
+    border-radius: 14px;
+    background: var(--surface, #fff);
+    color: var(--text, #2b2233);
+    box-shadow: 0 16px 40px rgba(30, 20, 40, .18);
+    text-align: center;
+    animation: avisoAdminEntra .16s ease-out;
+}
+
+.aviso-admin-caja h3 {
+    margin: 0 0 6px;
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.aviso-admin-caja p {
+    margin: 0 0 14px;
+    color: var(--text-muted, #7a7085);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.aviso-admin-caja button {
+    height: 32px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 9px;
+    background: var(--primary, #7c5cbf);
+    color: var(--on-primary, #fff);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.aviso-admin-caja button:hover {
+    background: var(--primary-hover, var(--primary, #6a4cab));
+}
+
+@keyframes avisoAdminEntra {
+    from { opacity: 0; transform: scale(.96); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+
+/* =====================================================
+   LOGO DE LA EMPRESA (lista y detalle)
+   La imagen tapa las iniciales; si no carga, se ven ellas.
+===================================================== */
+
+.empresa-logo,
+.detalle-logo {
+    position: relative;
+    overflow: hidden;
+}
+
+.empresa-logo img,
+.detalle-logo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: var(--surface, #fff);
+}
+
+
+/* Cuando la empresa ya está activa */
+
+.decision-hecha {
+    margin: 18px 0 0;
+    padding: 9px 12px;
+    border-radius: 9px;
+    background: var(--primary-soft, #f3edfc);
+    color: var(--primary, #7c5cbf);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.decision-hecha[hidden],
+.detalle-acciones[hidden] {
+    display: none !important;
+}

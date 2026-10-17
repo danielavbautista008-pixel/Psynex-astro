@@ -1,0 +1,46 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import ResponderCuestionario from "../../../components/Explorar/ResponderCuestionario.astro";
+import { apiGet, imagenCuestionario } from "../../../lib/api";
+import { obtenerUsuario } from "../../../lib/auth";
+
+// /Explorar/cuestionarios/<id del cuestionario>
+// Las preguntas y opciones vienen de la base de datos.
+interface Cuestionario {
+  id: string;
+  sigla: string;
+  descripcion: string;
+  categoria: string;
+  minutos: number;
+  tieneImagen: boolean;
+  preguntas: { id: string; numero: number; texto: string; opciones: { id: string; texto: string }[] }[];
+}
+
+const cookie = Astro.request.headers.get("cookie");
+const id = Astro.params.id ?? "";
+
+const [datos, usuario] = await Promise.all([
+  apiGet<{ cuestionario: Cuestionario }>(cookie, `/api/explorar/cuestionarios/${encodeURIComponent(id)}`),
+  obtenerUsuario(cookie ?? undefined),
+]);
+
+if (!datos?.cuestionario || datos.cuestionario.preguntas.length === 0) {
+  return Astro.redirect("/Explorar/cuestionarios");
+}
+
+const c = datos.cuestionario;
+---
+
+<BaseLayout title={`${c.sigla} | Psynex`}>
+
+  <ResponderCuestionario
+    id={c.id}
+    titulo={c.sigla}
+    descripcion={c.descripcion}
+    preguntas={c.preguntas}
+    tiempo={`${c.minutos} min`}
+    imagen={imagenCuestionario(c)}
+    rol={usuario?.Rol ?? null}
+  />
+
+</BaseLayout>

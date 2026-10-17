@@ -1,6 +1,41 @@
 ---
 import MenuAdmin from "../Menu/MenuAdmin.astro";
 import "./publicarplanes.css";
+import { apiGet } from "../../lib/api";
+
+// ---------------------------------------------------------------
+// Datos reales: GET /api/admin/planes?tipo=Empresarial (solo Admin)
+// Esta vista administra los planes que compran las empresas.
+// ---------------------------------------------------------------
+const cookie = Astro.request.headers.get("cookie");
+const respuesta = await apiGet(cookie, "/api/admin/planes?tipo=Empresarial&porPagina=50");
+
+const pesos = (n: number) =>
+  "$" + Math.round(n).toLocaleString("es-CO");
+
+const COLORES = [
+  { color: "plan-purple", icono: "bi-box" },
+  { color: "plan-blue", icono: "bi-briefcase" },
+  { color: "plan-green", icono: "bi-buildings" },
+];
+
+const planes = ((respuesta?.planes ?? []) as any[]).map((p: any, i: number) => {
+  const beneficios = String(p.Beneficios ?? "")
+    .split("\n").map((b) => b.trim()).filter(Boolean);
+  return {
+    id: p.PlanId,
+    nombre: p.Nombre,
+    descripcion: p.Descripcion,
+    precio: Number(p.Precio),
+    precioTexto: pesos(Number(p.Precio)),
+    citas: p.CantidadSesiones ?? 0,
+    beneficios,
+    estado: p.Publicado ? "activo" : "inactivo",
+    ...COLORES[i % COLORES.length],
+  };
+});
+
+const planesActivos = planes.filter((p: any) => p.estado === "activo").length;
 ---
 
 <div class="planes-page">
@@ -54,7 +89,7 @@ import "./publicarplanes.css";
                 </div>
 
                 <div>
-                    <strong id="totalPlanes">3</strong>
+                    <strong id="totalPlanes">{planesActivos}</strong>
                     <span>Planes publicados</span>
                 </div>
             </article>
@@ -138,7 +173,7 @@ import "./publicarplanes.css";
             </div>
 
             <span class="cantidad-planes" id="cantidadPlanes">
-                3 planes
+                {planes.length} planes
             </span>
 
         </div>
@@ -151,70 +186,70 @@ import "./publicarplanes.css";
         <section class="planes-grid" id="listaPlanes">
 
 
-            <!-- PLAN BÁSICO -->
+            {planes.map((p) => (
 
             <article
                 class="plan-card"
-                data-nombre="Plan Básico"
-                data-estado="activo"
+                data-id={p.id}
+                data-nombre={p.nombre}
+                data-estado={p.estado}
+                data-descripcion={p.descripcion}
+                data-precio={p.precio}
+                data-citas={p.citas}
+                data-beneficios={p.beneficios.join("\n")}
             >
 
                 <div class="plan-card-top">
 
-                    <div class="plan-icon plan-purple">
-                        <i class="bi bi-box"></i>
+                    <div class={`plan-icon ${p.color}`}>
+                        <i class={`bi ${p.icono}`}></i>
                     </div>
 
-                    <span class="estado-plan activo">
+                    <span class={`estado-plan ${p.estado}`}>
                         <span></span>
-                        Activo
+                        {p.estado === "activo" ? "Activo" : "Inactivo"}
                     </span>
 
                 </div>
 
-
-                <h3>Plan Básico</h3>
+                <h3>{p.nombre}</h3>
 
                 <p class="plan-descripcion">
-                    Herramientas esenciales para empresas que comienzan a utilizar Psynex.
+                    {p.descripcion}
                 </p>
 
-
                 <div class="plan-precio">
-                    <strong>$99.000</strong>
+                    <strong>{p.precioTexto}</strong>
                     <span>/ mes</span>
                 </div>
-
 
                 <div class="plan-datos">
 
                     <div>
                         <i class="bi bi-people"></i>
-                        <span>5 usuarios</span>
+                        <span>{p.citas} citas al mes</span>
                     </div>
 
                     <div>
                         <i class="bi bi-building"></i>
-                        <span>8 empresas</span>
+                        <span>0 empresas</span>
                     </div>
 
                     <div>
                         <i class="bi bi-check-circle"></i>
-                        <span>Soporte incluido</span>
+                        <span>{p.beneficios[0] ?? "Soporte incluido"}</span>
                     </div>
 
                 </div>
 
-
                 <div class="plan-linea"></div>
-
 
                 <div class="plan-actions">
 
                     <button
                         type="button"
                         class="btn-plan btn-empresas"
-                        data-plan="basico"
+                        data-plan={p.nombre}
                     >
                         <i class="bi bi-building"></i>
                         Ver empresas
@@ -223,210 +258,25 @@ import "./publicarplanes.css";
                     <button
                         type="button"
                         class="btn-plan btn-editar"
-                        data-editar="basico"
+                        data-editar={p.id}
                     >
                         <i class="bi bi-pencil"></i>
                     </button>
 
                 </div>
 
-
                 <button
                     type="button"
-                    class="btn-estado-plan btn-desactivar"
+                    class={`btn-estado-plan ${p.estado === "activo" ? "btn-desactivar" : "btn-activar"}`}
                     data-toggle-plan
                 >
-                    <i class="bi bi-toggle-off"></i>
-                    Desactivar plan
+                    <i class={`bi ${p.estado === "activo" ? "bi-toggle-off" : "bi-toggle-on"}`}></i>
+                    {p.estado === "activo" ? "Desactivar plan" : "Activar plan"}
                 </button>
 
             </article>
 
-
-
-            <!-- PLAN PROFESIONAL -->
-
-            <article
-                class="plan-card"
-                data-nombre="Plan Profesional"
-                data-estado="activo"
-            >
-
-                <div class="plan-card-top">
-
-                    <div class="plan-icon plan-blue">
-                        <i class="bi bi-briefcase"></i>
-                    </div>
-
-                    <span class="estado-plan activo">
-                        <span></span>
-                        Activo
-                    </span>
-
-                </div>
-
-
-                <h3>Plan Profesional</h3>
-
-                <p class="plan-descripcion">
-                    Más usuarios y herramientas para empresas con mayor actividad.
-                </p>
-
-
-                <div class="plan-precio">
-                    <strong>$189.000</strong>
-                    <span>/ mes</span>
-                </div>
-
-
-                <div class="plan-datos">
-
-                    <div>
-                        <i class="bi bi-people"></i>
-                        <span>15 usuarios</span>
-                    </div>
-
-                    <div>
-                        <i class="bi bi-building"></i>
-                        <span>7 empresas</span>
-                    </div>
-
-                    <div>
-                        <i class="bi bi-check-circle"></i>
-                        <span>Soporte prioritario</span>
-                    </div>
-
-                </div>
-
-
-                <div class="plan-linea"></div>
-
-
-                <div class="plan-actions">
-
-                    <button
-                        type="button"
-                        class="btn-plan btn-empresas"
-                        data-plan="profesional"
-                    >
-                        <i class="bi bi-building"></i>
-                        Ver empresas
-                    </button>
-
-                    <button
-                        type="button"
-                        class="btn-plan btn-editar"
-                        data-editar="profesional"
-                    >
-                        <i class="bi bi-pencil"></i>
-                    </button>
-
-                </div>
-
-
-                <button
-                    type="button"
-                    class="btn-estado-plan btn-desactivar"
-                    data-toggle-plan
-                >
-                    <i class="bi bi-toggle-off"></i>
-                    Desactivar plan
-                </button>
-
-            </article>
-
-
-
-            <!-- PLAN EMPRESARIAL -->
-
-            <article
-                class="plan-card"
-                data-nombre="Plan Empresarial"
-                data-estado="inactivo"
-            >
-
-                <div class="plan-card-top">
-
-                    <div class="plan-icon plan-green">
-                        <i class="bi bi-buildings"></i>
-                    </div>
-
-                    <span class="estado-plan inactivo">
-                        <span></span>
-                        Inactivo
-                    </span>
-
-                </div>
-
-
-                <h3>Plan Empresarial</h3>
-
-                <p class="plan-descripcion">
-                    Solución completa para organizaciones con equipos grandes.
-                </p>
-
-
-                <div class="plan-precio">
-                    <strong>$329.000</strong>
-                    <span>/ mes</span>
-                </div>
-
-
-                <div class="plan-datos">
-
-                    <div>
-                        <i class="bi bi-people"></i>
-                        <span>40 usuarios</span>
-                    </div>
-
-                    <div>
-                        <i class="bi bi-building"></i>
-                        <span>3 empresas</span>
-                    </div>
-
-                    <div>
-                        <i class="bi bi-check-circle"></i>
-                        <span>Atención empresarial</span>
-                    </div>
-
-                </div>
-
-
-                <div class="plan-linea"></div>
-
-
-                <div class="plan-actions">
-
-                    <button
-                        type="button"
-                        class="btn-plan btn-empresas"
-                        data-plan="empresarial"
-                    >
-                        <i class="bi bi-building"></i>
-                        Ver empresas
-                    </button>
-
-                    <button
-                        type="button"
-                        class="btn-plan btn-editar"
-                        data-editar="empresarial"
-                    >
-                        <i class="bi bi-pencil"></i>
-                    </button>
-
-                </div>
-
-
-                <button
-                    type="button"
-                    class="btn-estado-plan btn-activar"
-                    data-toggle-plan
-                >
-                    <i class="bi bi-toggle-on"></i>
-                    Activar plan
-                </button>
-
-            </article>
+            ))}
 
         </section>
 
@@ -1022,6 +872,41 @@ import "./publicarplanes.css";
 
 <script>
 // @ts-nocheck
+import { API_URL } from "../../lib/api";
+
+// Envía cambios de un plan al backend. Devuelve true si se guardó.
+//   Nuevo:  POST  /api/admin/planes
+//   Editar: PATCH /api/admin/planes/:id
+async function guardarEnBackend(id, datos) {
+    try {
+        const res = await fetch(
+            id ? `${API_URL}/api/admin/planes/${id}` : `${API_URL}/api/admin/planes`,
+            {
+                method: id ? "PATCH" : "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify(datos),
+            }
+        );
+        if (res.status === 401) {
+            window.location.href = "/Inicio/login";
+            return false;
+        }
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            alert(Array.isArray(data.error) ? data.error.join(", ") : (data.error || "No se pudo guardar el plan."));
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error(error);
+        alert("No se pudo conectar con el servidor.");
+        return false;
+    }
+}
+
+// Id del plan que se está editando (null = plan nuevo)
+let planEditandoId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -1040,6 +925,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const buscarPlan = document.getElementById("buscarPlan");
     const filtroEstado = document.getElementById("filtroEstado");
+    const checksCaracteristicas =
+        document.querySelectorAll(".caracteristicas-check input[type=checkbox]");
+    const textoCheck = (check) => check.parentElement?.textContent?.trim() || "";
 
 
 
@@ -1050,6 +938,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnNuevoPlan?.addEventListener("click", () => {
 
         if (!modalPlan) return;
+        planEditandoId = null;
 
         modalPlan.classList.add("mostrar");
 
@@ -1138,17 +1027,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const plan = boton.dataset.plan;
 
-            if (plan === "basico") {
-                tituloEmpresas.textContent = "Empresas — Plan Básico";
-            }
-
-            if (plan === "profesional") {
-                tituloEmpresas.textContent = "Empresas — Plan Profesional";
-            }
-
-            if (plan === "empresarial") {
-                tituloEmpresas.textContent = "Empresas — Plan Empresarial";
-            }
+            tituloEmpresas.textContent = `Empresas — ${plan}`;
 
             modalEmpresas?.classList.add("mostrar");
 
@@ -1166,11 +1045,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.querySelectorAll("[data-toggle-plan]").forEach((boton) => {
 
-        boton.addEventListener("click", () => {
+        boton.addEventListener("click", async () => {
 
             const card = boton.closest(".plan-card");
 
             if (!card) return;
+
+            // PATCH /api/admin/planes/:id  { publicado }
+            const guardado = await guardarEnBackend(card.dataset.id, {
+                publicado: card.dataset.estado !== "activo",
+            });
+            if (!guardado) return;
 
             const estado = card.querySelector(".estado-plan");
             const textoBoton = boton.querySelector("i");
@@ -1319,7 +1204,7 @@ document.addEventListener("DOMContentLoaded", () => {
        GUARDAR / PUBLICAR PLAN
     ====================================================== */
 
-    btnGuardarPlan?.addEventListener("click", () => {
+    btnGuardarPlan?.addEventListener("click", async () => {
 
         if (!nombrePlan?.value.trim()) {
 
@@ -1336,11 +1221,82 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
+        const precio = Number(precioPlan.value);
+
+
+        const citas = Number(usuariosPlan.value);
+
+
+        if (!precio || precio <= 0) {
+
+
+            alert("Escribe un precio válido.");
+
+
+            return;
+
+
+        }
+
+
+        
+
+
+        const datos = {
+
+
+            nombre: nombrePlan.value.trim(),
+
+
+            descripcion: descripcionPlan.value.trim(),
+
+
+            tipo: "Empresarial",
+
+
+            precio,
+
+
+            cantidadSesiones: citas > 0 ? citas : null,
+
+
+            beneficios: [...checksCaracteristicas]
+
+
+                .filter((c) => c.checked)
+
+
+                .map(textoCheck)
+
+
+                .join("\n"),
+
+
+            ...(planEditandoId ? {} : { publicado: true }),
+
+
+        };
+
+
+        
+
+
+        const guardado = await guardarEnBackend(planEditandoId, datos);
+
+
+        if (!guardado) return;
+
+
+        
+
+
         modalPlan?.classList.remove("mostrar");
 
         document.body.classList.remove("modal-abierto");
 
-        alert("El plan fue publicado correctamente.");
+        alert(planEditandoId ? "El plan fue actualizado correctamente." : "El plan fue publicado correctamente.");
+
+        window.location.reload();
 
     });
 
@@ -1351,53 +1307,26 @@ document.addEventListener("DOMContentLoaded", () => {
     ====================================================== */
 
     document.querySelectorAll("[data-editar]").forEach((boton) => {
-
         boton.addEventListener("click", () => {
+            const card = boton.closest(".plan-card");
+            if (!card) return;
 
-            const plan =
-                boton.dataset.editar || "";
+            planEditandoId = card.dataset.id;
 
             modalPlan?.classList.add("mostrar");
-
             document.body.classList.add("modal-abierto");
 
+            nombrePlan.value = card.dataset.nombre || "";
+            descripcionPlan.value = card.dataset.descripcion || "";
+            precioPlan.value = card.dataset.precio || "";
+            usuariosPlan.value = card.dataset.citas || "";
 
-            if (plan === "basico") {
-
-                nombrePlan.value = "Plan Básico";
-                descripcionPlan.value =
-                    "Herramientas esenciales para empresas.";
-                precioPlan.value = "99000";
-                usuariosPlan.value = "5";
-
-            }
-
-
-            if (plan === "profesional") {
-
-                nombrePlan.value = "Plan Profesional";
-                descripcionPlan.value =
-                    "Más usuarios y herramientas para empresas.";
-                precioPlan.value = "189000";
-                usuariosPlan.value = "15";
-
-            }
-
-
-            if (plan === "empresarial") {
-
-                nombrePlan.value = "Plan Empresarial";
-                descripcionPlan.value =
-                    "Solución completa para organizaciones.";
-                precioPlan.value = "329000";
-                usuariosPlan.value = "40";
-
-            }
-
+            const beneficios = (card.dataset.beneficios || "").split("\n");
+            checksCaracteristicas.forEach((check) => {
+                check.checked = beneficios.includes(textoCheck(check));
+            });
         });
-
     });
-
 
 
     /* =====================================================

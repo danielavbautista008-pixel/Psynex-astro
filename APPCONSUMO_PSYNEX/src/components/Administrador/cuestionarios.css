@@ -2387,3 +2387,219 @@ body.modal-abierto {
     }
 
 }
+
+
+/* =====================================================
+   FOTO DEL CUESTIONARIO
+===================================================== */
+
+.card-foto {
+    overflow: hidden;
+
+    padding: 0;
+}
+
+.card-foto img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+.btn-card.foto {
+    color: var(--cuestionarios-primary);
+}
+
+.modal-foto {
+    width: min(400px, 100%);
+}
+
+.foto-vista {
+    height: 170px;
+
+    display: grid;
+    place-items: center;
+
+    overflow: hidden;
+
+    margin-bottom: 12px;
+
+    border: 1px dashed var(--cuestionarios-border);
+    border-radius: 12px;
+
+    background: var(--cuestionarios-surface);
+}
+
+.foto-vista img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+.foto-vista img[hidden],
+.foto-vacia[hidden],
+.foto-eliminar[hidden],
+.editar-error[hidden] {
+    display: none;
+}
+
+.foto-vacia {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    color: var(--cuestionarios-text);
+    opacity: .55;
+
+    font-size: 12px;
+}
+
+.foto-acciones {
+    display: flex;
+    gap: 8px;
+}
+
+.foto-acciones .btn-secundario {
+    flex: 1;
+    justify-content: center;
+}
+
+.foto-eliminar {
+    color: var(--danger-fg);
+}
+
+.foto-ayuda {
+    display: block;
+
+    margin-top: 8px;
+
+    font-size: 11px;
+    opacity: .7;
+}
+
+.editar-error {
+    margin: 12px 0 0;
+    padding: 9px 11px;
+
+    border-radius: 9px;
+
+    background: var(--danger-bg);
+    color: var(--danger-fg);
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+
+/* =====================================================
+   PREGUNTAS EN EL MODAL EDITAR
+===================================================== */
+
+.editar-preguntas-ayuda {
+    display: block;
+
+    margin: -2px 0 8px;
+
+    font-size: 11px;
+    opacity: .7;
+}
+
+.editar-preguntas {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    max-height: 320px;
+
+    overflow-y: auto;
+
+    padding-right: 2px;
+}
+
+.editar-pregunta {
+    border: 1px solid var(--cuestionarios-border);
+    border-radius: 9px;
+
+    background: var(--cuestionarios-surface);
+}
+
+.editar-pregunta summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 8px 10px;
+
+    font-size: 12px;
+
+    cursor: pointer;
+
+    list-style: none;
+}
+
+.editar-pregunta summary::-webkit-details-marker {
+    display: none;
+}
+
+.editar-pregunta[open] summary {
+    border-bottom: 1px solid var(--cuestionarios-border);
+}
+
+.editar-pregunta-numero {
+    width: 20px;
+    height: 20px;
+
+    display: grid;
+    place-items: center;
+
+    flex: 0 0 auto;
+
+    border-radius: 50%;
+
+    background: color-mix(in srgb, var(--cuestionarios-primary) 12%, transparent);
+    color: var(--cuestionarios-primary);
+
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.editar-pregunta-titulo {
+    overflow: hidden;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.form-group .editar-pregunta-texto {
+    display: block;
+
+    width: calc(100% - 20px);
+    min-height: 0;
+
+    margin: 10px 10px 8px;
+    padding: 8px 10px;
+
+    font-size: 12px;
+}
+
+.editar-opciones {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    padding: 0 10px 10px;
+}
+
+.editar-opcion {
+    display: grid;
+    grid-template-columns: 1fr 64px;
+    gap: 6px;
+}
+
+.form-group .editar-opcion input {
+    padding: 7px 9px;
+
+    font-size: 11px;
+}
+

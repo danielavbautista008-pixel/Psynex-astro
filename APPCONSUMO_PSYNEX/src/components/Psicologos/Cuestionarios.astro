@@ -1,0 +1,395 @@
+---
+import "./Cuestionarios.css";
+import NavbarPsicologo from "../Menu/NavbarPsicologo.astro";
+import { apiGet, edad } from "../../lib/api";
+
+// Datos reales:
+//  - GET /api/psicologo/cuestionarios -> catálogo (cuestionarios activos + categorías)
+//  - GET /api/psicologo/pacientes     -> sus pacientes, para asignarles cuestionarios
+const cookie = Astro.request.headers.get("cookie");
+const [catalogo, datosPacientes] = await Promise.all([
+  apiGet(cookie, "/api/psicologo/cuestionarios"),
+  apiGet(cookie, "/api/psicologo/pacientes"),
+]);
+
+const cuestionarios = ((catalogo?.cuestionarios ?? []) as any[]).map((c) => {
+  const preguntas = Number(c.NumeroPreguntas ?? 0);
+  return {
+    id: String(c.CuestionarioId),
+    nombre: String(c.NombreCuestionario),
+    categoria: String(c.CategoriaNombre ?? "Otros"),
+    descripcion: String(c.Descripcion ?? ""),
+    duracion: preguntas ? `${Math.max(1, Math.ceil((preguntas * 20) / 60))} min` : "—",
+    poblacion: preguntas ? `${preguntas} preguntas` : "Sin preguntas",
+  };
+});
+
+// Solo las categorías que tienen cuestionarios activos
+const categorias = [...new Set(cuestionarios.map((c) => c.categoria))].map((nombre) => ({
+  nombre,
+  cantidad: cuestionarios.filter((c) => c.categoria === nombre).length,
+}));
+
+const descripcion = (categoria: string) => `Instrumentos de la categoría ${categoria.toLowerCase()}.`;
+const categoriaInicial = categorias[0]?.nombre ?? "";
+
+const pacientes = ((datosPacientes?.pacientes ?? []) as any[]).map((p) => ({
+  id: String(p.pacienteId),
+  nombre: String(p.nombre),
+  edad: edad(p.fechaNacimiento),
+  motivo: String(p.estado ?? ""),
+}));
+---
+
+<NavbarPsicologo />
+
+
+
+<main class="questionnaires-page">
+  <header class="questionnaires-header">
+    <span class="eyebrow">BIBLIOTECA PROFESIONAL</span>
+    <h1>Cuestionarios</h1>
+    <p>Consulta instrumentos y asígnalos a tus pacientes.</p>
+  </header>
+
+  <div class="questionnaires-layout" id="questionnaires-layout">
+    <aside class="questionnaires-sidebar">
+      <section class="panel categories-panel">
+        <h2>Categorías</h2>
+
+        <div class="category-list">
+          {categorias.map((categoria, index) => (
+            <button
+              type="button"
+              class:list={["category-button", index === 0 && "is-active"]}
+              data-category={categoria.nombre}
+              data-description={descripcion(categoria.nombre)}
+              aria-pressed={index === 0 ? "true" : "false"}
+            >
+              <span>{categoria.nombre}</span>
+              <span class="category-count">{categoria.cantidad}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section class="panel patients-panel">
+        <div class="panel-title">
+          <h2>Pacientes</h2>
+          <span class="patient-total">{pacientes.length}</span>
+        </div>
+
+        <label class="search-field">
+          <span class="visually-hidden">Buscar paciente</span>
+          <input id="patient-search" type="search" placeholder="Buscar paciente..." />
+        </label>
+
+        <div class="patient-list">
+          {pacientes.map((paciente, index) => (
+            <button
+              type="button"
+              class:list={["patient-button", index === 0 && "is-selected"]}
+              data-patient={paciente.id}
+              data-name={paciente.nombre}
+              aria-pressed={index === 0 ? "true" : "false"}
+            >
+              <span class="patient-initials">
+                {paciente.nombre.split(" ").map((part) => part[0]).slice(0, 2).join("")}
+              </span>
+              <span class="patient-information">
+                <strong>{paciente.nombre}</strong>
+                <small>{paciente.edad !== null ? `${paciente.edad} años · ` : ""}{paciente.motivo}</small>
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+    </aside>
+
+    <section class="panel library-panel">
+      <div class="library-heading">
+        <div>
+          <h2 id="category-heading">{categoriaInicial || "Sin cuestionarios"}</h2>
+          <p id="category-description">{categoriaInicial ? descripcion(categoriaInicial) : "Todavía no hay cuestionarios activos."}</p>
+        </div>
+        <span class="library-total" id="library-total"></span>
+      </div>
+
+      <label class="search-field questionnaire-search">
+        <span class="visually-hidden">Buscar cuestionario</span>
+        <input id="questionnaire-search" type="search" placeholder="Buscar por nombre..." />
+      </label>
+
+      <div class="questionnaire-list" id="questionnaire-list">
+        {cuestionarios.map((item) => (
+          <article
+            class="questionnaire-item"
+            data-category={item.categoria}
+            data-name={item.nombre.toLocaleLowerCase("es")}
+          >
+            <div class="questionnaire-copy">
+              <h3>{item.nombre}</h3>
+              <p>{item.descripcion}</p>
+              <div class="questionnaire-meta">
+                <span>{item.duracion}</span>
+                <span>{item.poblacion}</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="assign-button"
+              data-questionnaire={item.nombre}
+              data-questionnaire-id={item.id}
+              data-description={item.descripcion}
+              data-duration={item.duracion}
+              data-population={item.poblacion}
+            >
+              Asignar
+            </button>
+          </article>
+        ))}
+      </div>
+
+      <p class="empty-results" id="empty-results" hidden>
+        No hay cuestionarios que coincidan con la búsqueda.
+      </p>
+    </section>
+
+    <aside class="panel assignment-panel" id="assignment-panel" hidden>
+      <div class="assignment-heading">
+        <div>
+          <span class="eyebrow">DETALLE DEL CUESTIONARIO</span>
+          <h2 id="assignment-title"></h2>
+        </div>
+        <button type="button" class="close-assignment" id="close-assignment" aria-label="Cerrar formulario">×</button>
+      </div>
+
+      <p class="assignment-description" id="assignment-description"></p>
+
+      <div class="questionnaire-meta assignment-meta">
+        <span id="assignment-duration"></span>
+        <span id="assignment-population"></span>
+      </div>
+
+      <div class="assignment-divider"></div>
+
+      <form id="assignment-form">
+        <h3>Asignar a paciente</h3>
+
+        <label class="form-field">
+          <span>Paciente</span>
+          <select id="assignment-patient" required>
+            <option value="">Selecciona un paciente</option>
+            {pacientes.map((paciente) => (
+              <option value={paciente.id}>
+                {paciente.nombre}{paciente.edad !== null ? ` (${paciente.edad} años)` : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label class="form-field">
+          <span>Fecha límite <small>(opcional)</small></span>
+          <input type="date" id="assignment-deadline" />
+        </label>
+
+        <label class="form-field">
+          <span>Nota para el paciente <small>(opcional)</small></span>
+          <textarea id="assignment-notes" rows="4" placeholder="Escribe una indicación breve..."></textarea>
+        </label>
+
+        <p class="assignment-feedback" id="assignment-feedback" role="status" hidden></p>
+
+        <div class="assignment-actions">
+          <button type="button" class="cancel-button" id="cancel-assignment">Cancelar</button>
+          <button type="submit" class="confirm-button">Confirmar asignación</button>
+        </div>
+
+        <p class="assignment-disclaimer">
+          Comprueba las condiciones de uso y aplicación de cada instrumento.
+        </p>
+      </form>
+    </aside>
+  </div>
+</main>
+
+<script>
+  import { apiEnviar, textoError } from "../../lib/api";
+
+  const layout = document.querySelector<HTMLElement>("#questionnaires-layout")!;
+  const categoryButtons = document.querySelectorAll<HTMLButtonElement>(".category-button");
+  const patientButtons = document.querySelectorAll<HTMLButtonElement>(".patient-button");
+  const items = document.querySelectorAll<HTMLElement>(".questionnaire-item");
+  const assignButtons = document.querySelectorAll<HTMLButtonElement>(".assign-button");
+
+  const categoryHeading = document.querySelector<HTMLElement>("#category-heading")!;
+  const categoryDescription = document.querySelector<HTMLElement>("#category-description")!;
+  const libraryTotal = document.querySelector<HTMLElement>("#library-total")!;
+  const questionnaireSearch = document.querySelector<HTMLInputElement>("#questionnaire-search")!;
+  const patientSearch = document.querySelector<HTMLInputElement>("#patient-search")!;
+  const emptyResults = document.querySelector<HTMLElement>("#empty-results")!;
+
+  const panel = document.querySelector<HTMLElement>("#assignment-panel")!;
+  const title = document.querySelector<HTMLElement>("#assignment-title")!;
+  const description = document.querySelector<HTMLElement>("#assignment-description")!;
+  const duration = document.querySelector<HTMLElement>("#assignment-duration")!;
+  const population = document.querySelector<HTMLElement>("#assignment-population")!;
+  const patientSelect = document.querySelector<HTMLSelectElement>("#assignment-patient")!;
+  const deadline = document.querySelector<HTMLInputElement>("#assignment-deadline")!;
+  const notes = document.querySelector<HTMLTextAreaElement>("#assignment-notes")!;
+  const form = document.querySelector<HTMLFormElement>("#assignment-form")!;
+  const feedback = document.querySelector<HTMLElement>("#assignment-feedback")!;
+
+  let activeCategory =
+    document.querySelector<HTMLButtonElement>(".category-button.is-active")?.dataset.category ?? "";
+  let selectedPatient =
+    document.querySelector<HTMLButtonElement>(".patient-button.is-selected")?.dataset.patient ?? "";
+  let selectedQuestionnaire = "";
+  let selectedQuestionnaireId = "";
+
+  function updateQuestionnaires() {
+    let count = 0;
+    const search = questionnaireSearch.value.trim().toLocaleLowerCase("es");
+
+    items.forEach((item) => {
+      const visible =
+        item.dataset.category === activeCategory &&
+        (item.dataset.name ?? "").includes(search);
+
+      item.hidden = !visible;
+      if (visible) count++;
+    });
+
+    if (activeCategory) {
+      categoryHeading.textContent = activeCategory;
+      categoryDescription.textContent =
+        document.querySelector<HTMLButtonElement>(`.category-button[data-category="${CSS.escape(activeCategory)}"]`)
+          ?.dataset.description ?? "";
+    }
+    libraryTotal.textContent = `${count} ${count === 1 ? "cuestionario" : "cuestionarios"}`;
+    emptyResults.hidden = count > 0;
+  }
+
+  categoryButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      activeCategory = button.dataset.category ?? "";
+
+      categoryButtons.forEach((other) => {
+        const active = other === button;
+        other.classList.toggle("is-active", active);
+        other.setAttribute("aria-pressed", String(active));
+      });
+
+      updateQuestionnaires();
+    });
+  });
+
+  patientButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedPatient = button.dataset.patient ?? "";
+
+      patientButtons.forEach((other) => {
+        const active = other === button;
+        other.classList.toggle("is-selected", active);
+        other.setAttribute("aria-pressed", String(active));
+      });
+
+      patientSelect.value = selectedPatient;
+    });
+  });
+
+  patientSearch.addEventListener("input", () => {
+    const search = patientSearch.value.trim().toLocaleLowerCase("es");
+
+    patientButtons.forEach((button) => {
+      button.hidden = !(button.dataset.name ?? "").toLocaleLowerCase("es").includes(search);
+    });
+  });
+
+  questionnaireSearch.addEventListener("input", updateQuestionnaires);
+
+  function closeAssignment() {
+    layout.classList.remove("has-assignment");
+    panel.classList.remove("is-visible");
+    panel.setAttribute("aria-hidden", "true");
+
+    window.setTimeout(() => {
+      if (!layout.classList.contains("has-assignment")) panel.hidden = true;
+    }, 220);
+
+    feedback.hidden = true;
+    feedback.textContent = "";
+  }
+
+  document.querySelector("#close-assignment")?.addEventListener("click", closeAssignment);
+  document.querySelector("#cancel-assignment")?.addEventListener("click", closeAssignment);
+
+  assignButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedQuestionnaire = button.dataset.questionnaire ?? "";
+      selectedQuestionnaireId = button.dataset.questionnaireId ?? "";
+
+      title.textContent = selectedQuestionnaire;
+      description.textContent = button.dataset.description ?? "";
+      duration.textContent = button.dataset.duration ?? "";
+      population.textContent = button.dataset.population ?? "";
+
+      patientSelect.value = selectedPatient;
+      deadline.value = "";
+      notes.value = "";
+      feedback.hidden = true;
+      feedback.textContent = "";
+
+      panel.hidden = false;
+      panel.setAttribute("aria-hidden", "false");
+      layout.classList.add("has-assignment");
+
+      requestAnimationFrame(() => {
+        panel.classList.add("is-visible");
+      });
+    });
+  });
+
+  // POST /api/psicologo/cuestionarios/asignaciones
+  // (el paciente recibe una notificación con el cuestionario asignado)
+  const confirmButton = form.querySelector<HTMLButtonElement>(".confirm-button");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    if (!patientSelect.value) {
+      feedback.textContent = "Selecciona un paciente.";
+      feedback.hidden = false;
+      return;
+    }
+
+    const nombrePaciente = patientSelect.selectedOptions[0]?.textContent?.trim() ?? "el paciente";
+
+    if (confirmButton) confirmButton.disabled = true;
+    const r = await apiEnviar("POST", "/api/psicologo/cuestionarios/asignaciones", {
+      cuestionarioId: selectedQuestionnaireId,
+      pacienteId: patientSelect.value,
+      fechaLimite: deadline.value || null,
+      nota: notes.value.trim() || undefined,
+    });
+    if (confirmButton) confirmButton.disabled = false;
+
+    if (r.status === 401) {
+      window.location.href = "/Inicio/login";
+      return;
+    }
+
+    feedback.textContent = r.ok
+      ? `Cuestionario asignado a ${nombrePaciente}. Le llegará una notificación.`
+      : textoError(r.data, "No se pudo asignar el cuestionario.");
+    feedback.hidden = false;
+
+    if (r.ok) {
+      deadline.value = "";
+      notes.value = "";
+    }
+  });
+
+  updateQuestionnaires();
+</script>

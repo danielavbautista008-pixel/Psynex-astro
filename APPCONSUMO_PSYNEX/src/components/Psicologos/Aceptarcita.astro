@@ -1,0 +1,675 @@
+---
+import "./Aceptarcita.css";
+---
+
+<div
+  id="aceptarCitaModal"
+  class="modal-overlay"
+  aria-hidden="true"
+>
+  <div
+    class="modal-cita"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tituloAceptarCita"
+  >
+
+    <!-- CERRAR -->
+    <button
+      id="cerrarAceptarCita"
+      class="modal-close"
+      type="button"
+      aria-label="Cerrar"
+    >
+      ×
+    </button>
+
+
+    <!-- ENCABEZADO -->
+    <header class="modal-header">
+
+      <div class="modal-kicker">
+        <span>CONFIRMAR</span>
+        <span>CITA</span>
+      </div>
+
+      <div class="modal-title">
+
+        <h2 id="tituloAceptarCita">
+          Aceptar cita
+        </h2>
+
+        <p>
+          Completa la información que recibirá el paciente
+          antes de la sesión.
+        </p>
+
+      </div>
+
+    </header>
+
+
+    <!-- PACIENTE -->
+    <section class="patient-summary">
+
+      <img
+        id="modalPacienteImagen"
+        src="/Imagenes/paciente3.jpg"
+        alt="Paciente"
+        class="patient-modal-photo"
+      />
+
+      <div class="patient-modal-info">
+
+        <strong id="modalPacienteNombre">
+          María López
+        </strong>
+
+        <span id="modalPacienteDetalle">
+          28 años · Sesión de seguimiento
+        </span>
+
+      </div>
+
+    </section>
+
+
+    <!-- INFORMACIÓN DE LA CITA -->
+    <section class="appointment-info">
+
+      <div>
+        <span>Fecha</span>
+        <strong id="modalFecha">
+          Jueves, 15 de octubre
+        </strong>
+      </div>
+
+      <div>
+        <span>Hora</span>
+        <strong id="modalHora">
+          10:00 a. m.
+        </strong>
+      </div>
+
+      <div>
+        <span>Duración</span>
+        <strong id="modalDuracion">
+          45 minutos
+        </strong>
+      </div>
+
+      <div>
+        <span>Modalidad</span>
+        <strong id="modalModalidad">
+          Consulta virtual
+        </strong>
+      </div>
+
+    </section>
+
+
+    <!-- INFORMACIÓN QUE RECIBIRÁ EL PACIENTE -->
+    <section class="location-section">
+
+      <div class="section-label">
+
+        <div>
+          <span class="form-kicker">
+            INFORMACIÓN PARA EL PACIENTE
+          </span>
+
+          <h3>
+            ¿Cómo accederá a la sesión?
+          </h3>
+        </div>
+
+      </div>
+
+
+      <!-- SELECTOR -->
+      <div class="location-options">
+
+        <button
+          type="button"
+          class="location-option is-active"
+          data-location-type="link"
+          id="opcionEnlace"
+        >
+          <span class="option-mark">
+            ↗
+          </span>
+
+          <span>
+            <strong>Enlace de reunión</strong>
+            <small>
+              Comparte un enlace para la sesión.
+            </small>
+          </span>
+
+        </button>
+
+
+        <button
+          type="button"
+          class="location-option"
+          data-location-type="address"
+          id="opcionDireccion"
+        >
+          <span class="option-mark">
+            +
+          </span>
+
+          <span>
+            <strong>Dirección</strong>
+            <small>
+              Indica dónde se realizará la consulta.
+            </small>
+          </span>
+
+        </button>
+
+      </div>
+
+
+      <!-- CAMPO ENLACE -->
+      <div
+        id="campoEnlace"
+        class="location-field"
+      >
+
+        <label for="ubicacionCita">
+          Enlace de reunión
+        </label>
+
+        <input
+          id="ubicacionCita"
+          type="url"
+          placeholder="https://meet.google.com/..."
+        />
+
+        <small>
+          Puedes utilizar Google Meet u otra plataforma
+          de videollamada.
+        </small>
+
+      </div>
+
+
+      <!-- CAMPO DIRECCIÓN -->
+      <div
+        id="campoDireccion"
+        class="location-field"
+        hidden
+      >
+
+        <label for="direccionCita">
+          Dirección de la consulta
+        </label>
+
+        <input
+          id="direccionCita"
+          type="text"
+          placeholder="Calle, carrera, número..."
+        />
+
+        <small>
+          Escribe la dirección donde atenderás al paciente.
+        </small>
+
+
+        <label
+          for="mapaCita"
+          class="mapa-label"
+        >
+          Enlace de Google Maps
+          <span>Opcional</span>
+        </label>
+
+        <input
+          id="mapaCita"
+          type="url"
+          placeholder="https://maps.google.com/..."
+        />
+
+        <small>
+          Puedes agregar un enlace para facilitar la ubicación.
+        </small>
+
+      </div>
+
+    </section>
+
+
+    <!-- OBSERVACIONES -->
+    <section class="modal-form">
+
+      <label for="observacionesCita">
+        Observaciones
+      </label>
+
+      <textarea
+        id="observacionesCita"
+        rows="4"
+        placeholder="Escribe alguna indicación o información que quieras compartir con el paciente..."
+      ></textarea>
+
+      <small>
+        Estas observaciones podrán ser consultadas por el paciente.
+      </small>
+
+    </section>
+
+
+    <!-- PAGO -->
+    <section class="payment-info">
+
+      <div>
+
+        <span>
+          Estado del pago
+        </span>
+
+        <small>
+          El estado del pago se actualizará automáticamente
+          cuando PSYNEX registre el pago.
+        </small>
+
+      </div>
+
+      <strong>
+        Pendiente
+      </strong>
+
+    </section>
+
+
+    <!-- ACCIONES -->
+    <footer class="modal-actions">
+
+      <button
+        id="cancelarAceptarCita"
+        type="button"
+        class="secondary-button"
+      >
+        Cancelar
+      </button>
+
+      <button
+        id="confirmarAceptarCita"
+        type="button"
+        class="primary-button"
+      >
+        Confirmar cita
+      </button>
+
+    </footer>
+
+  </div>
+</div>
+
+
+<script>
+  import { API_URL } from "../../lib/api";
+
+  // Id de la cita que se está aceptando (lo envía Citas.astro)
+  let citaIdActual = "";
+
+  const modal =
+    document.querySelector<HTMLElement>(
+      "#aceptarCitaModal"
+    );
+
+  const cerrar =
+    document.querySelector<HTMLButtonElement>(
+      "#cerrarAceptarCita"
+    );
+
+  const cancelar =
+    document.querySelector<HTMLButtonElement>(
+      "#cancelarAceptarCita"
+    );
+
+  const confirmar =
+    document.querySelector<HTMLButtonElement>(
+      "#confirmarAceptarCita"
+    );
+
+  const opcionEnlace =
+    document.querySelector<HTMLButtonElement>(
+      "#opcionEnlace"
+    );
+
+  const opcionDireccion =
+    document.querySelector<HTMLButtonElement>(
+      "#opcionDireccion"
+    );
+
+  const campoEnlace =
+    document.querySelector<HTMLElement>(
+      "#campoEnlace"
+    );
+
+  const campoDireccion =
+    document.querySelector<HTMLElement>(
+      "#campoDireccion"
+    );
+
+  const ubicacionInput =
+    document.querySelector<HTMLInputElement>(
+      "#ubicacionCita"
+    );
+
+  const direccionInput =
+    document.querySelector<HTMLInputElement>(
+      "#direccionCita"
+    );
+
+  const mapaInput =
+    document.querySelector<HTMLInputElement>(
+      "#mapaCita"
+    );
+
+  const observacionesInput =
+    document.querySelector<HTMLTextAreaElement>(
+      "#observacionesCita"
+    );
+
+
+  let tipoUbicacion = "link";
+
+
+  function seleccionarTipo(
+    tipo: "link" | "address"
+  ) {
+
+    tipoUbicacion = tipo;
+
+    const esEnlace =
+      tipo === "link";
+
+
+    opcionEnlace?.classList.toggle(
+      "is-active",
+      esEnlace
+    );
+
+    opcionDireccion?.classList.toggle(
+      "is-active",
+      !esEnlace
+    );
+
+
+    if (campoEnlace) {
+      campoEnlace.hidden = !esEnlace;
+    }
+
+    if (campoDireccion) {
+      campoDireccion.hidden = esEnlace;
+    }
+
+  }
+
+
+  function cerrarModal() {
+
+    if (!modal) {
+      return;
+    }
+
+    modal.classList.remove("is-open");
+
+    modal.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    document.body.classList.remove(
+      "modal-open"
+    );
+
+  }
+
+
+  // Pone un texto en un elemento del modal (si existe)
+  function ponerTexto(id: string, valor?: string) {
+    const el = document.querySelector<HTMLElement>(id);
+    if (el && valor) el.textContent = valor;
+  }
+
+
+  function abrirModal(
+    datos: Record<string, string | undefined>
+  ) {
+
+    if (!modal) {
+      return;
+    }
+
+    citaIdActual = datos.citaId ?? "";
+
+    const modalidad =
+      datos.modalidad ||
+      "Consulta virtual";
+
+    // Datos reales de la cita elegida
+    ponerTexto("#modalPacienteNombre", datos.nombre);
+    ponerTexto("#modalPacienteDetalle", datos.detalle);
+    ponerTexto("#modalFecha", datos.fecha);
+    ponerTexto("#modalHora", datos.hora);
+    ponerTexto("#modalDuracion", datos.duracion ? `${datos.duracion} minutos` : undefined);
+
+    const imagen = document.querySelector<HTMLImageElement>("#modalPacienteImagen");
+    if (imagen && datos.foto) imagen.src = datos.foto;
+
+    // Limpiar lo que se escribió la vez anterior
+    if (ubicacionInput) ubicacionInput.value = "";
+    if (direccionInput) direccionInput.value = "";
+    if (mapaInput) mapaInput.value = "";
+    if (observacionesInput) observacionesInput.value = "";
+
+
+    const modalidadElemento =
+      document.querySelector<HTMLElement>(
+        "#modalModalidad"
+      );
+
+
+    if (modalidadElemento) {
+      modalidadElemento.textContent =
+        modalidad;
+    }
+
+
+    /*
+      Si la cita es presencial,
+      comenzamos mostrando dirección.
+
+      Si es virtual,
+      comenzamos mostrando enlace.
+    */
+
+    if (
+      modalidad
+        .toLowerCase()
+        .includes("presencial")
+    ) {
+
+      seleccionarTipo("address");
+
+    } else {
+
+      seleccionarTipo("link");
+
+    }
+
+
+    modal.classList.add(
+      "is-open"
+    );
+
+    modal.setAttribute(
+      "aria-hidden",
+      "false"
+    );
+
+    document.body.classList.add(
+      "modal-open"
+    );
+
+  }
+
+
+  opcionEnlace?.addEventListener(
+    "click",
+    () => {
+      seleccionarTipo("link");
+    }
+  );
+
+
+  opcionDireccion?.addEventListener(
+    "click",
+    () => {
+      seleccionarTipo("address");
+    }
+  );
+
+
+  window.addEventListener(
+    "abrirAceptarCita",
+    (event) => {
+
+      const customEvent =
+        event as CustomEvent;
+
+      abrirModal(customEvent.detail ?? {});
+
+    }
+  );
+
+
+  cerrar?.addEventListener(
+    "click",
+    cerrarModal
+  );
+
+
+  cancelar?.addEventListener(
+    "click",
+    cerrarModal
+  );
+
+
+  modal?.addEventListener(
+    "click",
+    (event) => {
+
+      if (
+        event.target === modal
+      ) {
+        cerrarModal();
+      }
+
+    }
+  );
+
+
+  confirmar?.addEventListener(
+    "click",
+    async () => {
+
+      const datos = {
+
+        tipoUbicacion,
+
+        enlace:
+          ubicacionInput?.value.trim() ||
+          "",
+
+        direccion:
+          direccionInput?.value.trim() ||
+          "",
+
+        mapa:
+          mapaInput?.value.trim() ||
+          "",
+
+        observaciones:
+          observacionesInput?.value.trim() ||
+          ""
+
+      };
+
+
+      // Si es virtual, el enlace es obligatorio y debe ser una URL válida.
+      // Usamos la validación nativa del navegador (no cambia el diseño).
+      if (tipoUbicacion === "link" && ubicacionInput) {
+        ubicacionInput.setCustomValidity(
+          datos.enlace ? "" : "Escribe el enlace de la reunión"
+        );
+        if (!ubicacionInput.reportValidity()) return;
+      }
+
+      if (!citaIdActual || !confirmar) return;
+      confirmar.disabled = true;
+
+      try {
+        // PATCH /api/psicologo/citas/:id/estado
+        // El backend cambia el estado y le envía el correo al paciente.
+        const res = await fetch(
+          `${API_URL}/api/psicologo/citas/${citaIdActual}/estado`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include", // envía la cookie de sesión
+            body: JSON.stringify({
+              estado: "Confirmada",
+              ...(tipoUbicacion === "link" && datos.enlace
+                ? { linkVideollamada: datos.enlace }
+                : {}),
+            }),
+          }
+        );
+
+        if (res.status === 401) {
+          window.location.href = "/Inicio/login"; // la sesión venció
+          return;
+        }
+        if (!res.ok) throw new Error(`Respuesta ${res.status}`);
+
+        cerrarModal();
+        window.location.reload(); // vuelve a pedir las citas al backend
+
+      } catch (error) {
+        console.error("No se pudo aceptar la cita:", error);
+      } finally {
+        confirmar.disabled = false;
+      }
+
+    }
+  );
+
+  // Al escribir en el enlace se quita el aviso de "obligatorio"
+  ubicacionInput?.addEventListener("input", () => {
+    ubicacionInput.setCustomValidity("");
+  });
+
+
+  document.addEventListener(
+    "keydown",
+    (event) => {
+
+      if (
+        event.key === "Escape" &&
+        modal?.classList.contains(
+          "is-open"
+        )
+      ) {
+
+        cerrarModal();
+
+      }
+
+    }
+  );
+</script>

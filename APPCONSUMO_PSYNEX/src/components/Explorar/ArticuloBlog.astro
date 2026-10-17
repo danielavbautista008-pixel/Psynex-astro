@@ -1,0 +1,92 @@
+---
+import "./ArticuloBlog.css";
+
+interface Props {
+  categoria: string;
+  titulo: string;
+  descripcion: string;
+  tiempo: string;
+  fecha: string;
+  imagen: string;
+  // HTML del artículo escrito por el administrador en el panel del blog
+  contenido: string;
+  autor?: string;
+  // "Volver al blog": en la vista previa del admin regresa a su panel
+  volverHref?: string;
+}
+
+const {
+  categoria,
+  titulo,
+  descripcion,
+  tiempo,
+  fecha,
+  imagen,
+  contenido,
+  autor,
+  volverHref = "/Explorar/Articulos",
+} = Astro.props;
+---
+
+<main class="articulo-page">
+  <div class="articulo-contenedor">
+
+    <a href={volverHref} class="volver-blog">
+      <span>←</span>
+      Volver al blog
+    </a>
+
+    <header class="articulo-header">
+      <span class="articulo-etiqueta">{categoria}</span>
+
+      <h1>{titulo}</h1>
+
+      <p class="articulo-descripcion">
+        {descripcion}
+      </p>
+
+      <div class="articulo-meta">
+        <span>
+          <i class="bi bi-clock"></i>
+          {tiempo}
+        </span>
+
+        <span>
+          <i class="bi bi-calendar3"></i>
+          {fecha}
+        </span>
+      </div>
+    </header>
+
+    <div class="articulo-hero">
+      <img src={imagen} alt={titulo} />
+    </div>
+
+    <article class="articulo-texto">
+      <Fragment set:html={contenido} />
+
+      {autor && (
+        <p><em>Escrito por {autor}</em></p>
+      )}
+    </article>
+
+    <section class="articulo-cta">
+      <div>
+        <span class="cta-mini">SIGUE EXPLORANDO</span>
+
+        <h2>¿Quieres conocerte un poco mejor?</h2>
+
+        <p>
+          Realiza uno de nuestros cuestionarios y descubre diferentes aspectos
+          de tu bienestar emocional.
+        </p>
+      </div>
+
+      <a href="/Explorar/cuestionarios">
+        Explorar cuestionarios
+        <span>→</span>
+      </a>
+    </section>
+
+  </div>
+</main>

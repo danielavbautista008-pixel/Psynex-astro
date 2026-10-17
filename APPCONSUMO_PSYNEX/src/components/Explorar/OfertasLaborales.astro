@@ -1,0 +1,1031 @@
+---
+import MenuExplorar from "../Menu/Navbar.astro";
+import "./OfertasLaborales.css";
+
+import ModalSesion from "./ModalSesion.astro";
+import { apiGet, haceCuanto, pesos, urlLogoEmpresa } from "../../lib/api";
+import { obtenerUsuario } from "../../lib/auth";
+
+// Ofertas activas de empresas verificadas: GET /api/explorar/ofertas
+// (los filtros y el orden se aplican en el navegador, abajo en el <script>).
+const cookie = Astro.request.headers.get("cookie");
+const [datos, usuario] = await Promise.all([
+  apiGet<{
+    ofertas: {
+      id: string; cargo: string; empresa: string; empresaId: string; ubicacion: string;
+      modalidad: string; sector: string; salario: number | null; fechaPublicacion: string;
+      tieneLogo: boolean; yaPostulado: boolean;
+    }[];
+  }>(cookie, "/api/explorar/ofertas"),
+  obtenerUsuario(cookie ?? undefined),
+]);
+
+// "Hibrido" (como está en la base de datos) -> "Híbrido" para mostrar
+const textoModalidad = (m: string) => (m === "Hibrido" ? "Híbrido" : m);
+
+const ofertas = (datos?.ofertas ?? []).map((o) => ({
+  id: o.id,
+  cargo: o.cargo,
+  empresa: o.empresa,
+  ubicacion: o.ubicacion || "Colombia",
+  modalidad: textoModalidad(o.modalidad),
+  sector: o.sector || "Sin sector",
+  salario: o.salario ? pesos(o.salario) : "A convenir",
+  salarioNumero: o.salario ?? 0,
+  fecha: haceCuanto(o.fechaPublicacion),
+  fechaNumero: new Date(o.fechaPublicacion).getTime() || 0,
+  imagen: o.tieneLogo ? urlLogoEmpresa(o.empresaId) : "/Imagenes/empresa.jpg",
+  yaPostulado: o.yaPostulado,
+}));
+
+// Opciones de los filtros armadas con los datos reales
+const especialidades = ["Todas", ...new Set(ofertas.map((o) => o.sector))];
+
+const modalidades = ["Todas", ...new Set(ofertas.map((o) => o.modalidad))];
+
+const contratos = ["Todos", "Última semana", "Último mes"];
+---
+
+<!-- =====================================================
+     MENÚ PRINCIPAL
+     Este es el ÚNICO lugar donde se llama al menú
+===================================================== -->
+
+<MenuExplorar
+  menuItems={[
+    { label: "Inicio", href: "/" },
+    { label: "Explorar", href: "/Explorar/explorar" },
+    { label: "Psicólogos", href: "/Explorar/Psicologos" },
+    { label: "Ofertas laborales", href: "/Explorar/OfertasLaborales" },
+    { label: "Tests", href: "/Explorar/cuestionarios" },
+    { label: "Blog", href: "/Explorar/Articulos" },
+  ]}
+/>
+
+
+<!-- =====================================================
+     PÁGINA DE OFERTAS
+===================================================== -->
+
+<section
+  class="ofertas-page"
+  id="ofertasPage"
+  data-usuario-id={usuario?.UsuarioId ?? ""}
+  data-rol={usuario?.Rol ?? ""}
+>
+
+  <!-- ENCABEZADO -->
+
+  <header class="ofertas-header">
+
+    <div class="header-text">
+
+      <span class="header-kicker">
+        <i class="bi bi-briefcase"></i>
+        Oportunidades profesionales
+      </span>
+
+      <h1>
+        Ofertas laborales
+      </h1>
+
+      <p>
+        Encuentra nuevas oportunidades profesionales
+        en psicología y bienestar.
+      </p>
+
+    </div>
+
+  </header>
+
+
+  <!-- =====================================================
+       BUSCADOR + BOTÓN FILTROS
+  ===================================================== -->
+
+  <div class="toolbar">
+
+    <div class="search-box">
+
+      <i class="bi bi-search"></i>
+
+      <input
+        id="buscarOferta"
+        type="search"
+        placeholder="Buscar cargo, empresa o especialidad..."
+        autocomplete="off"
+      />
+
+    </div>
+
+
+    <button
+      id="btnFiltros"
+      class="btn-filtros"
+      type="button"
+      aria-expanded="false"
+    >
+
+      <i class="bi bi-sliders2"></i>
+
+      <span>
+        Filtros
+      </span>
+
+      <i
+        id="flechaFiltros"
+        class="bi bi-chevron-down"
+      ></i>
+
+    </button>
+
+  </div>
+
+
+  <!-- =====================================================
+       CONTENIDO
+  ===================================================== -->
+
+  <div
+    id="contenidoOfertas"
+    class="contenido-ofertas"
+  >
+
+    <!-- =================================================
+         PANEL DE FILTROS
+    ================================================= -->
+
+    <aside
+      id="panelFiltros"
+      class="panel-filtros"
+    >
+
+      <div class="filtros-header">
+
+        <div>
+
+          <strong>
+            Filtrar resultados
+          </strong>
+
+          <small>
+            Encuentra la oferta ideal
+          </small>
+
+        </div>
+
+        <button
+          id="cerrarFiltros"
+          type="button"
+          aria-label="Cerrar filtros"
+        >
+
+          <i class="bi bi-x-lg"></i>
+
+        </button>
+
+      </div>
+
+
+      <!-- ESPECIALIDAD -->
+
+      <div class="filtro-grupo">
+
+        <label for="especialidad">
+          Sector
+        </label>
+
+        <select id="especialidad">
+
+          {
+            especialidades.map((item) => (
+              <option value={item}>
+                {item}
+              </option>
+            ))
+          }
+
+        </select>
+
+      </div>
+
+
+      <!-- MODALIDAD -->
+
+      <div class="filtro-grupo">
+
+        <label for="modalidad">
+          Modalidad
+        </label>
+
+        <select id="modalidad">
+
+          {
+            modalidades.map((item) => (
+              <option value={item}>
+                {item}
+              </option>
+            ))
+          }
+
+        </select>
+
+      </div>
+
+
+      <!-- CONTRATO -->
+
+      <div class="filtro-grupo">
+
+        <label for="contrato">
+          Publicada
+        </label>
+
+        <select id="contrato">
+
+          {
+            contratos.map((item) => (
+              <option value={item}>
+                {item}
+              </option>
+            ))
+          }
+
+        </select>
+
+      </div>
+
+
+      <button
+        id="limpiarFiltros"
+        class="btn-limpiar"
+        type="button"
+      >
+
+        <i class="bi bi-arrow-counterclockwise"></i>
+
+        Limpiar filtros
+
+      </button>
+
+    </aside>
+
+
+    <!-- =================================================
+         RESULTADOS
+    ================================================= -->
+
+    <main class="resultados">
+
+      <!-- BARRA SUPERIOR -->
+
+      <div class="resultados-top">
+
+        <span id="contadorResultados">
+          {ofertas.length} ofertas encontradas
+        </span>
+
+
+        <div class="ordenar">
+
+          <label for="ordenarOfertas">
+            Ordenar:
+          </label>
+
+          <select id="ordenarOfertas">
+
+            <option value="recientes">
+              Más recientes
+            </option>
+
+            <option value="salario">
+              Mejor salario
+            </option>
+
+            <option value="cargo">
+              Cargo A-Z
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
+           TARJETAS
+      ================================================= -->
+
+      <div
+        id="gridOfertas"
+        class="grid-ofertas"
+      >
+
+        {
+          ofertas.map((oferta) => (
+
+            <article
+              class="oferta-card"
+
+              data-id={oferta.id}
+
+              data-cargo={
+                oferta.cargo.toLowerCase()
+              }
+
+              data-empresa={
+                oferta.empresa.toLowerCase()
+              }
+
+              data-especialidad={
+                oferta.sector
+              }
+
+              data-modalidad={
+                oferta.modalidad
+              }
+
+              data-fecha={
+                oferta.fechaNumero
+              }
+
+              data-salario={
+                oferta.salarioNumero
+              }
+            >
+
+              <!-- IMAGEN DE LA EMPRESA -->
+
+              <div class="oferta-imagen">
+
+                <img
+                  src={oferta.imagen}
+                  alt={`Empresa ${oferta.empresa}`}
+                  loading="lazy"
+                />
+
+
+                <button
+                  class="guardar-oferta"
+                  type="button"
+                  data-oferta-id={oferta.id}
+                  aria-label={`Guardar ${oferta.cargo}`}
+                >
+
+                  <i class="bi bi-heart"></i>
+
+                </button>
+
+
+                <span class="fecha-oferta">
+                  {oferta.fecha}
+                </span>
+
+              </div>
+
+
+              <!-- INFORMACIÓN -->
+
+              <div class="oferta-contenido">
+
+                <h2>
+                  {oferta.cargo}
+                </h2>
+
+
+                <div class="empresa">
+
+                  <i class="bi bi-building"></i>
+
+                  <span>
+                    {oferta.empresa}
+                  </span>
+
+                </div>
+
+
+                <!-- DATOS -->
+
+                <div class="datos-oferta">
+
+                  <span>
+                    <i class="bi bi-geo-alt"></i>
+                    {oferta.ubicacion}
+                  </span>
+
+                  <span>
+                    <i class="bi bi-laptop"></i>
+                    {oferta.modalidad}
+                  </span>
+
+                  <span>
+                    <i class="bi bi-briefcase"></i>
+                    {oferta.sector}
+                  </span>
+
+                </div>
+
+
+                <!-- ETIQUETAS -->
+
+                <div class="etiquetas">
+
+                  <span>
+                    {oferta.sector}
+                  </span>
+
+                  {oferta.yaPostulado && (
+                    <span>
+                      Ya te postulaste
+                    </span>
+                  )}
+
+                </div>
+
+
+                <!-- PIE -->
+
+                <div class="oferta-footer">
+
+                  <div class="salario">
+
+                    <small>
+                      Salario
+                    </small>
+
+                    <strong>
+                      {oferta.salario}
+                    </strong>
+
+                  </div>
+
+
+                  <a
+                   href={`/Explorar/oferta/${oferta.id}`}
+                    class="btn-ver-oferta"
+                  >
+
+                    Ver oferta
+
+                    <i class="bi bi-arrow-right"></i>
+
+                  </a>
+
+                </div>
+
+              </div>
+
+            </article>
+
+          ))
+        }
+
+      </div>
+
+
+      <!-- =================================================
+           SIN RESULTADOS
+      ================================================= -->
+
+      <div
+        id="sinResultados"
+        class="sin-resultados"
+      >
+
+        <div class="sin-resultados-icon">
+
+          <i class="bi bi-search"></i>
+
+        </div>
+
+        <h3>
+          No encontramos ofertas
+        </h3>
+
+        <p>
+          Intenta cambiar los filtros o realizar
+          una búsqueda diferente.
+        </p>
+
+      </div>
+
+    </main>
+
+  </div>
+
+</section>
+
+<ModalSesion />
+
+
+<!-- =====================================================
+     JAVASCRIPT
+===================================================== -->
+
+<script>
+
+  const btnFiltros =
+    document.querySelector<HTMLButtonElement>(
+      "#btnFiltros"
+    );
+
+  const cerrarFiltros =
+    document.querySelector<HTMLButtonElement>(
+      "#cerrarFiltros"
+    );
+
+  const contenidoOfertas =
+    document.querySelector<HTMLElement>(
+      "#contenidoOfertas"
+    );
+
+  const flechaFiltros =
+    document.querySelector<HTMLElement>(
+      "#flechaFiltros"
+    );
+
+  const buscarOferta =
+    document.querySelector<HTMLInputElement>(
+      "#buscarOferta"
+    );
+
+  const especialidad =
+    document.querySelector<HTMLSelectElement>(
+      "#especialidad"
+    );
+
+  const modalidad =
+    document.querySelector<HTMLSelectElement>(
+      "#modalidad"
+    );
+
+  const contrato =
+    document.querySelector<HTMLSelectElement>(
+      "#contrato"
+    );
+
+  const limpiarFiltros =
+    document.querySelector<HTMLButtonElement>(
+      "#limpiarFiltros"
+    );
+
+  const ordenarOfertas =
+    document.querySelector<HTMLSelectElement>(
+      "#ordenarOfertas"
+    );
+
+  const contadorResultados =
+    document.querySelector<HTMLElement>(
+      "#contadorResultados"
+    );
+
+  const sinResultados =
+    document.querySelector<HTMLElement>(
+      "#sinResultados"
+    );
+
+  const gridOfertas =
+    document.querySelector<HTMLElement>(
+      "#gridOfertas"
+    );
+
+  const tarjetas =
+    Array.from(
+      document.querySelectorAll<HTMLElement>(
+        ".oferta-card"
+      )
+    );
+
+
+  /* =====================================================
+     FILTROS
+  ===================================================== */
+
+  function actualizarOfertas() {
+
+    const texto =
+      buscarOferta?.value
+        .trim()
+        .toLowerCase() || "";
+
+
+    const filtroEspecialidad =
+      especialidad?.value || "Todas";
+
+
+    const filtroModalidad =
+      modalidad?.value || "Todas";
+
+
+    const filtroContrato =
+      contrato?.value || "Todos";
+
+
+    let visibles = 0;
+
+
+    tarjetas.forEach((tarjeta) => {
+
+      const cargo =
+        tarjeta.dataset.cargo || "";
+
+      const empresa =
+        tarjeta.dataset.empresa || "";
+
+      const especialidadOferta =
+        tarjeta.dataset.especialidad || "";
+
+      const modalidadOferta =
+        tarjeta.dataset.modalidad || "";
+
+      // Días desde que se publicó la oferta
+      const diasPublicada =
+        (Date.now() - Number(tarjeta.dataset.fecha || 0)) /
+        86_400_000;
+
+
+      const coincideTexto =
+        !texto ||
+        cargo.includes(texto) ||
+        empresa.includes(texto) ||
+        especialidadOferta
+          .toLowerCase()
+          .includes(texto);
+
+
+      const coincideEspecialidad =
+        filtroEspecialidad === "Todas" ||
+        especialidadOferta ===
+          filtroEspecialidad;
+
+
+      const coincideModalidad =
+        filtroModalidad === "Todas" ||
+        modalidadOferta ===
+          filtroModalidad;
+
+
+      const coincideContrato =
+        filtroContrato === "Todos" ||
+        (filtroContrato === "Última semana" && diasPublicada <= 7) ||
+        (filtroContrato === "Último mes" && diasPublicada <= 31);
+
+
+      const mostrar =
+        coincideTexto &&
+        coincideEspecialidad &&
+        coincideModalidad &&
+        coincideContrato;
+
+
+      tarjeta.classList.toggle(
+        "oculta",
+        !mostrar
+      );
+
+
+      if (mostrar) {
+        visibles++;
+      }
+
+    });
+
+
+    if (contadorResultados) {
+
+      contadorResultados.textContent =
+        `${visibles} ${
+          visibles === 1
+            ? "oferta encontrada"
+            : "ofertas encontradas"
+        }`;
+
+    }
+
+
+    sinResultados?.classList.toggle(
+      "visible",
+      visibles === 0
+    );
+
+  }
+
+
+  /* =====================================================
+     ABRIR / CERRAR FILTROS
+  ===================================================== */
+
+  function alternarFiltros() {
+
+    if (!contenidoOfertas) {
+      return;
+    }
+
+
+    const abiertos =
+      contenidoOfertas.classList.toggle(
+        "filtros-abiertos"
+      );
+
+
+    btnFiltros?.setAttribute(
+      "aria-expanded",
+      String(abiertos)
+    );
+
+
+    flechaFiltros?.classList.toggle(
+      "girada",
+      abiertos
+    );
+
+  }
+
+
+  btnFiltros?.addEventListener(
+    "click",
+    alternarFiltros
+  );
+
+
+  cerrarFiltros?.addEventListener(
+    "click",
+    alternarFiltros
+  );
+
+
+  /* =====================================================
+     EVENTOS DE FILTROS
+  ===================================================== */
+
+  buscarOferta?.addEventListener(
+    "input",
+    actualizarOfertas
+  );
+
+
+  especialidad?.addEventListener(
+    "change",
+    actualizarOfertas
+  );
+
+
+  modalidad?.addEventListener(
+    "change",
+    actualizarOfertas
+  );
+
+
+  contrato?.addEventListener(
+    "change",
+    actualizarOfertas
+  );
+
+
+  /* =====================================================
+     LIMPIAR FILTROS
+  ===================================================== */
+
+  limpiarFiltros?.addEventListener(
+    "click",
+    () => {
+
+      if (buscarOferta) {
+        buscarOferta.value = "";
+      }
+
+
+      if (especialidad) {
+        especialidad.value = "Todas";
+      }
+
+
+      if (modalidad) {
+        modalidad.value = "Todas";
+      }
+
+
+      if (contrato) {
+        contrato.value = "Todos";
+      }
+
+
+      actualizarOfertas();
+
+    }
+  );
+
+
+  /* =====================================================
+     ORDENAR
+  ===================================================== */
+
+  ordenarOfertas?.addEventListener(
+    "change",
+    () => {
+
+      if (!gridOfertas) {
+        return;
+      }
+
+
+      const valor =
+        ordenarOfertas.value;
+
+
+      const tarjetasOrdenadas =
+        [...tarjetas].sort(
+          (a, b) => {
+
+            if (valor === "cargo") {
+
+              return (
+                (a.dataset.cargo || "")
+                  .localeCompare(
+                    b.dataset.cargo || ""
+                  )
+              );
+
+            }
+
+
+            if (valor === "salario") {
+
+              const obtenerSalario =
+                (texto: string) => {
+
+                  const primerNumero =
+                    texto.match(
+                      /\d[\d.]*/
+                    )?.[0] || "0";
+
+                  return Number(
+                    primerNumero.replace(
+                      /\./g,
+                      ""
+                    )
+                  );
+
+                };
+
+
+              const salarioA =
+                obtenerSalario(
+                  a.dataset.salario || ""
+                );
+
+
+              const salarioB =
+                obtenerSalario(
+                  b.dataset.salario || ""
+                );
+
+
+              return salarioB - salarioA;
+
+            }
+
+
+            // Más recientes primero
+            return (
+              Number(
+                b.dataset.fecha || 0
+              ) -
+              Number(
+                a.dataset.fecha || 0
+              )
+            );
+
+          }
+        );
+
+
+      tarjetasOrdenadas.forEach(
+        (tarjeta) => {
+
+          gridOfertas.appendChild(
+            tarjeta
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+  /* =====================================================
+     GUARDAR OFERTA
+     Necesita sesión. Por ahora las ofertas guardadas se
+     recuerdan en este navegador (localStorage); cuando
+     exista la tabla de favoritos se guardan en la base.
+  ===================================================== */
+
+  const pagina =
+    document.querySelector<HTMLElement>(
+      "#ofertasPage"
+    );
+
+  const usuarioId =
+    pagina?.dataset.usuarioId || "";
+
+  const claveGuardadas =
+    `psynex-ofertas-guardadas-${usuarioId}`;
+
+  const leerGuardadas = (): string[] => {
+    try {
+      return JSON.parse(
+        localStorage.getItem(claveGuardadas) || "[]"
+      );
+    } catch {
+      return [];
+    }
+  };
+
+  const escribirGuardadas = (ids: string[]) => {
+    try {
+      localStorage.setItem(
+        claveGuardadas,
+        JSON.stringify(ids)
+      );
+    } catch {
+      /* el navegador no permite guardar: no pasa nada */
+    }
+  };
+
+  const pintarCorazon = (
+    boton: HTMLButtonElement,
+    guardada: boolean
+  ) => {
+    boton.classList.toggle("guardada", guardada);
+
+    const icono = boton.querySelector("i");
+
+    if (icono) {
+      icono.className = guardada
+        ? "bi bi-heart-fill"
+        : "bi bi-heart";
+    }
+  };
+
+  document
+    .querySelectorAll<HTMLButtonElement>(
+      ".guardar-oferta"
+    )
+    .forEach((boton) => {
+
+      const ofertaId =
+        boton.dataset.ofertaId || "";
+
+      if (usuarioId) {
+        pintarCorazon(
+          boton,
+          leerGuardadas().includes(ofertaId)
+        );
+      }
+
+      boton.addEventListener(
+        "click",
+        () => {
+
+          if (!usuarioId) {
+            document.dispatchEvent(
+              new CustomEvent("psynex:modal", {
+                detail: {
+                  titulo: "Inicia sesión para guardar ofertas",
+                  mensaje:
+                    "Crea tu cuenta o ingresa para guardar las ofertas que te interesan y postularte cuando quieras.",
+                  icono: "bi-heart",
+                },
+              })
+            );
+            return;
+          }
+
+          const guardadas = leerGuardadas();
+
+          const yaEstaba =
+            guardadas.includes(ofertaId);
+
+          const nuevas = yaEstaba
+            ? guardadas.filter((id) => id !== ofertaId)
+            : [...guardadas, ofertaId];
+
+          escribirGuardadas(nuevas);
+
+          pintarCorazon(boton, !yaEstaba);
+
+        }
+      );
+
+    });
+
+
+  /* =====================================================
+     INICIO
+  ===================================================== */
+
+  actualizarOfertas();
+
+</script>

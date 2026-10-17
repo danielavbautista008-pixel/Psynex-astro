@@ -1,0 +1,1371 @@
+/* =========================================================
+   OFERTAS LABORALES - PSYNEX
+   Diseño compacto y profesional
+   ========================================================= */
+
+
+/* =========================================================
+   PÁGINA
+   ========================================================= */
+
+.ofertas-page {
+  width: min(1280px, calc(100% - 48px));
+  margin: 0 auto;
+
+  padding: 34px 0 60px;
+
+  color: var(--text);
+}
+
+
+/* =========================================================
+   ENCABEZADO
+   ========================================================= */
+
+.ofertas-header {
+  margin-bottom: 24px;
+}
+
+.header-text {
+  max-width: 460px;
+}
+
+.header-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  margin-bottom: 9px;
+
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.72rem;
+  font-weight: 700;
+
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+
+  color: var(--primary);
+}
+
+.header-kicker i {
+  font-size: 0.82rem;
+}
+
+.ofertas-header h1 {
+  margin: 0;
+
+   font-family: "Fraunces", serif;
+
+  font-size: clamp(1.25rem, 2vw, 2.20rem);
+  line-height: 1.1;
+
+  font-weight: 650;
+
+  letter-spacing: -0.025em;
+
+  color: var(--text);
+}
+
+.ofertas-header p {
+  margin: 10px 0 0;
+
+  max-width: 650px;
+
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.88rem;
+  line-height: 1.55;
+
+  color: var(--text-muted);
+}
+
+
+/* =========================================================
+   TOOLBAR
+   ========================================================= */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-bottom: 18px;
+}
+
+.search-box {
+  position: relative;
+
+  flex: 1;
+
+  min-width: 0;
+}
+
+.search-box > i {
+  position: absolute;
+
+  top: 50%;
+  left: 15px;
+
+  transform: translateY(-50%);
+
+  font-size: 0.92rem;
+
+  color: var(--text-muted);
+
+  pointer-events: none;
+}
+
+.search-box input {
+  width: 100%;
+  height: 46px;
+
+  padding: 0 16px 0 43px;
+
+  border: 1px solid var(--border);
+  border-radius: 11px;
+
+  outline: none;
+
+  background: var(--surface);
+  color: var(--text);
+
+   font-family: "Cormorant Garamond", serif;
+
+  font-size: 0.84rem;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.search-box input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.82;
+}
+
+.search-box input:focus {
+  border-color: var(--primary);
+
+  box-shadow:
+    0 0 0 3px
+    color-mix(
+      in srgb,
+      var(--primary) 10%,
+      transparent
+    );
+}
+
+
+/* =========================================================
+   BOTÓN FILTROS
+   ========================================================= */
+
+.btn-filtros {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  height: 46px;
+  min-width: 112px;
+
+  padding: 0 14px;
+
+  border: 1px solid var(--border);
+  border-radius: 11px;
+
+  background: var(--surface);
+  color: var(--text);
+
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.82rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.btn-filtros:hover {
+  border-color: var(--primary);
+
+  color: var(--primary);
+
+  transform: translateY(-1px);
+}
+
+.btn-filtros > i:first-child {
+  color: var(--primary);
+}
+
+#flechaFiltros {
+  margin-left: 1px;
+
+  font-size: 0.7rem;
+
+  transition:
+    transform 0.25s ease;
+}
+
+#flechaFiltros.girada {
+  transform: rotate(180deg);
+}
+
+
+/* =========================================================
+   CONTENIDO PRINCIPAL
+   ========================================================= */
+
+.contenido-ofertas {
+  display: grid;
+
+  grid-template-columns:
+    0fr
+    minmax(0, 1fr);
+
+  gap: 0;
+
+  align-items: start;
+
+  transition:
+    grid-template-columns 0.28s ease,
+    gap 0.28s ease;
+}
+
+.contenido-ofertas.filtros-abiertos {
+  grid-template-columns:
+    220px
+    minmax(0, 1fr);
+
+  gap: 20px;
+}
+
+
+/* =========================================================
+   PANEL DE FILTROS
+   ========================================================= */
+
+.panel-filtros {
+  min-width: 0;
+
+  overflow: hidden;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transform: translateX(-10px);
+
+  border: 1px solid var(--border);
+  border-radius: 14px;
+
+  background: var(--surface);
+
+  transition:
+    opacity 0.22s ease,
+    transform 0.25s ease;
+}
+
+.contenido-ofertas.filtros-abiertos
+.panel-filtros {
+  opacity: 1;
+
+  pointer-events: auto;
+
+  transform: translateX(0);
+}
+
+
+/* =========================================================
+   HEADER FILTROS
+   ========================================================= */
+
+.filtros-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding: 15px 14px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.filtros-header > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.filtros-header strong {
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.84rem;
+  font-weight: 700;
+
+  color: var(--text);
+}
+
+.filtros-header small {
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.68rem;
+
+  color: var(--text-muted);
+}
+
+.filtros-header button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+
+  flex: 0 0 auto;
+
+  border: 0;
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: var(--text-muted);
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.filtros-header button:hover {
+  background: var(--primary-soft);
+
+  color: var(--primary);
+}
+
+
+/* =========================================================
+   GRUPOS DE FILTRO
+   ========================================================= */
+
+.filtro-grupo {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  padding: 12px 14px 0;
+}
+
+.filtro-grupo label {
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.72rem;
+  font-weight: 700;
+
+  color: var(--text);
+}
+
+.filtro-grupo select {
+  width: 100%;
+  height: 37px;
+
+  padding: 0 28px 0 10px;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  outline: none;
+
+  background-color: var(--surface);
+  color: var(--text);
+
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.7rem;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.filtro-grupo select:focus {
+  border-color: var(--primary);
+
+  box-shadow:
+    0 0 0 3px
+    color-mix(
+      in srgb,
+      var(--primary) 9%,
+      transparent
+    );
+}
+
+
+/* =========================================================
+   LIMPIAR FILTROS
+   ========================================================= */
+
+.btn-limpiar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  width: calc(100% - 28px);
+  height: 36px;
+
+  margin: 16px 14px;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  background: var(--primary-soft);
+  color: var(--primary);
+
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.7rem;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.btn-limpiar:hover {
+  border-color: var(--primary);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--primary) 16%,
+      var(--surface)
+    );
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   RESULTADOS
+   ========================================================= */
+
+.resultados {
+  min-width: 0;
+}
+
+
+/* =========================================================
+   BARRA SUPERIOR RESULTADOS
+   ========================================================= */
+
+.resultados-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  margin-bottom: 13px;
+}
+
+#contadorResultados {
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.76rem;
+  font-weight: 600;
+
+  color: var(--text-muted);
+}
+
+.ordenar {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+}
+
+.ordenar label {
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.7rem;
+
+  color: var(--text-muted);
+}
+
+.ordenar select {
+  height: 34px;
+
+  padding: 0 27px 0 9px;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  outline: none;
+
+  background: var(--surface);
+  color: var(--text);
+
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.69rem;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease;
+}
+
+.ordenar select:focus {
+  border-color: var(--primary);
+}
+
+
+/* =========================================================
+   GRID
+   ========================================================= */
+
+.grid-ofertas {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 16px;
+}
+
+
+/* =========================================================
+   TARJETA
+   ========================================================= */
+
+.oferta-card {
+  min-width: 0;
+
+  overflow: hidden;
+
+  border: 1px solid var(--border);
+  border-radius: 15px;
+
+  background: var(--surface);
+
+  box-shadow:
+    0 3px 14px
+    color-mix(
+      in srgb,
+      var(--text) 5%,
+      transparent
+    );
+
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+
+  animation:
+    aparecerOferta 0.4s ease both;
+}
+
+.oferta-card:hover {
+  transform: translateY(-3px);
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--primary) 28%,
+      var(--border)
+    );
+
+  box-shadow:
+    0 8px 22px
+    color-mix(
+      in srgb,
+      var(--text) 8%,
+      transparent
+    );
+}
+
+.oferta-card.oculta {
+  display: none;
+}
+
+
+/* =========================================================
+   IMAGEN
+   ========================================================= */
+
+.oferta-imagen {
+  position: relative;
+
+  height: 120px;
+
+  overflow: hidden;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--primary) 7%,
+      var(--surface)
+    );
+}
+
+.oferta-imagen img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  transition:
+    transform 0.4s ease;
+}
+
+.oferta-card:hover
+.oferta-imagen img {
+  transform: scale(1.035);
+}
+
+
+/* =========================================================
+   FAVORITO
+   ========================================================= */
+
+.guardar-oferta {
+  position: absolute;
+
+  top: 9px;
+  right: 9px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 32px;
+  height: 32px;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--surface) 65%,
+      transparent
+    );
+
+  border-radius: 50%;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--surface) 90%,
+      transparent
+    );
+
+  color: var(--text);
+
+  backdrop-filter: blur(7px);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.guardar-oferta:hover {
+  transform: scale(1.06);
+
+  color: var(--primary);
+
+  background: var(--surface);
+}
+
+.guardar-oferta.guardada {
+  color: var(--primary);
+
+  background: var(--surface);
+}
+
+.guardar-oferta i {
+  font-size: 0.88rem;
+}
+
+
+/* =========================================================
+   FECHA
+   ========================================================= */
+
+.fecha-oferta {
+  position: absolute;
+
+  left: 9px;
+  bottom: 9px;
+
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 24px;
+
+  padding: 0 8px;
+
+  border-radius: 6px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--surface) 91%,
+      transparent
+    );
+
+  color: var(--text);
+
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.62rem;
+  font-weight: 600;
+
+  backdrop-filter: blur(7px);
+}
+
+
+/* =========================================================
+   CONTENIDO TARJETA
+   ========================================================= */
+
+.oferta-contenido {
+  display: flex;
+  flex-direction: column;
+
+  min-height: 250px;
+
+  padding: 14px;
+}
+
+.oferta-contenido h2 {
+  margin: 0;
+    font-family: "Libertinus Math", system-ui;
+  font-size: 0.92rem;
+  line-height: 1.3;
+
+  font-weight: 700;
+
+  letter-spacing: -0.01em;
+
+  color: var(--text);
+}
+
+
+/* =========================================================
+   EMPRESA
+   ========================================================= */
+
+.empresa {
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  margin-top: 6px;
+
+  min-width: 0;
+}
+
+.empresa i {
+  flex: 0 0 auto;
+
+  font-size: 0.76rem;
+
+  color: var(--primary);
+}
+
+.empresa span {
+  min-width: 0;
+
+  overflow: hidden;
+
+   font-family: "Playfair Display", serif;
+
+  font-size: 0.72rem;
+
+  color: var(--text-muted);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   DATOS
+   ========================================================= */
+
+.datos-oferta {
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+
+  margin-top: 13px;
+}
+
+.datos-oferta span {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  min-width: 0;
+
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.7rem;
+
+  line-height: 1.25;
+
+  color: var(--text-muted);
+}
+
+.datos-oferta i {
+  width: 14px;
+
+  flex: 0 0 auto;
+
+  font-size: 0.72rem;
+
+  text-align: center;
+
+  color: var(--primary);
+}
+
+
+/* =========================================================
+   ETIQUETAS
+   ========================================================= */
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 5px;
+
+  margin-top: 12px;
+}
+
+.etiquetas span {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 23px;
+
+  padding: 0 8px;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--primary) 14%,
+      var(--border)
+    );
+
+  border-radius: 6px;
+
+  background: var(--primary-soft);
+
+  color: var(--primary);
+
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.61rem;
+
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   FOOTER TARJETA
+   ========================================================= */
+
+.oferta-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  margin-top: auto;
+
+  padding-top: 13px;
+
+  border-top: 1px solid var(--border);
+}
+
+.salario {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  min-width: 0;
+}
+
+.salario small {
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.61rem;
+
+  color: var(--text-muted);
+}
+
+.salario strong {
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.75rem;
+
+  line-height: 1.2;
+
+  font-weight: 700;
+
+  color: var(--text);
+}
+
+.btn-ver-oferta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  min-height: 32px;
+
+  padding: 0 10px;
+
+  border: 1px solid var(--primary);
+
+  border-radius: 7px;
+
+  background: var(--primary);
+
+  color: var(--on-primary);
+
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.67rem;
+
+  font-weight: 700;
+
+  text-decoration: none;
+
+  white-space: nowrap;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.btn-ver-oferta:hover {
+  background: var(--primary-hover);
+
+  color: var(--on-primary);
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 4px 10px
+    color-mix(
+      in srgb,
+      var(--primary) 18%,
+      transparent
+    );
+}
+
+.btn-ver-oferta i {
+  font-size: 0.66rem;
+
+  transition:
+    transform 0.2s ease;
+}
+
+.btn-ver-oferta:hover i {
+  transform: translateX(2px);
+}
+
+
+/* =========================================================
+   SIN RESULTADOS
+   ========================================================= */
+
+.sin-resultados {
+  display: none;
+
+  padding: 50px 20px;
+
+  text-align: center;
+}
+
+.sin-resultados.visible {
+  display: block;
+}
+
+.sin-resultados-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 50px;
+  height: 50px;
+
+  margin: 0 auto 13px;
+
+  border-radius: 50%;
+
+  background: var(--primary-soft);
+
+  color: var(--primary);
+}
+
+.sin-resultados-icon i {
+  font-size: 1.05rem;
+}
+
+.sin-resultados h3 {
+  margin: 0;
+
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.95rem;
+
+  font-weight: 700;
+
+  color: var(--text);
+}
+
+.sin-resultados p {
+  margin: 6px auto 0;
+
+  max-width: 400px;
+
+  font-family:
+    "Roboto",
+    Arial,
+    sans-serif;
+
+  font-size: 0.74rem;
+
+  line-height: 1.5;
+
+  color: var(--text-muted);
+}
+
+
+/* =========================================================
+   ANIMACIÓN
+   ========================================================= */
+
+@keyframes aparecerOferta {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+  .ofertas-page {
+    width: min(
+      1200px,
+      calc(100% - 36px)
+    );
+  }
+
+  .grid-ofertas {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+
+/* =========================================================
+   TABLET PEQUEÑA
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+  .contenido-ofertas.filtros-abiertos {
+    grid-template-columns:
+      210px
+      minmax(0, 1fr);
+
+    gap: 16px;
+  }
+
+}
+
+
+/* =========================================================
+   MÓVIL
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .ofertas-page {
+    width: calc(100% - 24px);
+
+    padding-top: 27px;
+    padding-bottom: 45px;
+  }
+
+
+  .ofertas-header {
+    margin-bottom: 20px;
+  }
+
+
+  .ofertas-header h1 {
+    font-size: 1.85rem;
+    
+  }
+
+
+  .ofertas-header p {
+    font-size: 0.82rem;
+
+    line-height: 1.5;
+  }
+
+
+  .toolbar {
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 8px;
+  }
+
+
+  .btn-filtros {
+    width: 100%;
+  }
+
+
+  .contenido-ofertas,
+  .contenido-ofertas.filtros-abiertos {
+    display: block;
+  }
+
+
+  .panel-filtros {
+    display: none;
+
+    width: 100%;
+
+    margin-bottom: 15px;
+
+    opacity: 1;
+
+    pointer-events: auto;
+
+    transform: none;
+  }
+
+
+  .contenido-ofertas.filtros-abiertos
+  .panel-filtros {
+    display: block;
+  }
+
+
+  .grid-ofertas {
+    grid-template-columns: 1fr;
+
+    gap: 14px;
+  }
+
+
+  .resultados-top {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 8px;
+  }
+
+
+  .ordenar {
+    width: 100%;
+
+    justify-content: space-between;
+  }
+
+
+  .ordenar select {
+    flex: 1;
+
+    max-width: 200px;
+  }
+
+}
+
+
+/* =========================================================
+   MÓVIL PEQUEÑO
+   ========================================================= */
+
+@media (max-width: 460px) {
+
+  .ofertas-page {
+    width: calc(100% - 18px);
+  }
+
+
+  .ofertas-header h1 {
+    font-size: 1.7rem;
+  }
+
+
+  .ofertas-header p {
+    font-size: 0.79rem;
+  }
+
+
+  .oferta-imagen {
+    height: 115px;
+  }
+
+
+  .oferta-contenido {
+    min-height: 245px;
+
+    padding: 13px;
+  }
+
+
+  .oferta-contenido h2 {
+    font-size: 0.9rem;
+  }
+
+
+  .oferta-footer {
+    align-items: stretch;
+
+    flex-direction: column;
+  }
+
+
+  .btn-ver-oferta {
+    width: 100%;
+  }
+
+
+  .salario strong {
+    font-size: 0.73rem;
+  }
+
+}
+
+
+/* =========================================================
+   ACCESIBILIDAD
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .oferta-card,
+  .oferta-imagen img,
+  .btn-filtros,
+  .btn-ver-oferta,
+  .guardar-oferta,
+  .panel-filtros,
+  .contenido-ofertas,
+  #flechaFiltros {
+    transition: none;
+
+    animation: none;
+  }
+
+}

@@ -1,6 +1,49 @@
 ---
 import MenuAdmin from "../Menu/MenuAdmin.astro";
 import "./estadisticas.css";
+import { apiGet } from "../../lib/api";
+
+// ---------------------------------------------------------------
+// Datos reales: GET /estadisticas?meses=6 (solo Admin)
+// Trae las tarjetas (kpis) y las series de las 3 gráficas.
+// ---------------------------------------------------------------
+const cookie = Astro.request.headers.get("cookie");
+const est = await apiGet(cookie, "/estadisticas?meses=6");
+
+const pesos = (n: number) => "$" + Math.round(n).toLocaleString("es-CO");
+
+// Convierte un kpi del backend { valor, anterior, cambioPct } en lo que muestra la tarjeta.
+// subirEsMalo = true para cancelaciones (que suban es negativo).
+const tarjeta = (k: any, formato: (v: number) => string, subirEsMalo = false) => {
+  const valor = k?.valor;
+  const pct = k?.cambioPct;
+  const sube = (pct ?? 0) >= 0;
+  return {
+    texto: valor === null || valor === undefined ? "Sin datos" : formato(Number(valor)),
+    cambio: pct === null || pct === undefined ? "—" : `${Math.abs(pct)}%`,
+    flecha: sube ? "bi-arrow-up" : "bi-arrow-down",
+    clase: pct === null || pct === undefined ? "" : (sube !== subirEsMalo ? "positive" : "negative"),
+  };
+};
+
+const kpiCitas = tarjeta(est?.kpis?.citas, (v) => String(v));
+const kpiIngresos = tarjeta(est?.kpis?.ingresos, pesos);
+const kpiCalificacion = tarjeta(est?.kpis?.calificacion, (v) => v.toFixed(1));
+const kpiCancelaciones = tarjeta(est?.kpis?.cancelaciones, (v) => String(v), true);
+
+// Leyenda de "Citas por tipo"
+const porTipo: Record<string, string> = {};
+for (const t of est?.citasPorTipo ?? []) {
+  porTipo[t.tipo] = `${t.total} citas (${t.porcentaje}%)`;
+}
+const leyenda = (tipo: string) => porTipo[tipo] ?? "0 citas (0%)";
+
+// Series para las gráficas: se pasan al <script> como JSON
+const datosGraficas = {
+  citasPorMes: est?.citasPorMes ?? [],
+  citasPorTipo: est?.citasPorTipo ?? [],
+  ingresosPorFuente: est?.ingresosPorFuente ?? [],
+};
 ---
 
 <div class="estadistica-page">
@@ -60,13 +103,13 @@ import "./estadisticas.css";
 
                 <p class="kpi-label">Citas este mes</p>
 
-                <strong class="kpi-number">248</strong>
+                <strong class="kpi-number">{kpiCitas.texto}</strong>
 
                 <div class="kpi-bottom">
 
-                    <span class="kpi-change positive">
-                        <i class="bi bi-arrow-up"></i>
-                        12%
+                    <span class={`kpi-change ${kpiCitas.clase}`}>
+                        <i class={`bi ${kpiCitas.flecha}`}></i>
+                        {kpiCitas.cambio}
                     </span>
 
                     <span>vs. mes anterior</span>
@@ -95,13 +138,13 @@ import "./estadisticas.css";
 
                 <p class="kpi-label">Ingresos este mes</p>
 
-                <strong class="kpi-number">$12.450.000</strong>
+                <strong class="kpi-number">{kpiIngresos.texto}</strong>
 
                 <div class="kpi-bottom">
 
-                    <span class="kpi-change positive">
-                        <i class="bi bi-arrow-up"></i>
-                        18%
+                    <span class={`kpi-change ${kpiIngresos.clase}`}>
+                        <i class={`bi ${kpiIngresos.flecha}`}></i>
+                        {kpiIngresos.cambio}
                     </span>
 
                     <span>vs. mes anterior</span>
@@ -130,13 +173,13 @@ import "./estadisticas.css";
 
                 <p class="kpi-label">Calificación promedio</p>
 
-                <strong class="kpi-number">4.8</strong>
+                <strong class="kpi-number">{kpiCalificacion.texto}</strong>
 
                 <div class="kpi-bottom">
 
-                    <span class="kpi-change positive">
-                        <i class="bi bi-arrow-up"></i>
-                        6%
+                    <span class={`kpi-change ${kpiCalificacion.clase}`}>
+                        <i class={`bi ${kpiCalificacion.flecha}`}></i>
+                        {kpiCalificacion.cambio}
                     </span>
 
                     <span>vs. mes anterior</span>
@@ -165,13 +208,13 @@ import "./estadisticas.css";
 
                 <p class="kpi-label">Cancelaciones</p>
 
-                <strong class="kpi-number">7</strong>
+                <strong class="kpi-number">{kpiCancelaciones.texto}</strong>
 
                 <div class="kpi-bottom">
 
-                    <span class="kpi-change negative">
-                        <i class="bi bi-arrow-up"></i>
-                        22%
+                    <span class={`kpi-change ${kpiCancelaciones.clase}`}>
+                        <i class={`bi ${kpiCancelaciones.flecha}`}></i>
+                        {kpiCancelaciones.cambio}
                     </span>
 
                     <span>vs. mes anterior</span>
@@ -248,7 +291,7 @@ import "./estadisticas.css";
 
                             <div>
                                 <strong>Individual</strong>
-                                <small>596 citas (58%)</small>
+                                <small>{leyenda("Individual")}</small>
                             </div>
 
                         </div>
@@ -260,7 +303,7 @@ import "./estadisticas.css";
 
                             <div>
                                 <strong>Empresarial</strong>
-                                <small>277 citas (27%)</small>
+                                <small>{leyenda("Empresarial")}</small>
                             </div>
 
                         </div>
@@ -272,7 +315,7 @@ import "./estadisticas.css";
 
                             <div>
                                 <strong>Recompensa</strong>
-                                <small>153 citas (15%)</small>
+                                <small>{leyenda("Recompensa")}</small>
                             </div>
 
                         </div>
@@ -333,6 +376,8 @@ import "./estadisticas.css";
 </div>
 
 
+<script type="application/json" id="datosEstadisticas" set:html={JSON.stringify(datosGraficas)}></script>
+
 <script>
     import {
         Chart,
@@ -340,6 +385,27 @@ import "./estadisticas.css";
     } from "chart.js";
 
     Chart.register(...registerables);
+
+    /* ==========================================
+       DATOS REALES (vienen del servidor como JSON)
+    =========================================== */
+    const datos = JSON.parse(
+        document.getElementById("datosEstadisticas")?.textContent || "{}"
+    );
+    const etiquetasMeses: string[] =
+        (datos.citasPorMes ?? []).map((m: any) => m.etiqueta);
+    const citasPorMes: number[] =
+        (datos.citasPorMes ?? []).map((m: any) => m.total);
+    const totalPorTipo = (tipo: string) =>
+        (datos.citasPorTipo ?? []).find((t: any) => t.tipo === tipo)?.total ?? 0;
+    // Ingresos en millones (1 decimal), como los mostraba el diseño
+    const enMillones = (n: number) => Math.round((n / 1_000_000) * 10) / 10;
+    const ingresosIndividuales: number[] =
+        (datos.ingresosPorFuente ?? []).map((m: any) => enMillones(m.individuales));
+    const ingresosEmpresariales: number[] =
+        (datos.ingresosPorFuente ?? []).map((m: any) => enMillones(m.empresariales));
+    const etiquetasIngresos: string[] =
+        (datos.ingresosPorFuente ?? []).map((m: any) => m.etiqueta);
 
 
     /* ==========================================
@@ -378,28 +444,14 @@ import "./estadisticas.css";
 
             data: {
 
-                labels: [
-                    "Ene 2026",
-                    "Feb 2026",
-                    "Mar 2026",
-                    "Abr 2026",
-                    "May 2026",
-                    "Jun 2026"
-                ],
+                labels: etiquetasMeses,
 
                 datasets: [
 
                     {
                         label: "Citas",
 
-                        data: [
-                            120,
-                            145,
-                            170,
-                            195,
-                            220,
-                            248
-                        ],
+                        data: citasPorMes,
 
                         borderColor: primary,
 
@@ -529,9 +581,9 @@ import "./estadisticas.css";
                     {
 
                         data: [
-                            596,
-                            277,
-                            153
+                            totalPorTipo("Individual"),
+                            totalPorTipo("Empresarial"),
+                            totalPorTipo("Recompensa")
                         ],
 
                         backgroundColor: [
@@ -595,28 +647,14 @@ import "./estadisticas.css";
 
             data: {
 
-                labels: [
-                    "Ene 2026",
-                    "Feb 2026",
-                    "Mar 2026",
-                    "Abr 2026",
-                    "May 2026",
-                    "Jun 2026"
-                ],
+                labels: etiquetasIngresos,
 
                 datasets: [
 
                     {
                         label: "Citas individuales",
 
-                        data: [
-                            8.5,
-                            9.8,
-                            11.2,
-                            12.7,
-                            14.3,
-                            16.8
-                        ],
+                        data: ingresosIndividuales,
 
                         backgroundColor: primary,
 
@@ -637,14 +675,7 @@ import "./estadisticas.css";
                     {
                         label: "Planes empresariales",
 
-                        data: [
-                            4.0,
-                            4.8,
-                            5.5,
-                            7.2,
-                            8.1,
-                            9.3
-                        ],
+                        data: ingresosEmpresariales,
 
                         backgroundColor: "#4b91e2",
 
@@ -729,7 +760,7 @@ import "./estadisticas.css";
 
                         beginAtZero: true,
 
-                        max: 20,
+                        suggestedMax: 1,
 
                         grid: {
                             color: border
