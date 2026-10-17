@@ -1,0 +1,338 @@
+---
+import "./DetalleOferta.css";
+
+import ModalPostulacion from "./ModalPostulacion.astro";
+import ModalSesion from "./ModalSesion.astro";
+import { haceCuanto, pesos, urlLogoEmpresa } from "../../lib/api";
+
+// La oferta llega desde /Explorar/oferta/[id].astro (GET /api/explorar/ofertas/:id).
+// "usuario" es quien está viendo la página (null si no tiene sesión).
+export interface OfertaPublica {
+  id: string;
+  cargo: string;
+  descripcion: string;
+  requisitos: string[];
+  salario: number | null;
+  modalidad: string;
+  estado: string;
+  fechaPublicacion: string;
+  empresaId: string;
+  empresa: string;
+  sector: string;
+  ubicacion: string;
+  sitioWeb: string;
+  empresaDescripcion: string;
+  tieneLogo: boolean;
+  yaPostulado: boolean;
+}
+
+interface Props {
+  oferta: OfertaPublica;
+  usuario: { rol: string; nombre: string; email: string } | null;
+  // A dónde lleva "Volver a ofertas" (el psicólogo vuelve a su panel)
+  volverHref?: string;
+}
+
+const { oferta: o, usuario, volverHref = "/Explorar/OfertasLaborales" } = Astro.props;
+
+const oferta = {
+  id: o.id,
+  cargo: o.cargo,
+  empresa: o.empresa,
+  ubicacion: o.ubicacion || "Colombia",
+  modalidad: o.modalidad === "Hibrido" ? "Híbrido" : o.modalidad,
+  sector: o.sector || "Sin sector",
+  salario: o.salario ? pesos(o.salario) : "A convenir",
+  publicada: haceCuanto(o.fechaPublicacion),
+  imagen: o.tieneLogo ? urlLogoEmpresa(o.empresaId) : "/Imagenes/empresa.jpg",
+  descripcion: o.descripcion.split(/\n+/).filter((parrafo) => parrafo.trim()),
+  requisitos: o.requisitos,
+  empresaDescripcion: o.empresaDescripcion,
+  sitioWeb: o.sitioWeb,
+  cerrada: o.estado !== "Activa",
+  yaPostulado: o.yaPostulado,
+};
+
+const sitioSeguro = /^https?:\/\//i.test(oferta.sitioWeb) ? oferta.sitioWeb : "";
+---
+
+
+
+<main class="detalle-oferta">
+  <div class="detalle-contenedor">
+
+    <!-- VOLVER -->
+  <a href={volverHref} class="volver-ofertas">
+  <i class="bi bi-arrow-left"></i>
+  Volver a ofertas
+</a>
+    <!-- CABECERA -->
+    <section class="cabecera-oferta">
+
+      <div class="empresa-foto">
+        <img
+          src={oferta.imagen}
+          alt={`Imagen de ${oferta.empresa}`}
+        />
+      </div>
+
+      <div class="cabecera-info">
+
+        <span class="etiqueta-oferta">
+          Oportunidad profesional
+        </span>
+
+        <h1>{oferta.cargo}</h1>
+
+        <p class="empresa-nombre">
+          {oferta.empresa}
+        </p>
+
+        <div class="datos-cabecera">
+          <span>{oferta.ubicacion}</span>
+          <span>{oferta.modalidad}</span>
+          <span>{oferta.sector}</span>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- DIVISOR -->
+    <div class="linea-oferta" aria-hidden="true"></div>
+
+    <!-- CONTENIDO -->
+    <section class="contenido-oferta">
+
+      <!-- COLUMNA IZQUIERDA -->
+      <article class="informacion-puesto">
+
+        <div class="bloque-oferta">
+          <h2>Sobre el puesto</h2>
+
+          {oferta.descripcion.map((parrafo) => (
+            <p class="descripcion-oferta">
+              {parrafo}
+            </p>
+          ))}
+        </div>
+
+        {oferta.requisitos.length > 0 && (
+          <div class="bloque-oferta">
+            <h2>Requisitos</h2>
+
+            <ul class="lista-oferta">
+              {
+                oferta.requisitos.map((requisito) => (
+                  <li>{requisito}</li>
+                ))
+              }
+            </ul>
+          </div>
+        )}
+
+        {oferta.empresaDescripcion && (
+          <div class="bloque-oferta">
+            <h2>Sobre la empresa</h2>
+
+            <p class="descripcion-oferta">
+              {oferta.empresaDescripcion}
+            </p>
+
+            {sitioSeguro && (
+              <p class="descripcion-oferta">
+                <a href={sitioSeguro} target="_blank" rel="noopener noreferrer">{sitioSeguro}</a>
+              </p>
+            )}
+          </div>
+        )}
+
+        <div class="bloque-oferta">
+          <h2>Área profesional</h2>
+
+          <div class="etiquetas-detalle">
+            <span>{oferta.sector}</span>
+            <span>{oferta.modalidad}</span>
+          </div>
+        </div>
+
+      </article>
+
+      <!-- COLUMNA DERECHA -->
+      <aside class="resumen-oferta">
+
+        <div class="resumen-contenido">
+
+          <span class="resumen-kicker">
+            Información
+          </span>
+
+          <h2>Resumen de la oferta</h2>
+
+          <!-- SALARIO -->
+          <div class="dato-resumen">
+            <div class="icono-resumen" aria-hidden="true">
+              <i class="bi bi-cash-stack"></i>
+            </div>
+
+            <div class="dato-texto">
+              <span>Salario</span>
+              <strong>{oferta.salario}</strong>
+            </div>
+          </div>
+
+          <!-- UBICACIÓN -->
+          <div class="dato-resumen">
+            <div class="icono-resumen" aria-hidden="true">
+              <i class="bi bi-geo-alt"></i>
+            </div>
+
+            <div class="dato-texto">
+              <span>Ubicación</span>
+              <strong>{oferta.ubicacion}</strong>
+            </div>
+          </div>
+
+          <!-- MODALIDAD -->
+          <div class="dato-resumen">
+            <div class="icono-resumen" aria-hidden="true">
+              <i class="bi bi-laptop"></i>
+            </div>
+
+            <div class="dato-texto">
+              <span>Modalidad</span>
+              <strong>{oferta.modalidad}</strong>
+            </div>
+          </div>
+
+          <!-- PUBLICACIÓN -->
+          <div class="dato-resumen">
+            <div class="icono-resumen" aria-hidden="true">
+              <i class="bi bi-calendar3"></i>
+            </div>
+
+            <div class="dato-texto">
+              <span>Publicada</span>
+              <strong>{oferta.publicada}</strong>
+            </div>
+          </div>
+
+          <!-- POSTULAR -->
+          <button
+            type="button"
+            class="btn-postular"
+            id="abrirPostulacion"
+            data-rol={usuario?.rol ?? ""}
+            disabled={oferta.cerrada || oferta.yaPostulado}
+          >
+            <span id="textoPostular">
+              {oferta.cerrada ? "Oferta cerrada" : oferta.yaPostulado ? "Ya te postulaste" : "Postularme"}
+            </span>
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </button>
+
+        </div>
+
+      </aside>
+
+    </section>
+
+  </div>
+</main>
+
+<ModalPostulacion
+  oferta={{ id: oferta.id, cargo: oferta.cargo, empresa: oferta.empresa }}
+  usuario={usuario}
+  preguntas={[]}
+/>
+
+<ModalSesion />
+
+<script>
+  const botonPostular =
+    document.querySelector<HTMLButtonElement>(
+      "#abrirPostulacion"
+    );
+
+  const modal =
+    document.querySelector<HTMLElement>(
+      "#modalPostulacion"
+    );
+
+  const cerrarModal =
+    document.querySelector<HTMLButtonElement>(
+      "#cerrarPostulacion"
+    );
+
+  const fondoModal =
+    document.querySelector<HTMLElement>(
+      "#fondoModalPostulacion"
+    );
+
+  const abrirModal = () => {
+    if (!modal || !botonPostular || botonPostular.disabled) return;
+
+    // Solo los psicólogos con sesión se pueden postular
+    const rol = botonPostular.dataset.rol ?? "";
+    if (!rol) {
+      document.dispatchEvent(
+        new CustomEvent("psynex:modal", {
+          detail: {
+            titulo: "Inicia sesión para postularte",
+            mensaje: "Para postularte necesitas una cuenta de psicólogo verificada en Psynex.",
+            icono: "bi-briefcase",
+          },
+        }),
+      );
+      return;
+    }
+    if (rol !== "Psicologo") {
+      document.dispatchEvent(
+        new CustomEvent("psynex:modal", {
+          detail: {
+            tipo: "aviso",
+            titulo: "Solo para psicólogos",
+            mensaje: "Las ofertas laborales son para psicólogos registrados. Tu cuenta no es de psicólogo.",
+            icono: "bi-briefcase",
+          },
+        }),
+      );
+      return;
+    }
+
+    modal.classList.add("modal-visible");
+    modal.setAttribute("aria-hidden", "false");
+
+    document.body.classList.add("modal-abierto");
+
+    const primerCampo =
+      modal.querySelector<HTMLInputElement>(
+        "#telefonoPostulante"
+      );
+
+    window.setTimeout(() => {
+      primerCampo?.focus();
+    }, 150);
+  };
+
+  const cerrar = () => {
+    if (!modal) return;
+
+    modal.classList.remove("modal-visible");
+    modal.setAttribute("aria-hidden", "true");
+
+    document.body.classList.remove("modal-abierto");
+  };
+
+  botonPostular?.addEventListener("click", abrirModal);
+
+  cerrarModal?.addEventListener("click", cerrar);
+
+  fondoModal?.addEventListener("click", cerrar);
+
+  document.addEventListener("keydown", (evento) => {
+    if (evento.key === "Escape") {
+      cerrar();
+    }
+  });
+</script>

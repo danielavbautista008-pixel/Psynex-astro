@@ -1,0 +1,208 @@
+---
+
+
+import MenuExplorar from "../Menu/Navbar.astro";
+import "./explorar.css";
+import { apiGet, fotoIniciales, pesos, urlFotoPsicologo, urlLogoEmpresa } from "../../lib/api";
+
+const menuExplorar = [
+  { label: "Inicio", href: "/" },
+  { label: "Explorar", href: "/Explorar/explorar" },
+  { label: "Psicólogos", href: "/Explorar/Psicologos" },
+  { label: "Ofertas laborales", href: "/Explorar/OfertasLaborales" },
+  { label: "Tests", href: "/Explorar/cuestionarios" },
+  { label: "Blog", href: "/Explorar/Articulos" },
+];
+
+// Todo viene del backend en una sola petición: GET /api/explorar/inicio
+// (tests destacados, psicólogos verificados y ofertas recientes).
+// Si el backend no responde, la página igual se muestra con las secciones vacías.
+const datos = await apiGet<{
+  tests: { id: string; sigla: string; categoria: string; descripcion: string; preguntas: number; minutos: number }[];
+  psicologos: { id: string; nombre: string; titulo: string; especialidades: string[]; modalidadTexto: string; tieneFoto: boolean }[];
+  ofertas: { id: string; cargo: string; empresa: string; empresaId: string; ubicacion: string; salario: number | null; tieneLogo: boolean }[];
+}>(Astro.request.headers.get("cookie"), "/api/explorar/inicio");
+
+const tests = (datos?.tests ?? []).map((t) => ({
+  id: t.id,
+  sigla: t.sigla,
+  nombreClinico: t.categoria,
+  descripcion: t.descripcion,
+  meta: `${t.preguntas} preguntas · ~${t.minutos} min`,
+}));
+
+const psicologos = (datos?.psicologos ?? []).map((p) => ({
+  id: p.id,
+  nombre: p.nombre,
+  especialidad: p.titulo,
+  tags: p.especialidades.slice(0, 2),
+  modalidad: p.modalidadTexto,
+  foto: p.tieneFoto ? urlFotoPsicologo(p.id) : fotoIniciales(p.nombre),
+}));
+// Se duplica la lista para que el carrusel haga un loop continuo sin
+// salto visible (ver explorar.css, sección del carrusel).
+const psicologosLoop = [...psicologos, ...psicologos];
+
+const ofertas = (datos?.ofertas ?? []).map((o) => ({
+  id: o.id,
+  cargo: o.cargo,
+  empresa: o.empresa,
+  lugar: o.ubicacion || "Colombia",
+  salario: o.salario ? pesos(o.salario) : "Salario a convenir",
+  foto: o.tieneLogo ? urlLogoEmpresa(o.empresaId) : "",
+}));
+
+// Se usa SOLO como respaldo: si a una empresa todavía no le ha subido
+// foto de perfil, mostramos sus iniciales en vez de una imagen rota.
+const iniciales = (nombreEmpresa: string): string =>
+  nombreEmpresa
+    .split(" ")
+    .filter((p) => p.length > 1) // ignora "S.A.", "de", etc. muy cortos
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join("")
+    .toUpperCase();
+---
+
+<MenuExplorar menuItems={menuExplorar} />
+
+<main class="ex-page">
+
+  <!-- HERO -->
+  <section class="ex-hero">
+    <div class="ex-hero-text">
+      <h1>Explora Psynex</h1>
+      <p>Encuentra psicólogos verificados, ofertas laborales y tests de salud mental.</p>
+    </div>
+    <div class="ex-hero-image">
+      <img src="/Imagenes/imagen.explora.jpg" alt="Psynex" />
+    </div>
+  </section>
+
+  <!-- TESTS -->
+  <section class="ex-section">
+    <div class="ex-section-header">
+      <h2>Tests de salud mental</h2>
+      <a href="/Explorar/cuestionarios">Ver todos</a>
+    </div>
+
+    {tests.length === 0 && (
+      <p class="ex-vacio">Pronto encontrarás aquí los tests disponibles.</p>
+    )}
+
+    <div class="ex-grid ex-grid-3">
+      {tests.map((t) => (
+        <article class="ex-test-card">
+          <div class="ex-test-accent"></div>
+          <div class="ex-test-body">
+            <span class="ex-test-sigla">{t.sigla}</span>
+            <h3>{t.nombreClinico}</h3>
+            <p>{t.descripcion}</p>
+            <div class="ex-test-footer">
+              <span class="ex-test-meta">{t.meta}</span>
+              <a href={`/Explorar/cuestionarios/${t.id}`} class="ex-test-btn">Responder test</a>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- BANNER DE REGISTRO -->
+  <section class="ex-banner">
+    <h3>
+      Para hablar con psicólogos, aplicar a ofertas o guardar
+      resultados, crea una cuenta gratis.
+    </h3>
+    <div class="ex-banner-buttons">
+      <a href="/Inicio/registro" class="ex-btn-primary">Crear cuenta gratis</a>
+      <a href="/Inicio/login" class="ex-btn-secondary">Ya tengo cuenta</a>
+    </div>
+  </section>
+
+  <!-- PSICÓLOGOS: carrusel automático -->
+  <section class="ex-section ex-section-flush">
+    <div class="ex-section-header ex-section-header-padded">
+      <h2>Psicólogos verificados</h2>
+      <a href="/Explorar/Psicologos">Ver todos</a>
+    </div>
+
+    {psicologos.length === 0 && (
+      <p class="ex-vacio ex-section-header-padded">Aún no hay psicólogos verificados para mostrar.</p>
+    )}
+
+    <div class="ex-marquee" id="exMarquee">
+      <div class="ex-marquee-track">
+        {psicologosLoop.map((p) => (
+          <a href={`/Explorar/${p.id}`} class="ex-psi-card">
+            <img src={p.foto} alt={p.nombre} loading="lazy" />
+            <div class="ex-psi-body">
+              <h3>{p.nombre}</h3>
+              <p class="ex-psi-especialidad">{p.especialidad}</p>
+              <div class="ex-psi-tags">
+                {p.tags.map((tag) => <span>{tag}</span>)}
+              </div>
+              <small class="ex-psi-verificado">✓ Verificado · {p.modalidad}</small>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- OFERTAS LABORALES: estilo LinkedIn Jobs -->
+  <section class="ex-section">
+    <div class="ex-section-header">
+      <h2>Ofertas laborales recientes</h2>
+      <a href="/Explorar/OfertasLaborales">Ver todas</a>
+    </div>
+
+    {ofertas.length === 0 && (
+      <p class="ex-vacio">No hay ofertas laborales activas en este momento.</p>
+    )}
+
+    <div class="ex-grid ex-grid-3">
+      {ofertas.map((o) => (
+        <a href={`/Explorar/oferta/${o.id}`} class="ex-job-card">
+          <div class="ex-job-photo-wrap">
+            {o.foto ? (
+              <img src={o.foto} alt={o.empresa} class="ex-job-photo" />
+            ) : (
+              // Respaldo si la empresa aún no subió foto: sus iniciales
+              // sobre un fondo de color, en vez de una imagen rota.
+              <div class="ex-job-avatar-fallback">{iniciales(o.empresa)}</div>
+            )}
+          </div>
+          <div class="ex-job-body">
+            <h3>{o.cargo}</h3>
+            <p class="ex-job-empresa">{o.empresa}</p>
+            <div class="ex-job-divider"></div>
+            <p class="ex-job-meta">{o.lugar} · {o.salario}</p>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="ex-footer">
+    <div class="ex-footer-logo">
+      <img src="/Imagenes/logo.png" alt="Psynex" />
+      <span>Psynex</span>
+    </div>
+    <p>© 2026 Psynex.</p>
+  </footer>
+
+</main>
+
+<script>
+  // Pausa el carrusel automático de psicólogos si el usuario tiene
+  // activada la preferencia de accesibilidad "reducir movimiento".
+  const prefiereMenosMovimiento = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
+
+  if (prefiereMenosMovimiento) {
+    document.getElementById("exMarquee")?.classList.add("is-paused");
+  }
+</script>

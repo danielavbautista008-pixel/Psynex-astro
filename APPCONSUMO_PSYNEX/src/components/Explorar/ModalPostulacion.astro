@@ -1,0 +1,896 @@
+---
+interface Pregunta {
+  id: string;
+  pregunta: string;
+  tipo: "texto" | "seleccion";
+  opciones?: string[];
+  obligatoria?: boolean;
+}
+
+interface Oferta {
+  id: string;
+  cargo: string;
+  empresa: string;
+}
+
+interface Props {
+  oferta: Oferta;
+  // Psicólogo con sesión: su nombre y correo se llenan solos
+  usuario: { nombre: string; email: string } | null;
+  preguntas: Pregunta[];
+}
+
+const { oferta, usuario, preguntas } = Astro.props;
+---
+
+<div
+  class="modal-postulacion"
+  id="modalPostulacion"
+  aria-hidden="true"
+>
+  <div
+    class="modal-fondo"
+    id="fondoModalPostulacion"
+  ></div>
+
+  <section
+    class="modal-contenido"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tituloPostulacion"
+  >
+
+    <!-- CERRAR -->
+
+    <button
+      type="button"
+      class="cerrar-modal"
+      id="cerrarPostulacion"
+      aria-label="Cerrar ventana"
+    >
+      <i class="bi bi-x-lg" aria-hidden="true"></i>
+    </button>
+
+    <!-- CABECERA -->
+
+    <div class="modal-cabecera">
+
+      <span>Postulación</span>
+
+      <h2 id="tituloPostulacion">
+        Postularme a {oferta.cargo}
+      </h2>
+
+      <p>{oferta.empresa}</p>
+
+    </div>
+
+    <!-- FORMULARIO -->
+
+    <form id="formularioPostulacion" data-oferta-id={oferta.id}>
+
+      <!-- NOMBRE -->
+
+      <div class="campo-formulario">
+
+        <label for="nombrePostulante">
+          Nombre completo
+        </label>
+
+        <input
+          id="nombrePostulante"
+          name="nombre"
+          type="text"
+          placeholder="Escribe tu nombre completo"
+          autocomplete="name"
+          value={usuario?.nombre ?? ""}
+          required
+        />
+
+      </div>
+
+      <!-- CORREO + TELÉFONO -->
+
+      <div class="fila-formulario">
+
+        <div class="campo-formulario">
+
+          <label for="correoPostulante">
+            Correo electrónico
+          </label>
+
+          <input
+            id="correoPostulante"
+            name="correo"
+            type="email"
+            placeholder="correo@ejemplo.com"
+            autocomplete="email"
+            value={usuario?.email ?? ""}
+            required
+          />
+
+        </div>
+
+        <div class="campo-formulario">
+
+          <label for="telefonoPostulante">
+            Teléfono
+          </label>
+
+          <input
+            id="telefonoPostulante"
+            name="telefono"
+            type="tel"
+            placeholder="Tu teléfono"
+            autocomplete="tel"
+            required
+          />
+
+        </div>
+
+      </div>
+
+      <!-- DOCUMENTO -->
+
+      <div class="campo-formulario">
+
+        <label for="documentoPostulante">
+          Hoja de vida
+        </label>
+
+        <label
+          class="selector-documento"
+          for="documentoPostulante"
+        >
+
+          <i
+            class="bi bi-paperclip"
+            aria-hidden="true"
+          ></i>
+
+          <span>
+            Selecciona tu documento
+          </span>
+
+          <small>
+            PDF, máximo 5 MB
+          </small>
+
+        </label>
+
+        <input
+          class="input-documento"
+          id="documentoPostulante"
+          name="documento"
+          type="file"
+          accept=".pdf,application/pdf"
+          required
+        />
+
+        <p
+          class="nombre-documento"
+          id="nombreDocumento"
+        >
+          Ningún documento seleccionado
+        </p>
+
+      </div>
+
+      <!-- PREGUNTAS -->
+
+      {
+        preguntas.length > 0 && (
+          <div class="preguntas-empresa">
+
+            <div class="preguntas-titulo">
+
+              <span>
+                Solicitud de la empresa
+              </span>
+
+              <h3>
+                Preguntas
+              </h3>
+
+            </div>
+
+            {preguntas.map((pregunta, indice) => (
+              <div class="pregunta">
+
+                <label
+                  for={`pregunta-${pregunta.id}`}
+                >
+                  {indice + 1}. {pregunta.pregunta}
+
+                  {pregunta.obligatoria && (
+                    <strong> *</strong>
+                  )}
+                </label>
+
+                {pregunta.tipo === "texto" ? (
+                  <textarea
+                    id={`pregunta-${pregunta.id}`}
+                    name={`pregunta-${pregunta.id}`}
+                    rows="3"
+                    required={pregunta.obligatoria}
+                    placeholder="Escribe tu respuesta"
+                  ></textarea>
+                ) : (
+                  <div class="opciones-pregunta">
+
+                    {pregunta.opciones?.map((opcion) => (
+                      <label class="opcion">
+
+                        <input
+                          type="radio"
+                          name={`pregunta-${pregunta.id}`}
+                          value={opcion}
+                          required={pregunta.obligatoria}
+                        />
+
+                        <span>{opcion}</span>
+
+                      </label>
+                    ))}
+
+                  </div>
+                )}
+
+              </div>
+            ))}
+
+          </div>
+        )
+      }
+
+      <!-- MENSAJE -->
+
+      <div class="campo-formulario">
+
+        <label for="mensajePostulante">
+          Mensaje <span>(opcional)</span>
+        </label>
+
+        <textarea
+          id="mensajePostulante"
+          name="cartaPresentacion"
+          rows="3"
+          placeholder="Escribe un mensaje para la empresa..."
+        ></textarea>
+
+      </div>
+
+      <p class="error-postulacion" id="errorPostulacion" hidden></p>
+
+      <!-- ENVIAR -->
+
+      <button
+        type="submit"
+        class="btn-enviar-postulacion"
+        id="enviarPostulacion"
+      >
+        <span>Enviar postulación</span>
+
+        <i
+          class="bi bi-arrow-right"
+          aria-hidden="true"
+        ></i>
+      </button>
+
+    </form>
+
+  </section>
+</div>
+
+<style>
+  .modal-postulacion {
+    position: fixed;
+    inset: 0;
+
+    z-index: 9999;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+  }
+
+  .modal-postulacion.modal-visible {
+    display: flex;
+  }
+
+  .modal-fondo {
+    position: absolute;
+    inset: 0;
+
+    background: color-mix(
+      in srgb,
+      var(--text) 45%,
+      transparent
+    );
+
+    backdrop-filter: blur(4px);
+
+    animation: aparecerFondo 0.2s ease;
+  }
+
+  .modal-contenido {
+    position: relative;
+    z-index: 1;
+
+    width: min(520px, 100%);
+    max-height: 88vh;
+
+    overflow-y: auto;
+
+    padding: 22px 22px 20px;
+
+    border: 1px solid var(--border);
+    border-radius: 20px;
+
+    background: var(--surface);
+    color: var(--text);
+
+    box-shadow:
+      0 25px 70px
+      color-mix(
+        in srgb,
+        var(--text) 22%,
+        transparent
+      );
+
+    animation: aparecerModal 0.25s ease;
+  }
+
+  /* CERRAR */
+
+  .cerrar-modal {
+    position: absolute;
+
+    top: 18px;
+    right: 18px;
+
+    width: 34px;
+    height: 34px;
+
+    display: grid;
+    place-items: center;
+
+    border: 0;
+    border-radius: 50%;
+
+    background: var(--primary-soft);
+    color: var(--text);
+
+    cursor: pointer;
+
+    transition:
+      background 0.2s ease,
+      color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .cerrar-modal:hover {
+    background: var(--primary);
+    color: var(--on-primary);
+
+    transform: rotate(5deg);
+  }
+
+  /* CABECERA */
+
+  .modal-cabecera {
+    padding-right: 40px;
+    margin-bottom: 16px;
+  }
+
+  .modal-cabecera > span {
+    color: var(--primary);
+
+    font-size: 0.65rem;
+    font-weight: 700;
+
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .modal-cabecera h2 {
+    margin: 6px 0;
+
+    font-family: "Roboto", Arial, sans-serif;
+
+    font-size: 1.12rem;
+    line-height: 1.25;
+
+    font-weight: 700;
+  }
+
+  .modal-cabecera p {
+    margin: 0;
+
+    color: var(--text-muted);
+
+    font-size: 0.78rem;
+  }
+
+  /* CAMPOS */
+
+  .campo-formulario {
+    margin-bottom: 12px;
+  }
+
+  .campo-formulario > label,
+  .pregunta > label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: var(--text);
+
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .campo-formulario label span {
+    color: var(--text-muted);
+
+    font-weight: 400;
+  }
+
+  .campo-formulario input:not([type="file"]),
+  .campo-formulario textarea,
+  .pregunta textarea {
+    width: 100%;
+
+    border: 1px solid var(--border);
+    border-radius: 9px;
+
+    padding: 9px 11px;
+
+    outline: none;
+
+    background: var(--surface);
+    color: var(--text);
+
+    font-family: inherit;
+    font-size: 0.75rem;
+
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .campo-formulario textarea,
+  .pregunta textarea {
+    resize: vertical;
+    min-height: 64px;
+  }
+
+  .campo-formulario input:focus,
+  .campo-formulario textarea:focus,
+  .pregunta textarea:focus {
+    border-color: var(--primary);
+
+    box-shadow:
+      0 0 0 3px
+      color-mix(
+        in srgb,
+        var(--primary) 12%,
+        transparent
+      );
+  }
+
+  /* DOS COLUMNAS */
+
+  .fila-formulario {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 14px;
+  }
+
+  /* DOCUMENTO */
+
+  .input-documento {
+    position: absolute;
+
+    width: 1px;
+    height: 1px;
+
+    opacity: 0;
+
+    pointer-events: none;
+  }
+
+  .selector-documento {
+    min-height: 56px;
+
+    display: flex !important;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 4px;
+
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+
+    background: var(--primary-soft);
+
+    color: var(--primary) !important;
+
+    cursor: pointer;
+
+    transition:
+      border-color 0.2s ease,
+      transform 0.2s ease,
+      background 0.2s ease;
+  }
+
+  .selector-documento:hover {
+    border-color: var(--primary);
+
+    transform: translateY(-1px);
+  }
+
+  .selector-documento i {
+    font-size: 1rem;
+  }
+
+  .selector-documento small {
+    color: var(--text-muted);
+
+    font-size: 0.58rem;
+    font-weight: 400;
+  }
+
+  .nombre-documento {
+    margin: 6px 0 0;
+
+    color: var(--text-muted);
+
+    font-size: 0.62rem;
+  }
+
+  /* PREGUNTAS */
+
+  .preguntas-empresa {
+    margin: 24px 0;
+
+    padding: 18px;
+
+    border-radius: 13px;
+
+    background: var(--primary-soft);
+  }
+
+  .preguntas-titulo {
+    margin-bottom: 18px;
+  }
+
+  .preguntas-titulo span {
+    color: var(--primary);
+
+    font-size: 0.62rem;
+    font-weight: 700;
+
+    text-transform: uppercase;
+  }
+
+  .preguntas-titulo h3 {
+    margin: 4px 0 0;
+
+    font-size: 0.95rem;
+  }
+
+  .pregunta {
+    margin-bottom: 18px;
+  }
+
+  .pregunta:last-child {
+    margin-bottom: 0;
+  }
+
+  .pregunta strong {
+    color: var(--primary);
+  }
+
+  /* OPCIONES */
+
+  .opciones-pregunta {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 8px;
+  }
+
+  .opcion {
+    position: relative;
+
+    cursor: pointer;
+  }
+
+  .opcion input {
+    position: absolute;
+
+    opacity: 0;
+
+    pointer-events: none;
+  }
+
+  .opcion span {
+    display: block;
+
+    padding: 8px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    background: var(--surface);
+
+    color: var(--text-muted);
+
+    font-size: 0.67rem;
+
+    transition:
+      background 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .opcion:hover span {
+    border-color: var(--primary);
+
+    color: var(--primary);
+  }
+
+  .opcion input:checked + span {
+    border-color: var(--primary);
+
+    background: var(--primary);
+
+    color: var(--on-primary);
+
+    transform: translateY(-1px);
+  }
+
+  /* BOTÓN */
+
+  .btn-enviar-postulacion {
+    width: 100%;
+    min-height: 38px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    margin-top: 8px;
+
+    border: 0;
+    border-radius: 10px;
+
+    background: var(--primary);
+    color: var(--on-primary);
+
+    font-family: inherit;
+
+    font-size: 0.75rem;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+      background 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .btn-enviar-postulacion i {
+    transition: transform 0.2s ease;
+  }
+
+  .btn-enviar-postulacion:hover {
+    background: var(--primary-hover);
+
+    transform: translateY(-1px);
+  }
+
+  .btn-enviar-postulacion:hover i {
+    transform: translateX(3px);
+  }
+
+  .btn-enviar-postulacion:active {
+    transform: scale(0.98);
+  }
+
+  .error-postulacion {
+    margin: 0 0 10px;
+    padding: 8px 10px;
+
+    border-radius: 8px;
+
+    background: var(--danger-bg);
+    color: var(--danger-fg);
+
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+
+  .error-postulacion[hidden] {
+    display: none;
+  }
+
+  .btn-enviar-postulacion:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* BLOQUEAR SCROLL */
+
+  :global(body.modal-abierto) {
+    overflow: hidden;
+  }
+
+  /* ANIMACIONES */
+
+  @keyframes aparecerFondo {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes aparecerModal {
+    from {
+      opacity: 0;
+
+      transform:
+        translateY(12px)
+        scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+
+      transform:
+        translateY(0)
+        scale(1);
+    }
+  }
+
+  /* MÓVIL */
+
+  @media (max-width: 600px) {
+    .modal-postulacion {
+      padding: 12px;
+    }
+
+    .modal-contenido {
+      padding: 22px 18px;
+
+      border-radius: 16px;
+
+      max-height: 94vh;
+    }
+
+    .fila-formulario {
+      grid-template-columns: 1fr;
+
+      gap: 0;
+    }
+
+    .modal-cabecera h2 {
+      font-size: 1.15rem;
+    }
+  }
+</style>
+
+<script>
+  import { apiEnviar, textoError } from "../../lib/api";
+
+  const inputDocumento =
+    document.querySelector<HTMLInputElement>(
+      "#documentoPostulante"
+    );
+
+  const nombreDocumento =
+    document.querySelector<HTMLElement>(
+      "#nombreDocumento"
+    );
+
+  inputDocumento?.addEventListener("change", () => {
+    const archivo = inputDocumento.files?.[0];
+
+    if (archivo && nombreDocumento) {
+      nombreDocumento.textContent = archivo.name;
+    }
+  });
+
+  const formulario =
+    document.querySelector<HTMLFormElement>(
+      "#formularioPostulacion"
+    );
+
+  const errorPostulacion =
+    document.querySelector<HTMLElement>(
+      "#errorPostulacion"
+    );
+
+  const botonEnviar =
+    document.querySelector<HTMLButtonElement>(
+      "#enviarPostulacion"
+    );
+
+  const mostrarError = (mensaje: string) => {
+    if (!errorPostulacion) return;
+    errorPostulacion.textContent = mensaje;
+    errorPostulacion.hidden = !mensaje;
+  };
+
+  formulario?.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    mostrarError("");
+
+    const telefono = String(new FormData(formulario).get("telefono") ?? "").replace(/\D/g, "");
+    if (telefono.length < 7 || telefono.length > 15) {
+      mostrarError("Escribe un teléfono válido (solo números).");
+      return;
+    }
+
+    const archivo = inputDocumento?.files?.[0];
+    if (archivo && (archivo.size > 5 * 1024 * 1024 || !/\.pdf$/i.test(archivo.name))) {
+      mostrarError("La hoja de vida debe ser un PDF de máximo 5 MB.");
+      return;
+    }
+
+    // Lo que guarda el backend (nombre y correo salen de la sesión)
+    const datos = new FormData();
+    datos.append("telefono", telefono);
+    datos.append("cartaPresentacion", String(new FormData(formulario).get("cartaPresentacion") ?? "").trim());
+    if (archivo) datos.append("hojaVida", archivo);
+
+    if (botonEnviar) botonEnviar.disabled = true;
+    const r = await apiEnviar("POST", `/api/psicologo/ofertas/${formulario.dataset.ofertaId}/postular`, datos);
+    if (botonEnviar) botonEnviar.disabled = false;
+
+    if (!r.ok) {
+      mostrarError(
+        r.status === 401
+          ? "Tu sesión terminó. Vuelve a iniciar sesión para postularte."
+          : textoError(r.data, "No se pudo enviar la postulación"),
+      );
+      return;
+    }
+
+    // Cierra el formulario, avisa y deja el botón como "Ya te postulaste"
+    document.querySelector<HTMLButtonElement>("#cerrarPostulacion")?.click();
+    formulario.reset();
+    const botonPagina = document.querySelector<HTMLButtonElement>("#abrirPostulacion");
+    const textoPagina = document.querySelector<HTMLElement>("#textoPostular");
+    if (botonPagina) botonPagina.disabled = true;
+    if (textoPagina) textoPagina.textContent = "Ya te postulaste";
+
+    document.dispatchEvent(
+      new CustomEvent("psynex:modal", {
+        detail: {
+          tipo: "aviso",
+          titulo: "¡Postulación enviada!",
+          mensaje: "La empresa recibirá tu postulación. Te avisaremos cuando revise tu perfil.",
+          icono: "bi-check2-circle",
+        },
+      }),
+    );
+  });
+</script>

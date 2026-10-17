@@ -1,0 +1,1026 @@
+---
+import "./Perfilpsicologo.css";
+import ModalSesion from "./ModalSesion.astro";
+import { fotoIniciales, pesos, urlFotoPsicologo } from "../../lib/api";
+
+// Los datos llegan desde la página /Explorar/[id].astro, que los pide a
+// GET /api/explorar/psicologos/:id. "rol" es el rol del visitante
+// (null si no tiene sesión): con eso el botón "Agendar" sabe qué hacer.
+interface Estudio {
+  Universidad: string;
+  Titulo: string;
+  NivelEstudio: string;
+  AnioGrado: number | null;
+  EnCurso: number;
+}
+
+interface Experiencia {
+  Empresa: string;
+  Cargo: string;
+  Descripcion: string;
+  AnioInicio: number | null;
+  AnioFin: number | null;
+  TrabajaAqui: number;
+}
+
+interface Resena {
+  nombre: string;
+  puntaje: number;
+  comentario: string;
+  fecha: string;
+}
+
+export interface PsicologoPublico {
+  id: string;
+  nombre: string;
+  titulo: string;
+  biografia: string;
+  especialidades: string[];
+  modalidades: string[];
+  modalidadTexto: string;
+  experienciaTexto: string;
+  disponibilidad: string;
+  disponibilidadTexto: string;
+  calificacion: number | null;
+  totalResenas: number;
+  precio: number;
+  voluntario: boolean;
+  duracionMinutos: number;
+  tieneFoto: boolean;
+  direccion: string;
+  estudios: Estudio[];
+  experiencia: Experiencia[];
+  resenas: Resena[];
+}
+
+interface Props {
+  psicologo: PsicologoPublico;
+  rol: string | null;
+}
+
+const { psicologo: p, rol } = Astro.props;
+
+const psicologo = {
+  nombre: p.nombre,
+  especialidad: p.titulo,
+  experiencia: p.experienciaTexto,
+  descripcion: p.biografia,
+  especialidades: p.especialidades,
+  modalidad: p.modalidadTexto,
+  disponibilidad: p.disponibilidadTexto,
+  calificacion: p.calificacion === null ? "Nuevo" : p.calificacion.toFixed(1),
+  totalResenas: p.totalResenas,
+  precio: p.voluntario && !p.precio ? "Sin costo" : p.precio > 0 ? pesos(p.precio) : "Por confirmar",
+  imagen: p.tieneFoto ? urlFotoPsicologo(p.id) : fotoIniciales(p.nombre),
+};
+
+// "Hace 2 semanas" a partir de la fecha de la reseña
+const haceCuanto = (fecha: string) => {
+  const dias = Math.floor((Date.now() - new Date(fecha).getTime()) / 86_400_000);
+  if (dias < 1) return "Hoy";
+  if (dias < 7) return `Hace ${dias} día${dias === 1 ? "" : "s"}`;
+  if (dias < 30) return `Hace ${Math.floor(dias / 7)} semana${dias < 14 ? "" : "s"}`;
+  if (dias < 365) return `Hace ${Math.floor(dias / 30)} mes${dias < 60 ? "" : "es"}`;
+  return `Hace ${Math.floor(dias / 365)} año${dias < 730 ? "" : "s"}`;
+};
+
+const resenas = p.resenas.map((r) => ({
+  nombre: r.nombre,
+  inicial: r.nombre.charAt(0).toUpperCase(),
+  calificacion: r.puntaje.toFixed(1),
+  fecha: haceCuanto(r.fecha),
+  comentario: r.comentario,
+}));
+
+const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
+  `${desde ?? ""}${desde ? " — " : ""}${actual ? "Actualmente" : (hasta ?? "")}`.trim();
+---
+
+<div
+  class="perfil-page"
+  id="perfilPsicologo"
+  data-psicologo-id={p.id}
+  data-rol={rol ?? ""}
+>
+
+  <!-- VOLVER -->
+  <div class="perfil-topbar">
+    <a href="/Explorar/Psicologos" class="volver-link">
+      <span class="volver-icon">
+        <i class="bi bi-arrow-left"></i>
+      </span>
+      Volver a psicólogos
+    </a>
+  </div>
+
+  <!-- INFORMACIÓN PRINCIPAL -->
+  <section class="perfil-hero">
+
+    <div class="hero-decoracion hero-decoracion-uno"></div>
+    <div class="hero-decoracion hero-decoracion-dos"></div>
+
+    <div class="perfil-foto-contenedor">
+      <img
+        src={psicologo.imagen}
+        alt={`Foto de ${psicologo.nombre}`}
+        class="perfil-foto"
+      />
+
+      {p.disponibilidad !== "sin-horario" && (
+        <span class="estado-foto">
+          <span class="estado-punto"></span>
+          Disponible
+        </span>
+      )}
+    </div>
+
+    <div class="perfil-hero-info">
+
+      <div class="perfil-nombre-linea">
+        <h1>{psicologo.nombre}</h1>
+
+        <span class="verificado">
+          <i class="bi bi-patch-check-fill"></i>
+          Verificado
+        </span>
+      </div>
+
+      <p class="perfil-profesion">
+        {psicologo.especialidad}
+      </p>
+
+      <div class="perfil-rating">
+        <span class="rating-estrellas">
+          <i class="bi bi-star-fill"></i>
+          <strong>{psicologo.calificacion}</strong>
+        </span>
+
+        <span class="rating-separador"></span>
+
+        <span>{psicologo.totalResenas} reseñas</span>
+
+        <span class="rating-separador"></span>
+
+        <span>
+          <i class="bi bi-briefcase"></i>
+          {psicologo.experiencia}
+        </span>
+      </div>
+
+      <div class="especialidades-hero">
+        {
+          psicologo.especialidades.slice(0, 4).map((especialidad) => (
+            <span>{especialidad}</span>
+          ))
+        }
+      </div>
+
+      <div class="hero-bottom">
+
+        <div class="precio">
+          <small>Consulta desde</small>
+          <strong>{psicologo.precio}</strong>
+          <span>por sesión</span>
+        </div>
+
+        <button class="btn-agendar" id="abrirModal" type="button">
+          <i class="bi bi-calendar2-check"></i>
+          Agendar cita
+          <i class="bi bi-arrow-right"></i>
+        </button>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- NAVEGACIÓN INTERNA -->
+  <nav class="perfil-nav">
+    <a href="#sobre-mi" class="activo">Sobre mí</a>
+    <a href="#enfoque">Formación</a>
+    <a href="#especialidades">Especialidades</a>
+    <a href="#experiencia">Experiencia</a>
+    <a href="#resenas">Reseñas</a>
+  </nav>
+
+  <!-- CONTENIDO -->
+  <div class="perfil-grid">
+
+    <!-- COLUMNA PRINCIPAL -->
+    <main class="perfil-main">
+
+      <!-- SOBRE MÍ -->
+      <section class="contenido-card" id="sobre-mi">
+        <div class="titulo-seccion">
+          <span class="titulo-icono">
+            <i class="bi bi-person-heart"></i>
+          </span>
+
+          <div>
+            <h2>Sobre mí</h2>
+            <p>Conoce un poco más sobre mi forma de acompañarte</p>
+          </div>
+        </div>
+
+        {
+          psicologo.descripcion ? (
+            psicologo.descripcion
+              .split(/\n+/)
+              .filter((parrafo) => parrafo.trim())
+              .map((parrafo) => <p class="texto-principal">{parrafo}</p>)
+          ) : (
+            <p class="texto-principal">
+              Este profesional aún no ha escrito su presentación. Puedes
+              agendar una primera cita para conocer su forma de trabajo.
+            </p>
+          )
+        }
+      </section>
+
+      <!-- FORMACIÓN (estudios registrados por el psicólogo) -->
+      <section class="contenido-card" id="enfoque">
+        <div class="titulo-seccion">
+          <span class="titulo-icono">
+            <i class="bi bi-mortarboard"></i>
+          </span>
+
+          <div>
+            <h2>Formación</h2>
+            <p>Estudios y preparación profesional</p>
+          </div>
+        </div>
+
+        {
+          p.estudios.length === 0 ? (
+            <p class="texto-principal">Formación académica revisada por Psynex durante la verificación.</p>
+          ) : (
+            p.estudios.map((estudio) => (
+              <div class="enfoque-box">
+                <div class="enfoque-icono">
+                  <i class="bi bi-mortarboard"></i>
+                </div>
+
+                <div>
+                  <h3>{estudio.Titulo}</h3>
+                  <p>
+                    {estudio.Universidad}
+                    {estudio.NivelEstudio ? ` · ${estudio.NivelEstudio}` : ""}
+                    {Number(estudio.EnCurso) === 1 ? " · En curso" : estudio.AnioGrado ? ` · ${estudio.AnioGrado}` : ""}
+                  </p>
+                </div>
+              </div>
+            ))
+          )
+        }
+      </section>
+
+      <!-- ESPECIALIDADES -->
+      <section class="contenido-card" id="especialidades">
+        <div class="titulo-seccion">
+          <span class="titulo-icono">
+            <i class="bi bi-grid"></i>
+          </span>
+
+          <div>
+            <h2>Especialidades</h2>
+            <p>Áreas en las que puedo acompañarte</p>
+          </div>
+        </div>
+
+        {
+          psicologo.especialidades.length === 0 ? (
+            <p class="texto-principal">Aún no ha registrado sus especialidades.</p>
+          ) : (
+            <div class="especialidades-grid">
+              {
+                psicologo.especialidades.map((especialidad, index) => (
+                  <div class="especialidad-item">
+                    <span class="especialidad-numero">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+
+                    <span>{especialidad}</span>
+
+                    <i class="bi bi-arrow-up-right"></i>
+                  </div>
+                ))
+              }
+            </div>
+          )
+        }
+      </section>
+
+      <!-- EXPERIENCIA -->
+      <section class="contenido-card" id="experiencia">
+        <div class="titulo-seccion">
+          <span class="titulo-icono">
+            <i class="bi bi-award"></i>
+          </span>
+
+          <div>
+            <h2>Experiencia</h2>
+            <p>Trayectoria profesional</p>
+          </div>
+        </div>
+
+        {
+          p.experiencia.length === 0 ? (
+            <p class="texto-principal">Aún no ha registrado su experiencia profesional.</p>
+          ) : (
+            p.experiencia.map((item) => (
+              <div class="experiencia-item">
+                <div class="experiencia-punto"></div>
+
+                <div class="experiencia-contenido">
+                  <span class="experiencia-fecha">
+                    {periodo(item.AnioInicio, item.AnioFin, Number(item.TrabajaAqui) === 1)}
+                  </span>
+                  <h3>{item.Cargo}</h3>
+                  <p>
+                    <strong>{item.Empresa}</strong>
+                    {item.Descripcion ? ` — ${item.Descripcion}` : ""}
+                  </p>
+                </div>
+              </div>
+            ))
+          )
+        }
+      </section>
+
+      <!-- RESEÑAS -->
+      <section class="contenido-card resenas-card" id="resenas">
+
+        <div class="resenas-header">
+
+          <div class="titulo-seccion">
+            <span class="titulo-icono">
+              <i class="bi bi-chat-heart"></i>
+            </span>
+
+            <div>
+              <h2>Reseñas</h2>
+              <p>Lo que dicen algunas personas</p>
+            </div>
+          </div>
+
+          <div class="resenas-rating">
+            <strong>{psicologo.calificacion}</strong>
+
+            <div>
+              <div class="mini-estrellas">
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+              </div>
+
+              <small>{psicologo.totalResenas} opiniones</small>
+            </div>
+          </div>
+
+        </div>
+
+        {
+          resenas.length === 0 ? (
+            <p class="texto-principal">
+              Todavía no hay reseñas. Las opiniones aparecen aquí cuando los
+              pacientes califican sus sesiones.
+            </p>
+          ) : (
+            <>
+              <div class="resenas-slider">
+
+                <button
+                  type="button"
+                  class="resena-control anterior"
+                  id="resenaAnterior"
+                  aria-label="Reseña anterior"
+                >
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <div class="resenas-viewport">
+                  <div class="resenas-track" id="resenasTrack">
+
+                    {
+                      resenas.map((resena) => (
+                        <article class="resena-item">
+
+                          <div class="resena-top">
+
+                            <div class="resena-persona">
+                              <span class="avatar-resena">
+                                {resena.inicial}
+                              </span>
+
+                              <div>
+                                <strong>{resena.nombre}</strong>
+                                <small>{resena.fecha}</small>
+                              </div>
+                            </div>
+
+                            <div class="resena-calificacion">
+                              <i class="bi bi-star-fill"></i>
+                              {resena.calificacion}
+                            </div>
+
+                          </div>
+
+                          <p>
+                            “{resena.comentario}”
+                          </p>
+
+                        </article>
+                      ))
+                    }
+
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  class="resena-control siguiente"
+                  id="resenaSiguiente"
+                  aria-label="Siguiente reseña"
+                >
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+
+              </div>
+
+              <div class="resenas-indicadores" id="resenasIndicadores">
+                {
+                  resenas.map((_, index) => (
+                    <button
+                      type="button"
+                      class:list={{ activo: index === 0 }}
+                      data-review-index={index}
+                      aria-label={`Ver reseña ${index + 1}`}
+                    ></button>
+                  ))
+                }
+              </div>
+            </>
+          )
+        }
+
+      </section>
+
+    </main>
+
+    <!-- COLUMNA LATERAL -->
+    <aside class="perfil-sidebar">
+
+      <!-- INFORMACIÓN -->
+      <section class="sidebar-card">
+        <div class="sidebar-titulo">
+          <span>
+            <i class="bi bi-info-circle"></i>
+          </span>
+
+          <h3>Información</h3>
+        </div>
+
+        <div class="info-item">
+          <span class="info-icono">
+            <i class="bi bi-camera-video"></i>
+          </span>
+
+          <div>
+            <small>Modalidad</small>
+            <strong>{psicologo.modalidad}</strong>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <span class="info-icono">
+            <i class="bi bi-calendar-week"></i>
+          </span>
+
+          <div>
+            <small>Disponibilidad</small>
+            <strong>{psicologo.disponibilidad}</strong>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <span class="info-icono">
+            <i class="bi bi-clock"></i>
+          </span>
+
+          <div>
+            <small>Duración</small>
+            <strong>{p.duracionMinutos} minutos</strong>
+          </div>
+        </div>
+
+        {p.direccion && p.modalidades.includes("Presencial") && (
+          <div class="info-item">
+            <span class="info-icono">
+              <i class="bi bi-geo-alt"></i>
+            </span>
+
+            <div>
+              <small>Consultorio</small>
+              <strong>{p.direccion}</strong>
+            </div>
+          </div>
+        )}
+
+      </section>
+
+      <!-- SEGURIDAD -->
+      <section class="seguridad-card">
+
+        <div class="seguridad-icono">
+          <i class="bi bi-shield-check"></i>
+        </div>
+
+        <div>
+          <h3>Perfil verificado</h3>
+
+          <p>
+            Psynex revisó los documentos profesionales de este
+            especialista (tarjeta profesional, diploma y vigencia).
+          </p>
+        </div>
+
+      </section>
+
+      <!-- MINI CTA -->
+      <section class="sidebar-cita">
+
+        <span class="sidebar-cita-icono">
+          <i class="bi bi-calendar-heart"></i>
+        </span>
+
+        <h3>¿Quieres comenzar?</h3>
+
+        <p>
+          Elige el horario que mejor se adapte a ti.
+        </p>
+
+        <button type="button" class="sidebar-btn" id="abrirModalSidebar">
+          Ver disponibilidad
+          <i class="bi bi-arrow-right"></i>
+        </button>
+
+      </section>
+
+    </aside>
+
+  </div>
+</div>
+
+
+<!-- ========================================= -->
+<!-- MODAL AGENDAR CITA -->
+<!-- ========================================= -->
+
+<div class="modal-cita" id="modalCita" aria-hidden="true">
+
+  <div class="modal-overlay" id="cerrarModalOverlay"></div>
+
+  <div
+    class="modal-contenido"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tituloModalCita"
+  >
+
+    <button
+      type="button"
+      class="modal-cerrar"
+      id="cerrarModal"
+      aria-label="Cerrar"
+    >
+      <i class="bi bi-x-lg"></i>
+    </button>
+
+    <div class="modal-header">
+
+      <span class="modal-header-icono">
+        <i class="bi bi-calendar2-check"></i>
+      </span>
+
+      <div>
+        <span>Agenda tu sesión</span>
+        <h2 id="tituloModalCita">Elige cuándo quieres venir</h2>
+      </div>
+
+    </div>
+
+    <!-- PASO 1 -->
+    <div class="modal-paso">
+
+      <div class="paso-titulo">
+        <span>1</span>
+
+        <div>
+          <strong>Modalidad</strong>
+          <small>¿Cómo prefieres tu sesión?</small>
+        </div>
+      </div>
+
+      <div class="modal-opciones modalidad-opciones">
+
+        <button
+          type="button"
+          class="modal-opcion modalidad-btn seleccionado"
+          data-modalidad="Virtual"
+        >
+          <span>
+            <i class="bi bi-camera-video"></i>
+          </span>
+
+          <div>
+            <strong>Virtual</strong>
+            <small>Desde donde estés</small>
+          </div>
+
+          <i class="bi bi-check-circle-fill opcion-check"></i>
+        </button>
+
+        <button
+          type="button"
+          class="modal-opcion modalidad-btn"
+          data-modalidad="Presencial"
+        >
+          <span>
+            <i class="bi bi-geo-alt"></i>
+          </span>
+
+          <div>
+            <strong>Presencial</strong>
+            <small>En consultorio</small>
+          </div>
+
+          <i class="bi bi-check-circle-fill opcion-check"></i>
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="modal-paso">
+
+      <div class="paso-titulo">
+        <span>2</span>
+
+        <div>
+          <strong>Fecha</strong>
+          <small>Selecciona un día disponible</small>
+        </div>
+      </div>
+
+      <!-- Los días los llena el script con la agenda real del psicólogo -->
+      <div class="fechas-scroll" id="listaFechas"></div>
+
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="modal-paso">
+
+      <div class="paso-titulo">
+        <span>3</span>
+
+        <div>
+          <strong>Hora</strong>
+          <small>Selecciona un horario</small>
+        </div>
+      </div>
+
+      <div class="horarios-grid" id="listaHoras"></div>
+
+    </div>
+
+    <!-- RESUMEN -->
+    <div class="cita-resumen">
+
+      <div class="resumen-icono">
+        <i class="bi bi-calendar-heart"></i>
+      </div>
+
+      <div class="resumen-info">
+
+        <small>Tu selección</small>
+
+        <strong>
+          <span id="resumenModalidad">Virtual</span>
+          <span class="resumen-punto">•</span>
+          <span id="resumenFecha">—</span>
+          <span class="resumen-punto">•</span>
+          <span id="resumenHora">—</span>
+        </strong>
+
+      </div>
+
+    </div>
+
+    <button type="button" class="btn-continuar" id="continuarCita">
+      Continuar
+      <i class="bi bi-arrow-right"></i>
+    </button>
+
+  </div>
+</div>
+
+
+
+<ModalSesion />
+
+
+<script>
+  import { API_URL, apiEnviar, textoError } from "../../lib/api";
+
+  interface DiaDisponible {
+    fecha: string;
+    dia: string;
+    horas: string[];
+  }
+
+  const pagina = document.getElementById("perfilPsicologo");
+  const psicologoId = pagina?.dataset.psicologoId ?? "";
+  const rol = pagina?.dataset.rol ?? "";
+
+  /* =========================================
+     MODAL AGENDAR
+     Cualquier visitante puede abrirlo y VER la agenda real.
+     Al intentar elegir modalidad, fecha u hora sin sesión
+     de paciente, aparece el aviso para iniciar sesión.
+  ========================================= */
+
+  const modal = document.getElementById("modalCita");
+
+  const aviso = (titulo: string, mensaje: string, tipo: "sesion" | "aviso" = "aviso", icono = "bi-calendar2-check") =>
+    document.dispatchEvent(
+      new CustomEvent("psynex:modal", { detail: { tipo, titulo, mensaje, icono } }),
+    );
+
+  // true si puede elegir; si no, muestra el aviso que corresponde
+  const puedeElegir = () => {
+    if (!rol) {
+      aviso(
+        "Inicia sesión para agendar",
+        "Necesitas una cuenta de paciente para elegir tu cita. Es gratis.",
+        "sesion",
+      );
+      return false;
+    }
+    if (rol !== "Paciente") {
+      aviso(
+        "Solo para pacientes",
+        "Ingresa con una cuenta de paciente para agendar una cita.",
+      );
+      return false;
+    }
+    return true;
+  };
+
+  const cerrar = () => {
+    if (!modal) return;
+    modal.classList.remove("visible");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-abierto");
+  };
+
+  const abrir = () => {
+    if (!modal) return;
+    modal.classList.add("visible");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-abierto");
+    void cargarDisponibilidad();
+  };
+
+  document.getElementById("abrirModal")?.addEventListener("click", abrir);
+  document.getElementById("abrirModalSidebar")?.addEventListener("click", abrir);
+  document.getElementById("cerrarModal")?.addEventListener("click", cerrar);
+  document.getElementById("cerrarModalOverlay")?.addEventListener("click", cerrar);
+
+  document.addEventListener("keydown", (event: KeyboardEvent) => {
+    if (event.key === "Escape" && modal?.classList.contains("visible")) cerrar();
+  });
+
+  /* =========================================
+     AGENDA (fechas y horas reales)
+  ========================================= */
+
+  const seleccion = { modalidad: "Virtual", fecha: "", hora: "" };
+
+  const resumenModalidad = document.getElementById("resumenModalidad");
+  const resumenFecha = document.getElementById("resumenFecha");
+  const resumenHora = document.getElementById("resumenHora");
+  const continuar = document.getElementById("continuarCita") as HTMLButtonElement | null;
+  const listaFechas = document.getElementById("listaFechas");
+  const listaHoras = document.getElementById("listaHoras");
+
+  let dias: DiaDisponible[] = [];
+  // Día cuyas horas se están mostrando (aunque todavía no esté elegido)
+  let diaVisible = "";
+
+  const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+  const DIAS_CORTOS: Record<string, string> = {
+    Lunes: "LUN", Martes: "MAR", Miercoles: "MIÉ", Jueves: "JUE",
+    Viernes: "VIE", Sabado: "SÁB", Domingo: "DOM",
+  };
+
+  // "2026-10-15" -> "Jue 15"
+  const textoFecha = (d: DiaDisponible) => {
+    const corto = DIAS_CORTOS[d.dia] ?? d.dia.slice(0, 3);
+    return `${corto.charAt(0)}${corto.slice(1).toLowerCase()} ${Number(d.fecha.slice(8, 10))}`;
+  };
+
+  // "14:30" -> "2:30 PM"
+  const textoHora = (h: string) => {
+    const [hh, mm] = h.split(":").map(Number);
+    return `${((hh + 11) % 12) + 1}:${String(mm).padStart(2, "0")} ${hh >= 12 ? "PM" : "AM"}`;
+  };
+
+  const actualizarResumen = () => {
+    const dia = dias.find((d) => d.fecha === seleccion.fecha);
+    if (resumenModalidad) resumenModalidad.textContent = seleccion.modalidad;
+    if (resumenFecha) resumenFecha.textContent = dia ? textoFecha(dia) : "—";
+    if (resumenHora) resumenHora.textContent = seleccion.hora ? textoHora(seleccion.hora) : "—";
+  };
+
+  // Modalidad
+  const modalidadButtons = document.querySelectorAll<HTMLElement>(".modalidad-btn");
+  modalidadButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      if (!puedeElegir()) return;
+      modalidadButtons.forEach((item) => item.classList.remove("seleccionado"));
+      button.classList.add("seleccionado");
+      seleccion.modalidad = button.dataset.modalidad ?? "Virtual";
+      actualizarResumen();
+    });
+  });
+
+  const pintarHoras = () => {
+    if (!listaHoras) return;
+    listaHoras.innerHTML = "";
+    const dia = dias.find((d) => d.fecha === diaVisible);
+    (dia?.horas ?? []).forEach((hora) => {
+      const boton = document.createElement("button");
+      boton.type = "button";
+      boton.className = "hora-btn" + (hora === seleccion.hora && dia?.fecha === seleccion.fecha ? " seleccionado" : "");
+      boton.textContent = textoHora(hora);
+      boton.addEventListener("click", () => {
+        if (!puedeElegir()) return;
+        seleccion.fecha = diaVisible;
+        seleccion.hora = hora;
+        pintarFechas();
+        pintarHoras();
+        actualizarResumen();
+      });
+      listaHoras.appendChild(boton);
+    });
+  };
+
+  const pintarFechas = () => {
+    if (!listaFechas) return;
+    listaFechas.innerHTML = "";
+
+    if (!dias.length) {
+      listaFechas.innerHTML = "<small>No hay horarios libres en las próximas dos semanas.</small>";
+      return;
+    }
+
+    dias.slice(0, 10).forEach((d) => {
+      const boton = document.createElement("button");
+      boton.type = "button";
+      boton.className = "fecha-btn" + (d.fecha === seleccion.fecha ? " seleccionado" : "");
+      boton.innerHTML =
+        `<small>${DIAS_CORTOS[d.dia] ?? ""}</small>` +
+        `<strong>${Number(d.fecha.slice(8, 10))}</strong>` +
+        `<span>${MESES[Number(d.fecha.slice(5, 7)) - 1]}</span>`;
+      boton.addEventListener("click", () => {
+        if (!puedeElegir()) return;
+        seleccion.fecha = d.fecha;
+        seleccion.hora = "";
+        diaVisible = d.fecha;
+        pintarFechas();
+        pintarHoras();
+        actualizarResumen();
+      });
+      listaFechas.appendChild(boton);
+    });
+  };
+
+  // Horarios libres de las próximas dos semanas
+  async function cargarDisponibilidad() {
+    if (listaFechas) listaFechas.innerHTML = "<small>Cargando horarios…</small>";
+    if (listaHoras) listaHoras.innerHTML = "";
+    try {
+      const res = await fetch(`${API_URL}/api/explorar/psicologos/${psicologoId}/disponibilidad?dias=14`);
+      const data = await res.json();
+      dias = res.ok ? (data.dias ?? []) : [];
+    } catch {
+      dias = [];
+    }
+    if (!dias.some((d) => d.fecha === seleccion.fecha)) {
+      seleccion.fecha = "";
+      seleccion.hora = "";
+    }
+    diaVisible = seleccion.fecha || dias[0]?.fecha || "";
+    pintarFechas();
+    pintarHoras();
+    actualizarResumen();
+  }
+
+  /* =========================================
+     CONTINUAR -> solicitar la cita
+  ========================================= */
+
+  continuar?.addEventListener("click", async () => {
+    if (!puedeElegir()) return;
+
+    if (!seleccion.fecha || !seleccion.hora) {
+      aviso("Elige fecha y hora", "Selecciona un día y un horario disponibles para continuar.");
+      return;
+    }
+
+    continuar.disabled = true;
+
+    const r = await apiEnviar("POST", `/api/explorar/psicologos/${psicologoId}/citas`, {
+      fecha: seleccion.fecha,
+      hora: seleccion.hora,
+      modalidad: seleccion.modalidad,
+    });
+
+    continuar.disabled = false;
+
+    if (r.ok) {
+      const dia = dias.find((d) => d.fecha === seleccion.fecha);
+      cerrar();
+      aviso(
+        "¡Solicitud enviada!",
+        `Pediste tu cita ${seleccion.modalidad.toLowerCase()} el ${dia ? textoFecha(dia) : seleccion.fecha} a las ${textoHora(seleccion.hora)}. Te avisaremos cuando el psicólogo la confirme.`,
+        "aviso",
+        "bi-check2-circle",
+      );
+      seleccion.hora = "";
+      return;
+    }
+
+    if (r.status === 401) {
+      cerrar();
+      aviso("Tu sesión terminó", "Vuelve a iniciar sesión para agendar tu cita.", "sesion");
+      return;
+    }
+
+    aviso("No se pudo agendar", textoError(r.data, "Inténtalo de nuevo en un momento."));
+    if (r.status === 409) await cargarDisponibilidad();
+  });
+
+  /* =========================================
+     CARRUSEL DE RESEÑAS
+  ========================================= */
+
+  const track = document.getElementById("resenasTrack");
+  const anterior = document.getElementById("resenaAnterior");
+  const siguiente = document.getElementById("resenaSiguiente");
+  const indicadores = document.querySelectorAll<HTMLElement>("[data-review-index]");
+
+  let indiceActual = 0;
+
+  const actualizarCarrusel = () => {
+    if (!track) return;
+    track.style.transform = `translateX(-${indiceActual * 100}%)`;
+    indicadores.forEach((indicador, index) => {
+      indicador.classList.toggle("activo", index === indiceActual);
+    });
+  };
+
+  siguiente?.addEventListener("click", () => {
+    indiceActual = (indiceActual + 1) % Math.max(indicadores.length, 1);
+    actualizarCarrusel();
+  });
+
+  anterior?.addEventListener("click", () => {
+    indiceActual = (indiceActual - 1 + indicadores.length) % Math.max(indicadores.length, 1);
+    actualizarCarrusel();
+  });
+
+  indicadores.forEach((indicador) => {
+    indicador.addEventListener("click", () => {
+      const valor = indicador.dataset.reviewIndex;
+      if (valor !== undefined) {
+        indiceActual = Number(valor);
+        actualizarCarrusel();
+      }
+    });
+  });
+
+  /* =========================================
+     CAMBIO DE SECCIÓN
+  ========================================= */
+
+  const enlaces = document.querySelectorAll<HTMLAnchorElement>(".perfil-nav a");
+  enlaces.forEach((enlace) => {
+    enlace.addEventListener("click", () => {
+      enlaces.forEach((item) => item.classList.remove("activo"));
+      enlace.classList.add("activo");
+    });
+  });
+</script>

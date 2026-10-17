@@ -1,0 +1,741 @@
+
+
+
+.questionnaires-page {
+  width: 100%;
+  min-height: calc(100vh - 100px);
+  margin: 0;
+  padding: 90px clamp(20px, 3vw, 46px) 44px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 12px;
+  animation: page-enter 420ms ease both;
+}
+
+
+
+.questionnaires-page *,
+.questionnaires-page *::before,
+.questionnaires-page *::after {
+  box-sizing: border-box;
+}
+
+.questionnaires-header {
+  display: block;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 24px;
+  padding: 8px 0 0;
+  overflow: visible;
+  visibility: visible;
+  opacity: 1;
+}
+.questionnaires-header .eyebrow {
+  display: block;
+  margin: 0 0 5px;
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  line-height: 1.5;
+}
+
+
+.questionnaires-header .eyebrow,
+.assignment-heading .eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--primary);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  line-height: 1.5;
+}
+
+.questionnaires-header h1 {
+  display: block !important;
+  position: relative;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  color: var(--text);
+  font-family:
+    "Fraunces",
+    Georgia,
+    serif;
+  font-size: 25px;
+  font-weight: 540;
+  line-height: 1.4;
+  text-align: left;
+  visibility: visible !important;
+  opacity: 1 !important;
+  overflow: visible;
+}
+.questionnaires-header > p {
+  display: block;
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.7;
+  visibility: visible;
+  opacity: 1;
+}
+@media (max-width: 768px) {
+  .questionnaires-header h1 {
+    font-size: 25px;
+  }
+}
+
+.questionnaires-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 265px) minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  transition: grid-template-columns 280ms ease, gap 280ms ease;
+}
+
+.questionnaires-sidebar {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.panel {
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 2px 12px rgb(40 20 30 / 2%);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.panel h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.panel-title,
+.library-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.panel-title {
+  margin-bottom: 12px;
+}
+
+.patient-total,
+.library-total,
+.category-count {
+  color: var(--text-muted);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+/* Categorías */
+
+.categories-panel > h2 {
+  margin-bottom: 12px;
+}
+
+.category-list,
+.patient-list,
+.questionnaire-list {
+  display: grid;
+  gap: 5px;
+}
+
+.category-button {
+  display: flex;
+  width: 100%;
+  min-height: 37px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.category-button:hover {
+  transform: translateX(2px);
+  background: var(--primary-soft);
+}
+
+.category-button.is-active {
+  border-color: var(--border);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* Búsquedas */
+
+.search-field {
+  display: block;
+  min-width: 0;
+  margin-bottom: 12px;
+}
+
+.search-field input,
+.form-field input,
+.form-field select,
+.form-field textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  outline: none;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.search-field input {
+  min-height: 39px;
+  padding: 10px 12px;
+}
+
+.search-field input::placeholder,
+.form-field input::placeholder,
+.form-field textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.9;
+}
+
+.search-field input:focus,
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Pacientes */
+
+.patient-button {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 7px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.patient-button:hover {
+  transform: translateX(2px);
+  background: var(--primary-soft);
+}
+
+.patient-button.is-selected {
+  border-color: var(--border);
+  background: var(--primary-soft);
+}
+
+.patient-initials {
+  display: flex;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--primary);
+  font-size: 10px;
+}
+
+.patient-information {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.patient-information strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.patient-information small {
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* Biblioteca */
+
+.library-panel {
+  padding: 18px;
+}
+
+.library-heading {
+  margin-bottom: 16px;
+}
+
+.library-heading h2 {
+  font-size: 17px;
+}
+
+.library-heading p {
+  margin: 5px 0 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.library-total {
+  padding-top: 4px;
+}
+
+.questionnaire-search {
+  margin-bottom: 13px;
+}
+
+.questionnaire-item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  animation: card-enter 280ms ease both;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.questionnaire-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  box-shadow: 0 5px 15px rgb(40 20 30 / 5%);
+}
+
+.questionnaire-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.questionnaire-copy h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.questionnaire-copy p {
+  margin: 5px 0 9px;
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.questionnaire-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 14px;
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.assign-button,
+.confirm-button {
+  display: inline-flex;
+  min-height: 35px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 14px;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.assign-button:hover,
+.confirm-button:hover {
+  transform: translateY(-1px);
+  background: var(--primary-hover);
+  box-shadow: 0 4px 10px var(--primary-soft);
+}
+
+.assign-button:active,
+.confirm-button:active {
+  transform: scale(0.98);
+}
+
+.empty-results {
+  margin: 20px 0 5px;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+/* Formulario integrado */
+
+.assignment-panel[hidden] {
+  display: none !important;
+}
+
+.assignment-panel {
+  position: sticky;
+  top: 18px;
+  opacity: 0;
+  transform: translateX(12px);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.assignment-panel.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.questionnaires-layout.has-assignment {
+  grid-template-columns: minmax(190px, 0.75fr) minmax(250px, 1fr) minmax(290px, 1.08fr);
+  gap: 12px;
+}
+
+.assignment-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.assignment-heading .eyebrow {
+  font-size: 9px;
+}
+
+.assignment-heading h2 {
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.close-assignment {
+  display: flex;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 19px;
+  cursor: pointer;
+  transition: transform 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.close-assignment:hover {
+  transform: rotate(90deg);
+  background: var(--primary-soft);
+  color: var(--text);
+}
+
+.assignment-description {
+  margin: 12px 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.assignment-divider {
+  height: 1px;
+  margin: 17px 0;
+  background: var(--border);
+}
+
+#assignment-form {
+  display: grid;
+  gap: 15px;
+}
+
+#assignment-form > h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form-field {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.form-field > span {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.form-field small {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.form-field input,
+.form-field select {
+  min-height: 39px;
+  padding: 9px 10px;
+}
+
+.form-field textarea {
+  min-height: 90px;
+  padding: 10px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.form-field select option {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.assignment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.cancel-button {
+  min-height: 35px;
+  padding: 9px 13px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease;
+}
+
+.cancel-button:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.assignment-feedback {
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--primary-soft);
+  color: var(--text);
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.assignment-disclaimer {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.empty-results[hidden],
+.patient-button[hidden],
+.questionnaire-item[hidden],
+.assignment-feedback[hidden] {
+  display: none !important;
+}
+
+/* Animaciones */
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Adaptación a pantallas medianas */
+
+@media (max-width: 1180px) {
+  .questionnaires-layout.has-assignment {
+    grid-template-columns: minmax(180px, 0.7fr) minmax(0, 1fr);
+  }
+
+  .questionnaires-layout.has-assignment .questionnaires-sidebar {
+    grid-row: 1 / span 2;
+  }
+
+  .questionnaires-layout.has-assignment .assignment-panel {
+    position: static;
+    grid-column: 2;
+  }
+}
+
+/* Adaptación móvil */
+
+@media (max-width: 760px) {
+  .questionnaires-page {
+    padding: 22px 14px 32px;
+  }
+
+  .questionnaires-header {
+    margin-bottom: 18px;
+  }
+
+  .questionnaires-header h1 {
+    font-size: 23px;
+  }
+
+  .questionnaires-layout,
+  .questionnaires-layout.has-assignment {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .questionnaires-layout.has-assignment .questionnaires-sidebar,
+  .questionnaires-layout.has-assignment .assignment-panel {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .assignment-panel {
+    position: static;
+  }
+
+  .questionnaire-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .assign-button {
+    width: 100%;
+  }
+
+  .assignment-actions {
+    flex-direction: column-reverse;
+  }
+
+  .assignment-actions button {
+    width: 100%;
+  }
+}
+
+/* Respeta la preferencia de movimiento del usuario */
+
+@media (prefers-reduced-motion: reduce) {
+  .questionnaires-page,
+  .questionnaire-item {
+    animation: none;
+  }
+
+  .questionnaires-layout,
+  .panel,
+  .category-button,
+  .patient-button,
+  .questionnaire-item,
+  .assignment-panel,
+  .assign-button,
+  .confirm-button,
+  .cancel-button,
+  .close-assignment {
+    transition: none;
+  }
+}
+
+
+
+/* Mismo tamaño de título que las demás vistas del psicólogo */
+.questionnaires-header h1 {
+  font-size: clamp(20px, 1.5vw, 22px) !important;
+  font-weight: 500;
+}
+
+
+/* =========================================================
+   CONTENEDORES COMPACTOS (mismo ancho que las demás vistas)
+   ========================================================= */
+
+.questionnaires-page {
+  padding: 112px 5vw 40px;
+}
+
+.questionnaires-page > * {
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.questionnaires-layout {
+  gap: 14px;
+}
+
+.questionnaires-page .panel {
+  padding: 16px 18px;
+  border-radius: 14px;
+}

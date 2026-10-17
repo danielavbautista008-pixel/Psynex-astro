@@ -2,68 +2,58 @@
 import MenuAdmin from "../Menu/MenuAdmin.astro";
 import "./blog.css";
 
-const publicaciones = [
-  {
-    id: 1,
-    titulo: "Cómo reconocer las señales de la ansiedad",
-    categoria: "Salud mental",
-    estado: "Publicado",
-    fecha: "24 sep 2026",
-    lectura: "5 min",
-    resumen: "La ansiedad puede manifestarse de diferentes formas. Conoce sus señales más comunes.",
-    imagen: "/imagenes/blog-ansiedad.jpg"
-  },
-  {
-    id: 2,
-    titulo: "5 consejos para mejorar tu sueño",
-    categoria: "Bienestar",
-    estado: "Borrador",
-    fecha: "22 sep 2026",
-    lectura: "4 min",
-    resumen: "Dormir bien es clave para tu salud mental y física.",
-    imagen: "/imagenes/blog-sueno.jpg"
-  },
-  {
-    id: 3,
-    titulo: "Equilibrio entre vida personal y laboral",
-    categoria: "Desarrollo personal",
-    estado: "Publicado",
-    fecha: "18 sep 2026",
-    lectura: "6 min",
-    resumen: "Mantener un equilibrio saludable puede mejorar tu bienestar.",
-    imagen: "/imagenes/blog-equilibrio.jpg"
-  },
-  {
-    id: 4,
-    titulo: "La importancia del autocuidado",
-    categoria: "Bienestar",
-    estado: "Programada",
-    fecha: "15 sep 2026",
-    lectura: "5 min",
-    resumen: "El autocuidado no es un lujo, es una necesidad.",
-    imagen: "/imagenes/blog-autocuidado.jpg"
-  },
-  {
-    id: 5,
-    titulo: "Manejo del estrés en el trabajo",
-    categoria: "Salud mental",
-    estado: "Publicado",
-    fecha: "10 sep 2026",
-    lectura: "4 min",
-    resumen: "El estrés laboral puede afectar tu salud mental.",
-    imagen: "/imagenes/blog-estres.jpg"
-  },
-  {
-    id: 6,
-    titulo: "La empatía como herramienta terapéutica",
-    categoria: "Terapia",
-    estado: "Borrador",
-    fecha: "5 sep 2026",
-    lectura: "6 min",
-    resumen: "La empatía fortalece la conexión y mejora el proceso terapéutico.",
-    imagen: "/imagenes/blog-empatia.jpg"
-  }
-];
+import { apiGet, urlImagenBlog } from "../../lib/api";
+
+// ---------------------------------------------------------------
+// Datos reales: GET /api/admin/blog (solo Admin)
+// Se convierten a la misma forma que usaba el arreglo de ejemplo.
+// ---------------------------------------------------------------
+const cookie = Astro.request.headers.get("cookie");
+// La API entrega máximo 50 por página: se piden todas las páginas
+// (el filtro y la paginación de la vista se hacen en el navegador).
+const articulos: any[] = [];
+let totalApi = 0;
+for (let pagina = 1; pagina <= 20; pagina++) {
+  const respuesta = await apiGet(cookie, `/api/admin/blog?porPagina=50&pagina=${pagina}`);
+  const lote = (respuesta?.articulos ?? []) as any[];
+  totalApi = Number(respuesta?.total ?? 0);
+  articulos.push(...lote);
+  if (lote.length < 50 || articulos.length >= totalApi) break;
+}
+
+const fechaBlog = (f: string) =>
+  new Date(f)
+    .toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric", timeZone: "America/Bogota" })
+    .replace(/\./g, "");
+
+const publicaciones = articulos.map((a: any, i: number) => ({
+  id: a.ArticuloId,
+  n: (i % 6) + 1, // número 1-6 para las clases de color/imagen del diseño
+  slug: a.Slug,
+  titulo: a.Titulo,
+  categoria: a.Categoria ?? "Salud mental",
+  estado: a.Publicado ? "Publicado" : "Borrador",
+  fecha: fechaBlog(a.PublicadoEn ?? a.CreadoEn),
+  // Para ordenar en el navegador (más recientes / más antiguas)
+  orden: new Date(a.PublicadoEn ?? a.CreadoEn).getTime() || 0,
+  autor: a.AutorNombre ?? "",
+  // ~1.200 caracteres por minuto de lectura
+  lectura: `${Math.max(1, Math.round(Number(a.LargoContenido ?? 0) / 1200))} min`,
+  resumen: a.Resumen,
+  imagen: urlImagenBlog(a.ArticuloId, a.ImagenPortada),
+}));
+
+const totalPublicaciones: number = Math.max(totalApi, publicaciones.length);
+const publicadas = publicaciones.filter((p: any) => p.estado === "Publicado").length;
+const borradores = publicaciones.filter((p: any) => p.estado === "Borrador").length;
+const programadas = 0; // la base de datos aún no maneja publicaciones programadas
+
+// Categorías del filtro: las de siempre + las que ya tengan los artículos
+const CATEGORIAS_BASE = ["Salud mental", "Bienestar", "Desarrollo personal", "Terapia"];
+const categorias = [...new Set([...CATEGORIAS_BASE, ...publicaciones.map((p: any) => String(p.categoria))])];
+
+// Nombre del admin: se guarda como autor del artículo
+const autorNombre = Astro.locals.usuario?.NombreCompleto ?? "Equipo Psynex";
 ---
 
 <div class="blog-page">
@@ -81,6 +71,7 @@ const publicaciones = [
       <div class="blog-search-global">
         <i class="bi bi-search"></i>
         <input
+          id="buscarGlobalBlog"
           type="text"
           placeholder="Buscar publicaciones, categorías o autor..."
         />
@@ -158,7 +149,7 @@ const publicaciones = [
         </div>
 
         <div>
-          <strong>24</strong>
+          <strong>{totalPublicaciones}</strong>
           <span>Total publicaciones</span>
         </div>
 
@@ -172,7 +163,7 @@ const publicaciones = [
         </div>
 
         <div>
-          <strong>18</strong>
+          <strong>{publicadas}</strong>
           <span>Publicadas</span>
         </div>
 
@@ -186,7 +177,7 @@ const publicaciones = [
         </div>
 
         <div>
-          <strong>4</strong>
+          <strong>{borradores}</strong>
           <span>Borradores</span>
         </div>
 
@@ -200,7 +191,7 @@ const publicaciones = [
         </div>
 
         <div>
-          <strong>2</strong>
+          <strong>{programadas}</strong>
           <span>Programadas</span>
         </div>
 
@@ -230,10 +221,7 @@ const publicaciones = [
 
       <select id="filtroCategoria">
         <option value="todas">Categoría: Todas</option>
-        <option value="Salud mental">Salud mental</option>
-        <option value="Bienestar">Bienestar</option>
-        <option value="Desarrollo personal">Desarrollo personal</option>
-        <option value="Terapia">Terapia</option>
+        {categorias.map((c) => <option value={c}>{c}</option>)}
       </select>
 
 
@@ -246,9 +234,9 @@ const publicaciones = [
 
 
       <select id="ordenPublicaciones">
-        <option>Más recientes</option>
-        <option>Más antiguas</option>
-        <option>Nombre A-Z</option>
+        <option value="recientes">Más recientes</option>
+        <option value="antiguas">Más antiguas</option>
+        <option value="nombre">Nombre A-Z</option>
       </select>
 
     </section>
@@ -268,7 +256,7 @@ const publicaciones = [
         </div>
 
         <span class="cantidad-publicaciones">
-          24 publicaciones
+          {totalPublicaciones} publicaciones
         </span>
 
       </div>
@@ -284,12 +272,15 @@ const publicaciones = [
             data-categoria={publicacion.categoria}
             data-estado={publicacion.estado}
             data-titulo={publicacion.titulo}
+            data-autor={publicacion.autor}
+            data-orden={publicacion.orden}
           >
 
             <!-- IMAGEN -->
 
             <div
-              class={`publicacion-imagen imagen-${publicacion.id}`}
+              class={`publicacion-imagen imagen-${publicacion.n}`}
+              style={publicacion.imagen ? `background-image: url("${publicacion.imagen}"); background-size: cover; background-position: center;` : undefined}
             >
 
               <div class="imagen-overlay"></div>
@@ -314,7 +305,13 @@ const publicaciones = [
                   Editar
                 </button>
 
-                <button type="button">
+                <button
+                  type="button"
+                  class="btn-ver-publicacion"
+                  data-id={publicacion.id}
+                  data-slug={publicacion.slug}
+                  data-estado={publicacion.estado}
+                >
                   <i class="bi bi-eye"></i>
                   Vista previa
                 </button>
@@ -322,6 +319,8 @@ const publicaciones = [
                 <button
                   type="button"
                   class="btn-eliminar-publicacion"
+                  data-id={publicacion.id}
+                  data-titulo={publicacion.titulo}
                 >
                   <i class="bi bi-trash"></i>
                   Eliminar
@@ -336,7 +335,7 @@ const publicaciones = [
 
             <div class="publicacion-body">
 
-              <span class={`categoria-blog categoria-${publicacion.id}`}>
+              <span class={`categoria-blog categoria-${publicacion.n}`}>
                 {publicacion.categoria}
               </span>
 
@@ -378,6 +377,13 @@ const publicaciones = [
 
       </div>
 
+      <p class="blog-vacio" id="blogVacio" hidden={publicaciones.length > 0}>
+        <i class="bi bi-journal-text"></i>
+        {publicaciones.length > 0
+          ? "No hay publicaciones con esos filtros."
+          : "Todavía no hay publicaciones. Crea la primera con «Nueva publicación»."}
+      </p>
+
 
       <!-- =========================================
            PAGINACIÓN
@@ -385,29 +391,12 @@ const publicaciones = [
 
       <div class="blog-pagination">
 
-        <span>
-          Mostrando 1–6 de 24 publicaciones
+        <span id="textoPaginacion">
+          Mostrando {Math.min(publicaciones.length, 6)} de {totalPublicaciones} publicaciones
         </span>
 
-        <div class="pagination-buttons">
-
-          <button type="button">
-            <i class="bi bi-chevron-left"></i>
-          </button>
-
-          <button class="activo" type="button">1</button>
-
-          <button type="button">2</button>
-          <button type="button">3</button>
-          <button type="button">4</button>
-
-          <span>...</span>
-
-          <button type="button">
-            <i class="bi bi-chevron-right"></i>
-          </button>
-
-        </div>
+        <!-- Los botones los arma el script según los filtros -->
+        <div class="pagination-buttons" id="paginacionBlog"></div>
 
       </div>
 
@@ -423,6 +412,7 @@ const publicaciones = [
   <aside
     class="editor-panel"
     id="editorPanel"
+    data-autor={autorNombre}
     aria-hidden="true"
   >
 
@@ -439,7 +429,7 @@ const publicaciones = [
           Volver al blog
         </button>
 
-        <h2>Editar publicación</h2>
+        <h2 id="tituloEditor">Editar publicación</h2>
 
       </div>
 
@@ -457,18 +447,18 @@ const publicaciones = [
 
     <div class="editor-tabs">
 
-      <button class="editor-tab activo" type="button">
+      <button class="editor-tab activo" type="button" data-tab="contenido">
         Contenido
       </button>
 
-      <button class="editor-tab" type="button">
+      <button class="editor-tab" type="button" data-tab="configuracion">
         Configuración
       </button>
 
     </div>
 
 
-    <div class="editor-body">
+    <div class="editor-body" id="tabContenido">
 
       <div class="editor-group">
 
@@ -479,10 +469,11 @@ const publicaciones = [
         <input
           id="tituloBlog"
           type="text"
-          value="Cómo reconocer las señales de la ansiedad"
+          maxlength="100"
+          placeholder="Escribe el título del artículo"
         />
 
-        <small>42/100</small>
+        <small id="contadorTitulo">0/100</small>
 
       </div>
 
@@ -496,10 +487,7 @@ const publicaciones = [
           </label>
 
           <select id="categoriaBlog">
-            <option>Salud mental</option>
-            <option>Bienestar</option>
-            <option>Desarrollo personal</option>
-            <option>Terapia</option>
+            {categorias.map((c) => <option value={c}>{c}</option>)}
           </select>
 
         </div>
@@ -512,9 +500,10 @@ const publicaciones = [
           </label>
 
           <select id="estadoBlog">
-            <option>Publicado</option>
-            <option>Borrador</option>
-            <option>Programada</option>
+            <option value="Publicado">Publicado</option>
+            <option value="Borrador">Borrador</option>
+            <!-- La base de datos aún no guarda fecha programada -->
+            <option value="Programada" disabled>Programada (pronto)</option>
           </select>
 
         </div>
@@ -530,24 +519,43 @@ const publicaciones = [
 
         <div class="portada-editor">
 
-          <div class="portada-preview">
+          <div class="portada-preview" id="portadaPreview">
             <div class="portada-placeholder">
               <i class="bi bi-image"></i>
             </div>
+
+            <button
+              class="quitar-portada"
+              id="quitarPortada"
+              type="button"
+              aria-label="Quitar imagen"
+              title="Quitar imagen"
+              hidden
+            >
+              <i class="bi bi-trash"></i>
+            </button>
           </div>
 
           <button
             class="cambiar-imagen"
+            id="cambiarImagen"
             type="button"
           >
             <i class="bi bi-image"></i>
 
             <div>
-              <strong>Cambiar imagen</strong>
-              <small>JPG, PNG o WebP · Máx. 5 MB</small>
+              <strong id="textoCambiarImagen">Cambiar imagen</strong>
+              <small>JPG o PNG · Máx. 5 MB</small>
             </div>
 
           </button>
+
+          <input
+            id="archivoPortada"
+            type="file"
+            accept="image/jpeg,image/png"
+            hidden
+          />
 
         </div>
 
@@ -562,9 +570,13 @@ const publicaciones = [
           Resumen <span>*</span>
         </label>
 
-        <textarea id="resumenBlog">La ansiedad puede manifestarse de diferentes formas. Conoce sus señales más comunes y qué hacer si las identificas en ti o en alguien cercano.</textarea>
+        <textarea
+          id="resumenBlog"
+          maxlength="160"
+          placeholder="Una o dos frases que inviten a leer el artículo"
+        ></textarea>
 
-        <small>142/160</small>
+        <small id="contadorResumen">0/160</small>
 
       </div>
 
@@ -581,33 +593,33 @@ const publicaciones = [
 
           <div class="editor-toolbar">
 
-            <button type="button">
+            <button type="button" data-cmd="bold" title="Negrita">
               <strong>B</strong>
             </button>
 
-            <button type="button">
+            <button type="button" data-cmd="italic" title="Cursiva">
               <em>I</em>
             </button>
 
-            <button type="button">
+            <button type="button" data-cmd="underline" title="Subrayado">
               <u>U</u>
             </button>
 
             <span></span>
 
-            <button type="button">
+            <button type="button" data-cmd="insertUnorderedList" title="Lista con viñetas">
               <i class="bi bi-list-ul"></i>
             </button>
 
-            <button type="button">
+            <button type="button" data-cmd="insertOrderedList" title="Lista numerada">
               <i class="bi bi-list-ol"></i>
             </button>
 
-            <button type="button">
+            <button type="button" data-cmd="enlace" title="Insertar enlace">
               <i class="bi bi-link-45deg"></i>
             </button>
 
-            <button type="button">
+            <button type="button" data-cmd="imagen" title="Insertar imagen (por enlace)">
               <i class="bi bi-image"></i>
             </button>
 
@@ -616,28 +628,11 @@ const publicaciones = [
           <div
             class="editor-content"
             contenteditable="true"
-          >
-            <h3>¿Qué es la ansiedad?</h3>
+            data-placeholder="Escribe aquí el contenido del artículo..."
+          ></div>
 
-            <p>
-              La ansiedad es una respuesta natural del cuerpo ante
-              situaciones de estrés. Sin embargo, cuando se vuelve
-              frecuente o intensa, puede afectar la calidad de vida.
-            </p>
-
-            <h3>Señales comunes</h3>
-
-            <ul>
-              <li>Preocupación constante</li>
-              <li>Dificultad para concentrarse</li>
-              <li>Alteraciones del sueño</li>
-              <li>Tensión muscular</li>
-            </ul>
-
-          </div>
-
-          <small class="contador-contenido">
-            284/5000
+          <small class="contador-contenido" id="contadorContenido">
+            0 caracteres
           </small>
 
         </div>
@@ -649,6 +644,7 @@ const publicaciones = [
 
       <button
         class="preview-blog"
+        id="previewBlog"
         type="button"
       >
 
@@ -674,7 +670,81 @@ const publicaciones = [
 
         <div>
           <strong>Última edición</strong>
-          <span>24 sep 2026 · 10:32 a. m.</span>
+          <span id="ultimaEdicion">Sin guardar</span>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- PESTAÑA CONFIGURACIÓN -->
+
+    <div class="editor-body" id="tabConfiguracion" hidden>
+
+      <div class="editor-group">
+
+        <label for="autorBlog">
+          Autor <span>*</span>
+        </label>
+
+        <input
+          id="autorBlog"
+          type="text"
+          maxlength="150"
+          placeholder="Nombre de quien firma el artículo"
+        />
+
+      </div>
+
+
+      <div class="editor-group">
+
+        <label for="rolAutorBlog">Cargo o profesión del autor</label>
+
+        <input
+          id="rolAutorBlog"
+          type="text"
+          maxlength="80"
+          placeholder="Ej: Psicóloga clínica"
+        />
+
+      </div>
+
+
+      <div class="editor-group">
+
+        <label for="enlaceBlog">Enlace del artículo</label>
+
+        <input
+          id="enlaceBlog"
+          type="text"
+          readonly
+          value="Se crea con el título al guardar"
+        />
+
+        <small>Se genera automáticamente a partir del título.</small>
+
+      </div>
+
+
+      <div class="editor-row">
+
+        <div class="editor-group">
+
+          <label for="fechaPublicacionBlog">Publicado el</label>
+
+          <input id="fechaPublicacionBlog" type="text" readonly value="—" />
+
+        </div>
+
+
+        <div class="editor-group">
+
+          <label for="lecturaBlog">Tiempo de lectura</label>
+
+          <input id="lecturaBlog" type="text" readonly value="1 min" />
+
         </div>
 
       </div>
@@ -688,6 +758,7 @@ const publicaciones = [
 
       <button
         class="btn-guardar"
+        id="btnGuardarBorrador"
         type="button"
       >
         Guardar borrador
@@ -695,10 +766,11 @@ const publicaciones = [
 
       <button
         class="btn-publicar"
+        id="btnPublicar"
         type="button"
       >
         <i class="bi bi-send"></i>
-        Publicar
+        <span id="textoPublicar">Publicar</span>
       </button>
 
     </div>
@@ -711,42 +783,159 @@ const publicaciones = [
     id="editorOverlay"
   ></div>
 
+
+  <!-- =========================================
+       VENTANA PEQUEÑA (avisos, confirmar, enlaces)
+  ========================================== -->
+
+  <div class="blog-modal" id="blogModal" aria-hidden="true">
+
+    <div class="blog-modal-caja" role="dialog" aria-modal="true" aria-labelledby="blogModalTitulo">
+
+      <h3 id="blogModalTitulo">Aviso</h3>
+
+      <p id="blogModalMensaje"></p>
+
+      <input id="blogModalCampo" type="url" placeholder="https://..." hidden />
+
+      <div class="blog-modal-acciones">
+        <button type="button" class="blog-modal-btn secundario" id="blogModalCancelar">Cancelar</button>
+        <button type="button" class="blog-modal-btn principal" id="blogModalAceptar">Entendido</button>
+      </div>
+
+    </div>
+
+  </div>
+
 </div>
 
 
 <script>
-  const resumenButton =
-    document.getElementById("btnMostrarResumen") as HTMLButtonElement | null;
+  import { API_URL, apiEnviar, textoError, urlImagenBlog } from "../../lib/api";
 
-  const resumenGrid =
-    document.getElementById("resumenGrid") as HTMLElement | null;
+  /* =========================================
+     ELEMENTOS
+  ========================================== */
 
-  const editor =
-    document.getElementById("editorPanel") as HTMLElement | null;
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null;
 
-  const overlay =
-    document.getElementById("editorOverlay") as HTMLElement | null;
+  const resumenButton = $<HTMLButtonElement>("btnMostrarResumen");
+  const resumenGrid = $("resumenGrid");
 
-  const cerrarEditor =
-    document.getElementById("cerrarEditor") as HTMLButtonElement | null;
+  const editor = $("editorPanel");
+  const overlay = $("editorOverlay");
 
-  const cerrarEditorSuperior =
-    document.getElementById("cerrarEditorSuperior") as HTMLButtonElement | null;
+  const buscar = $<HTMLInputElement>("buscarPublicacion");
+  const buscarGlobal = $<HTMLInputElement>("buscarGlobalBlog");
+  const filtroCategoria = $<HTMLSelectElement>("filtroCategoria");
+  const filtroEstado = $<HTMLSelectElement>("filtroEstado");
+  const orden = $<HTMLSelectElement>("ordenPublicaciones");
+  const grid = $("publicacionesGrid");
+  const vacio = $("blogVacio");
+  const textoPaginacion = $("textoPaginacion");
+  const paginacion = $("paginacionBlog");
 
-  const nuevaPublicacion =
-    document.getElementById("btnNuevaPublicacion") as HTMLButtonElement | null;
+  // Campos del editor
+  const tituloEditor = $("tituloEditor");
+  const campoTitulo = $<HTMLInputElement>("tituloBlog");
+  const campoCategoria = $<HTMLSelectElement>("categoriaBlog");
+  const campoEstado = $<HTMLSelectElement>("estadoBlog");
+  const campoResumen = $<HTMLTextAreaElement>("resumenBlog");
+  const campoContenido = document.querySelector<HTMLElement>(".editor-content");
+  const campoAutor = $<HTMLInputElement>("autorBlog");
+  const campoRol = $<HTMLInputElement>("rolAutorBlog");
+  const campoEnlace = $<HTMLInputElement>("enlaceBlog");
+  const campoFecha = $<HTMLInputElement>("fechaPublicacionBlog");
+  const campoLectura = $<HTMLInputElement>("lecturaBlog");
+  const contadorTitulo = $("contadorTitulo");
+  const contadorResumen = $("contadorResumen");
+  const contadorContenido = $("contadorContenido");
+  const ultimaEdicion = $("ultimaEdicion");
+  const textoPublicar = $("textoPublicar");
+  const btnGuardar = $<HTMLButtonElement>("btnGuardarBorrador");
+  const btnPublicar = $<HTMLButtonElement>("btnPublicar");
 
-  const buscar =
-    document.getElementById("buscarPublicacion") as HTMLInputElement | null;
+  // Portada
+  const portadaPreview = $("portadaPreview");
+  const quitarPortada = $<HTMLButtonElement>("quitarPortada");
+  const archivoPortada = $<HTMLInputElement>("archivoPortada");
+  const textoCambiarImagen = $("textoCambiarImagen");
 
-  const filtroCategoria =
-    document.getElementById("filtroCategoria") as HTMLSelectElement | null;
+  const autorPorDefecto = editor?.dataset.autor ?? "Equipo Psynex";
 
-  const filtroEstado =
-    document.getElementById("filtroEstado") as HTMLSelectElement | null;
 
-  const tarjetas =
-    document.querySelectorAll<HTMLElement>(".publicacion-card");
+  /* =========================================
+     VENTANA PEQUEÑA: aviso / confirmar / pedir enlace
+  ========================================== */
+
+  const modal = $("blogModal");
+  const modalIcono = $("blogModalIcono");
+  const modalTitulo = $("blogModalTitulo");
+  const modalMensaje = $("blogModalMensaje");
+  const modalCampo = $<HTMLInputElement>("blogModalCampo");
+  const modalCancelar = $<HTMLButtonElement>("blogModalCancelar");
+  const modalAceptar = $<HTMLButtonElement>("blogModalAceptar");
+
+  let cerrarModal: ((aceptado: boolean) => void) | null = null;
+
+  const abrirModal = (o: {
+    titulo: string; mensaje: string; icono?: string;
+    aceptar?: string; cancelar?: boolean; campo?: string; peligro?: boolean;
+  }) =>
+    new Promise<{ aceptado: boolean; valor: string }>((resolver) => {
+      if (!modal) return resolver({ aceptado: false, valor: "" });
+
+      if (modalIcono) modalIcono.className = `bi ${o.icono ?? "bi-info-circle"}`;
+      if (modalTitulo) modalTitulo.textContent = o.titulo;
+      if (modalMensaje) modalMensaje.textContent = o.mensaje;
+      if (modalCampo) {
+        modalCampo.hidden = o.campo === undefined;
+        modalCampo.value = "";
+        modalCampo.placeholder = o.campo ?? "";
+      }
+      if (modalCancelar) modalCancelar.hidden = !o.cancelar;
+      if (modalAceptar) {
+        modalAceptar.textContent = o.aceptar ?? "Entendido";
+        modalAceptar.classList.toggle("peligro", !!o.peligro);
+      }
+      modal.classList.toggle("una-accion", !o.cancelar);
+
+      modal.classList.add("visible");
+      modal.setAttribute("aria-hidden", "false");
+      (o.campo !== undefined ? modalCampo : modalAceptar)?.focus();
+
+      cerrarModal = (aceptado) => {
+        modal.classList.remove("visible");
+        modal.setAttribute("aria-hidden", "true");
+        cerrarModal = null;
+        resolver({ aceptado, valor: modalCampo?.value.trim() ?? "" });
+      };
+    });
+
+  modalAceptar?.addEventListener("click", () => cerrarModal?.(true));
+  modalCancelar?.addEventListener("click", () => cerrarModal?.(false));
+  modal?.addEventListener("click", (e) => { if (e.target === modal) cerrarModal?.(false); });
+  modalCampo?.addEventListener("keydown", (e) => { if (e.key === "Enter") cerrarModal?.(true); });
+
+  const avisar = (titulo: string, mensaje: string, icono = "bi-exclamation-circle") =>
+    abrirModal({ titulo, mensaje, icono });
+
+  // Mensaje que queda pendiente para mostrar después de recargar la página
+  const recargarConAviso = (titulo: string, mensaje: string) => {
+    try { sessionStorage.setItem("psynex:blog-aviso", JSON.stringify({ titulo, mensaje })); } catch { /* sin storage */ }
+    window.location.reload();
+  };
+
+  try {
+    const pendiente = sessionStorage.getItem("psynex:blog-aviso");
+    if (pendiente) {
+      sessionStorage.removeItem("psynex:blog-aviso");
+      const { titulo, mensaje } = JSON.parse(pendiente);
+      avisar(titulo, mensaje, "bi-check-circle");
+    }
+  } catch { /* sin storage */ }
+
+  const irALogin = () => { window.location.href = "/Inicio/login"; };
 
 
   /* =========================================
@@ -754,269 +943,563 @@ const publicaciones = [
   ========================================== */
 
   resumenButton?.addEventListener("click", () => {
-
     if (!resumenGrid) return;
-
-    const visible =
-      resumenGrid.classList.toggle("mostrar");
-
-    resumenGrid.setAttribute(
-      "aria-hidden",
-      visible ? "false" : "true"
-    );
-
-    const texto =
-      resumenButton.querySelector("span");
-
-    if (texto) {
-      texto.textContent =
-        visible ? "Ocultar resumen" : "Mostrar resumen";
-    }
-
-    const flecha =
-      resumenButton.querySelector(".bi-chevron-down");
-
-    if (flecha) {
-      flecha.classList.toggle("rotada", visible);
-    }
-
+    const visible = resumenGrid.classList.toggle("mostrar");
+    resumenGrid.setAttribute("aria-hidden", visible ? "false" : "true");
+    const texto = resumenButton.querySelector("span");
+    if (texto) texto.textContent = visible ? "Ocultar resumen" : "Mostrar resumen";
+    resumenButton.querySelector(".bi-chevron-down")?.classList.toggle("rotada", visible);
   });
 
 
   /* =========================================
-     ABRIR EDITOR
+     LISTADO: FILTROS, ORDEN Y PAGINACIÓN
   ========================================== */
 
-  const abrirEditor = () => {
+  const POR_PAGINA = 6;
+  let paginaActual = 1;
+  const tarjetas = Array.from(document.querySelectorAll<HTMLElement>(".publicacion-card"));
 
-    editor?.classList.add("abierto");
-    overlay?.classList.add("mostrar");
+  const sinTildes = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
-    editor?.setAttribute("aria-hidden", "false");
+  const actualizarListado = () => {
+    const texto = sinTildes(buscar?.value || buscarGlobal?.value || "");
+    const categoria = filtroCategoria?.value || "todas";
+    const estado = filtroEstado?.value || "todos";
+    const criterio = orden?.value || "recientes";
 
-    document.body.classList.add("blog-editor-abierto");
+    const visibles = tarjetas.filter((t) => {
+      const donde = sinTildes(`${t.dataset.titulo ?? ""} ${t.dataset.categoria ?? ""} ${t.dataset.autor ?? ""}`);
+      return donde.includes(texto)
+        && (categoria === "todas" || t.dataset.categoria === categoria)
+        && (estado === "todos" || t.dataset.estado === estado);
+    });
 
+    visibles.sort((a, b) => {
+      if (criterio === "nombre") return (a.dataset.titulo ?? "").localeCompare(b.dataset.titulo ?? "", "es");
+      const fa = Number(a.dataset.orden ?? 0);
+      const fb = Number(b.dataset.orden ?? 0);
+      return criterio === "antiguas" ? fa - fb : fb - fa;
+    });
+
+    const paginas = Math.max(1, Math.ceil(visibles.length / POR_PAGINA));
+    paginaActual = Math.min(paginaActual, paginas);
+    const desde = (paginaActual - 1) * POR_PAGINA;
+    const pagina = visibles.slice(desde, desde + POR_PAGINA);
+
+    tarjetas.forEach((t) => { t.style.display = "none"; });
+    pagina.forEach((t) => {
+      t.style.display = "";
+      grid?.appendChild(t); // respeta el orden elegido
+    });
+
+    if (vacio) vacio.hidden = visibles.length > 0;
+
+    if (textoPaginacion) {
+      textoPaginacion.textContent = visibles.length
+        ? `Mostrando ${desde + 1}-${desde + pagina.length} de ${visibles.length} publicaciones`
+        : "Mostrando 0 publicaciones";
+    }
+
+    // Botones: anterior, números y siguiente
+    if (paginacion) {
+      paginacion.innerHTML = "";
+      if (paginas <= 1) return;
+
+      const boton = (contenido: string, destino: number, opciones: { activo?: boolean; deshabilitado?: boolean; etiqueta?: string } = {}) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.innerHTML = contenido;
+        if (opciones.etiqueta) b.setAttribute("aria-label", opciones.etiqueta);
+        if (opciones.activo) b.classList.add("activo");
+        b.disabled = !!opciones.deshabilitado;
+        b.addEventListener("click", () => {
+          paginaActual = destino;
+          actualizarListado();
+          document.querySelector(".blog-listado")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        paginacion.appendChild(b);
+      };
+
+      boton('<i class="bi bi-chevron-left"></i>', paginaActual - 1, { deshabilitado: paginaActual === 1, etiqueta: "Anterior" });
+      for (let n = 1; n <= paginas; n++) {
+        // Con muchas páginas: primera, última y las cercanas a la actual
+        if (paginas > 7 && n !== 1 && n !== paginas && Math.abs(n - paginaActual) > 1) {
+          if (n === 2 || n === paginas - 1) {
+            const puntos = document.createElement("span");
+            puntos.textContent = "...";
+            paginacion.appendChild(puntos);
+          }
+          continue;
+        }
+        boton(String(n), n, { activo: n === paginaActual });
+      }
+      boton('<i class="bi bi-chevron-right"></i>', paginaActual + 1, { deshabilitado: paginaActual === paginas, etiqueta: "Siguiente" });
+    }
   };
 
+  const alFiltrar = () => { paginaActual = 1; actualizarListado(); };
 
-  /* =========================================
-     CERRAR EDITOR
-  ========================================== */
+  // Los dos buscadores escriben lo mismo
+  buscar?.addEventListener("input", () => { if (buscarGlobal) buscarGlobal.value = buscar.value; alFiltrar(); });
+  buscarGlobal?.addEventListener("input", () => { if (buscar) buscar.value = buscarGlobal.value; alFiltrar(); });
+  filtroCategoria?.addEventListener("change", alFiltrar);
+  filtroEstado?.addEventListener("change", alFiltrar);
+  orden?.addEventListener("change", alFiltrar);
 
-  const cerrarPanel = () => {
-
-    editor?.classList.remove("abierto");
-    overlay?.classList.remove("mostrar");
-
-    editor?.setAttribute("aria-hidden", "true");
-
-    document.body.classList.remove("blog-editor-abierto");
-
-  };
-
-
-  nuevaPublicacion?.addEventListener(
-    "click",
-    abrirEditor
-  );
-
-
-  cerrarEditor?.addEventListener(
-    "click",
-    cerrarPanel
-  );
-
-
-  cerrarEditorSuperior?.addEventListener(
-    "click",
-    cerrarPanel
-  );
-
-
-  overlay?.addEventListener(
-    "click",
-    cerrarPanel
-  );
+  actualizarListado();
 
 
   /* =========================================
      MENÚ ⋮ DE CADA PUBLICACIÓN
   ========================================== */
 
-  const menus =
-    document.querySelectorAll<HTMLElement>(
-      ".btn-menu-publicacion"
-    );
+  const cerrarMenus = (excepto?: Element | null) => {
+    document.querySelectorAll<HTMLElement>(".menu-publicacion.abierto").forEach((m) => {
+      if (m !== excepto) m.classList.remove("abierto");
+    });
+  };
 
-  menus.forEach((boton) => {
-
+  document.querySelectorAll<HTMLElement>(".btn-menu-publicacion").forEach((boton) => {
     boton.addEventListener("click", (evento) => {
-
       evento.stopPropagation();
-
-      const card =
-        boton.closest(".publicacion-card");
-
-      if (!card) return;
-
-      const menu =
-        card.querySelector<HTMLElement>(
-          ".menu-publicacion"
-        );
-
-      document
-        .querySelectorAll<HTMLElement>(
-          ".menu-publicacion.abierto"
-        )
-        .forEach((item) => {
-
-          if (item !== menu) {
-            item.classList.remove("abierto");
-          }
-
-        });
-
+      const menu = boton.closest(".publicacion-card")?.querySelector<HTMLElement>(".menu-publicacion");
+      cerrarMenus(menu);
       menu?.classList.toggle("abierto");
-
     });
-
   });
 
+  document.addEventListener("click", () => cerrarMenus());
+
 
   /* =========================================
-     EDITAR
+     EDITOR: ABRIR / CERRAR / PESTAÑAS
   ========================================== */
 
-  const botonesEditar =
-    document.querySelectorAll<HTMLButtonElement>(
-      ".btn-editar-publicacion"
-    );
+  let articuloEditandoId: string | null = null;
+  let articuloEstabaPublicado = false;
+  let archivoNuevo: File | null = null;   // portada elegida (se sube al guardar)
+  let quitarPortadaAlGuardar = false;     // el admin quitó la portada que tenía
+  let urlPreviewLocal: string | null = null;
+  let guardando = false;
 
-  botonesEditar.forEach((boton) => {
+  const cambiarPestana = (tab: string) => {
+    document.querySelectorAll<HTMLButtonElement>(".editor-tab").forEach((b) => {
+      b.classList.toggle("activo", b.dataset.tab === tab);
+    });
+    const contenido = $("tabContenido");
+    const configuracion = $("tabConfiguracion");
+    if (contenido) contenido.hidden = tab !== "contenido";
+    if (configuracion) configuracion.hidden = tab !== "configuracion";
+  };
 
-    boton.addEventListener(
-      "click",
-      (evento) => {
-
-        evento.stopPropagation();
-
-        document
-          .querySelectorAll<HTMLElement>(
-            ".menu-publicacion.abierto"
-          )
-          .forEach((menu) => {
-            menu.classList.remove("abierto");
-          });
-
-        abrirEditor();
-
-      }
-    );
-
+  document.querySelectorAll<HTMLButtonElement>(".editor-tab").forEach((b) => {
+    b.addEventListener("click", () => cambiarPestana(b.dataset.tab ?? "contenido"));
   });
 
+  const abrirEditor = () => {
+    cambiarPestana("contenido");
+    editor?.classList.add("abierto");
+    overlay?.classList.add("mostrar");
+    editor?.setAttribute("aria-hidden", "false");
+    document.body.classList.add("blog-editor-abierto");
+  };
 
-  /* =========================================
-     CERRAR MENÚS
-  ========================================== */
+  const cerrarPanel = () => {
+    editor?.classList.remove("abierto");
+    overlay?.classList.remove("mostrar");
+    editor?.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("blog-editor-abierto");
+  };
 
-  document.addEventListener(
-    "click",
-    () => {
-
-      document
-        .querySelectorAll<HTMLElement>(
-          ".menu-publicacion.abierto"
-        )
-        .forEach((menu) => {
-
-          menu.classList.remove("abierto");
-
-        });
-
-    }
-  );
+  $("cerrarEditor")?.addEventListener("click", cerrarPanel);
+  $("cerrarEditorSuperior")?.addEventListener("click", cerrarPanel);
+  overlay?.addEventListener("click", cerrarPanel);
 
 
   /* =========================================
-     FILTROS
+     CONTADORES Y DATOS CALCULADOS
   ========================================== */
 
-  const aplicarFiltros = () => {
+  const textoContenido = () => campoContenido?.innerText.trim() ?? "";
 
-    const texto =
-      buscar?.value.toLowerCase().trim() || "";
+  const actualizarContadores = () => {
+    if (contadorTitulo) contadorTitulo.textContent = `${campoTitulo?.value.length ?? 0}/100`;
+    if (contadorResumen) contadorResumen.textContent = `${campoResumen?.value.length ?? 0}/160`;
+    const largo = textoContenido().length;
+    if (contadorContenido) contadorContenido.textContent = `${largo.toLocaleString("es-CO")} caracteres`;
+    if (campoLectura) campoLectura.value = `${Math.max(1, Math.round(largo / 1200))} min`;
+  };
 
-    const categoria =
-      filtroCategoria?.value || "todas";
+  campoTitulo?.addEventListener("input", actualizarContadores);
+  campoResumen?.addEventListener("input", actualizarContadores);
+  campoContenido?.addEventListener("input", actualizarContadores);
 
-    const estado =
-      filtroEstado?.value || "todos";
+  const actualizarBotonPublicar = () => {
+    if (!textoPublicar) return;
+    if (campoEstado?.value === "Borrador") textoPublicar.textContent = "Guardar";
+    else textoPublicar.textContent = articuloEstabaPublicado ? "Guardar cambios" : "Publicar";
+  };
+  campoEstado?.addEventListener("change", actualizarBotonPublicar);
 
-
-    tarjetas.forEach((tarjeta) => {
-
-      const titulo =
-        tarjeta.dataset.titulo?.toLowerCase() || "";
-
-      const categoriaTarjeta =
-        tarjeta.dataset.categoria || "";
-
-      const estadoTarjeta =
-        tarjeta.dataset.estado || "";
-
-      const coincideTexto =
-        titulo.includes(texto);
-
-      const coincideCategoria =
-        categoria === "todas" ||
-        categoriaTarjeta === categoria;
-
-      const coincideEstado =
-        estado === "todos" ||
-        estadoTarjeta === estado;
-
-
-      tarjeta.style.display =
-        coincideTexto &&
-        coincideCategoria &&
-        coincideEstado
-          ? ""
-          : "none";
-
-    });
-
+  const fechaHora = (f: unknown) => {
+    if (!f) return "—";
+    const d = new Date(String(f));
+    if (Number.isNaN(d.getTime())) return String(f);
+    const opciones = { timeZone: "America/Bogota" } as const;
+    const dia = d.toLocaleDateString("es-CO", { ...opciones, day: "numeric", month: "short", year: "numeric" }).replace(/\./g, "");
+    const hora = d.toLocaleTimeString("es-CO", { ...opciones, hour: "numeric", minute: "2-digit" });
+    return `${dia} · ${hora}`;
   };
 
 
-  buscar?.addEventListener(
-    "input",
-    aplicarFiltros
-  );
+  /* =========================================
+     PORTADA
+  ========================================== */
 
-  filtroCategoria?.addEventListener(
-    "change",
-    aplicarFiltros
-  );
+  const mostrarPortada = (url: string | null) => {
+    if (!portadaPreview) return;
+    portadaPreview.style.backgroundImage = url ? `url("${url}")` : "";
+    portadaPreview.classList.toggle("con-imagen", !!url);
+    if (quitarPortada) quitarPortada.hidden = !url;
+    if (textoCambiarImagen) textoCambiarImagen.textContent = url ? "Cambiar imagen" : "Agregar imagen";
+  };
 
-  filtroEstado?.addEventListener(
-    "change",
-    aplicarFiltros
-  );
+  const limpiarPreviewLocal = () => {
+    if (urlPreviewLocal) URL.revokeObjectURL(urlPreviewLocal);
+    urlPreviewLocal = null;
+  };
+
+  $("cambiarImagen")?.addEventListener("click", () => archivoPortada?.click());
+
+  archivoPortada?.addEventListener("change", () => {
+    const archivo = archivoPortada.files?.[0];
+    archivoPortada.value = "";
+    if (!archivo) return;
+    if (!["image/jpeg", "image/png"].includes(archivo.type)) {
+      avisar("Formato no permitido", "La portada debe ser una imagen JPG o PNG.");
+      return;
+    }
+    if (archivo.size > 5 * 1024 * 1024) {
+      avisar("Imagen muy pesada", "La portada no puede pesar más de 5 MB.");
+      return;
+    }
+    limpiarPreviewLocal();
+    archivoNuevo = archivo;
+    quitarPortadaAlGuardar = false;
+    urlPreviewLocal = URL.createObjectURL(archivo);
+    mostrarPortada(urlPreviewLocal);
+  });
+
+  quitarPortada?.addEventListener("click", () => {
+    limpiarPreviewLocal();
+    archivoNuevo = null;
+    quitarPortadaAlGuardar = !!articuloEditandoId;
+    mostrarPortada(null);
+  });
+
+
+  /* =========================================
+     LLENAR EL EDITOR (nuevo o existente)
+  ========================================== */
+
+  const llenarEditor = (a: Record<string, any> | null) => {
+    articuloEditandoId = a?.ArticuloId ?? null;
+    articuloEstabaPublicado = Number(a?.Publicado ?? 0) === 1;
+    archivoNuevo = null;
+    quitarPortadaAlGuardar = false;
+    limpiarPreviewLocal();
+
+    if (tituloEditor) tituloEditor.textContent = a ? "Editar publicación" : "Nueva publicación";
+    if (campoTitulo) campoTitulo.value = a?.Titulo ?? "";
+    if (campoCategoria) {
+      const categoria = a?.Categoria ?? "Salud mental";
+      // Si la categoría no está en la lista, se agrega para no perderla
+      if (![...campoCategoria.options].some((o) => o.value === categoria)) {
+        campoCategoria.add(new Option(categoria, categoria));
+      }
+      campoCategoria.value = categoria;
+    }
+    if (campoEstado) campoEstado.value = a && !articuloEstabaPublicado ? "Borrador" : "Publicado";
+    if (campoResumen) campoResumen.value = a?.Resumen ?? "";
+    if (campoContenido) campoContenido.innerHTML = a?.Contenido ?? "";
+    if (campoAutor) campoAutor.value = a?.AutorNombre ?? autorPorDefecto;
+    if (campoRol) campoRol.value = a?.AutorRol ?? "";
+    if (campoEnlace) campoEnlace.value = a?.Slug ? `/articulos/${a.Slug}` : "Se crea con el título al guardar";
+    if (campoFecha) campoFecha.value = a?.PublicadoEn ? fechaHora(a.PublicadoEn) : "Sin publicar";
+    if (ultimaEdicion) ultimaEdicion.textContent = a ? fechaHora(a.ActualizadoEn ?? a.CreadoEn) : "Sin guardar";
+
+    mostrarPortada(a ? urlImagenBlog(a.ArticuloId, a.ImagenPortada) : null);
+    actualizarContadores();
+    actualizarBotonPublicar();
+  };
+
+  $("btnNuevaPublicacion")?.addEventListener("click", () => {
+    llenarEditor(null);
+    abrirEditor();
+    campoTitulo?.focus();
+  });
+
+  // EDITAR: GET /api/admin/blog/:id (trae el contenido completo)
+  document.querySelectorAll<HTMLButtonElement>(".btn-editar-publicacion").forEach((boton) => {
+    boton.addEventListener("click", async (evento) => {
+      evento.stopPropagation();
+      cerrarMenus();
+
+      const respuesta = await fetch(`${API_URL}/api/admin/blog/${boton.dataset.id}`, {
+        credentials: "include",
+      }).catch(() => null);
+
+      if (respuesta?.status === 401) return irALogin();
+      const data = respuesta?.ok ? await respuesta.json().catch(() => null) : null;
+      if (!data?.articulo) {
+        avisar("No se pudo abrir", "No se pudo cargar el artículo. Revisa que el servidor esté encendido.");
+        return;
+      }
+
+      llenarEditor(data.articulo);
+      abrirEditor();
+    });
+  });
+
+
+  /* =========================================
+     BARRA DE HERRAMIENTAS DEL CONTENIDO
+  ========================================== */
+
+  let seleccionGuardada: Range | null = null;
+
+  const guardarSeleccion = () => {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount && campoContenido?.contains(sel.anchorNode)) {
+      seleccionGuardada = sel.getRangeAt(0).cloneRange();
+    } else {
+      seleccionGuardada = null;
+    }
+  };
+
+  const restaurarSeleccion = () => {
+    campoContenido?.focus();
+    const sel = window.getSelection();
+    if (seleccionGuardada && sel) {
+      sel.removeAllRanges();
+      sel.addRange(seleccionGuardada);
+    } else if (campoContenido && sel) {
+      // Sin selección: se escribe al final
+      const rango = document.createRange();
+      rango.selectNodeContents(campoContenido);
+      rango.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(rango);
+    }
+  };
+
+  const esUrlSegura = (url: string) => /^https?:\/\/\S+$/i.test(url);
+
+  document.querySelectorAll<HTMLButtonElement>(".editor-toolbar button[data-cmd]").forEach((boton) => {
+    // mousedown: evita que el botón le quite la selección al texto
+    boton.addEventListener("mousedown", (e) => e.preventDefault());
+
+    boton.addEventListener("click", async () => {
+      const cmd = boton.dataset.cmd ?? "";
+
+      if (cmd === "enlace" || cmd === "imagen") {
+        guardarSeleccion();
+        const esEnlace = cmd === "enlace";
+        const { aceptado, valor } = await abrirModal({
+          titulo: esEnlace ? "Insertar enlace" : "Insertar imagen",
+          mensaje: esEnlace
+            ? "Selecciona el texto antes y pega aquí la dirección."
+            : "Pega la dirección (URL) de la imagen.",
+          icono: esEnlace ? "bi-link-45deg" : "bi-image",
+          campo: "https://...",
+          aceptar: "Insertar",
+          cancelar: true,
+        });
+        if (!aceptado || !valor) return;
+        if (!esUrlSegura(valor)) {
+          avisar("Dirección no válida", "Debe empezar por http:// o https://");
+          return;
+        }
+        restaurarSeleccion();
+        if (esEnlace) {
+          const sel = window.getSelection();
+          if (sel && !sel.isCollapsed) {
+            document.execCommand("createLink", false, valor);
+          } else {
+            const a = document.createElement("a");
+            a.href = valor;
+            a.textContent = valor;
+            document.execCommand("insertHTML", false, a.outerHTML);
+          }
+          campoContenido?.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((a) => {
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+          });
+        } else {
+          const img = document.createElement("img");
+          img.src = valor;
+          img.alt = "";
+          document.execCommand("insertHTML", false, img.outerHTML);
+        }
+      } else {
+        campoContenido?.focus();
+        document.execCommand(cmd, false);
+      }
+      actualizarContadores();
+    });
+  });
+
+
+  /* =========================================
+     GUARDAR
+     Nuevo:  POST  /api/admin/blog
+     Editar: PATCH /api/admin/blog/:id
+     Portada: PUT / DELETE /api/admin/blog/:id/imagen
+  ========================================== */
+
+  const guardarArticulo = async (publicado: boolean) => {
+    if (guardando) return;
+
+    const titulo = campoTitulo?.value.trim() ?? "";
+    const autor = campoAutor?.value.trim() ?? "";
+
+    if (titulo.length < 5) {
+      cambiarPestana("contenido");
+      campoTitulo?.focus();
+      return avisar("Falta el título", "El título debe tener al menos 5 caracteres.");
+    }
+    if (textoContenido().length < 20) {
+      cambiarPestana("contenido");
+      campoContenido?.focus();
+      return avisar("Contenido muy corto", "Escribe al menos 20 caracteres en el contenido.");
+    }
+    if (autor.length < 2) {
+      cambiarPestana("configuracion");
+      campoAutor?.focus();
+      return avisar("Falta el autor", "Escribe el nombre de quien firma el artículo (pestaña Configuración).");
+    }
+
+    const datos = {
+      titulo,
+      categoria: campoCategoria?.value ?? "Salud mental",
+      resumen: campoResumen?.value.trim() ?? "",
+      contenido: campoContenido?.innerHTML.trim() ?? "",
+      autorNombre: autor,
+      autorRol: campoRol?.value.trim() || null,
+      publicado,
+    };
+
+    guardando = true;
+    btnGuardar?.setAttribute("disabled", "");
+    btnPublicar?.setAttribute("disabled", "");
+
+    try {
+      const esNuevo = !articuloEditandoId;
+      const r = esNuevo
+        ? await apiEnviar("POST", "/api/admin/blog", datos)
+        : await apiEnviar("PATCH", `/api/admin/blog/${articuloEditandoId}`, datos);
+
+      if (r.status === 401) return irALogin();
+      if (!r.ok) return avisar("No se pudo guardar", textoError(r.data, "No se pudo guardar el artículo."));
+
+      const id = esNuevo ? String(r.data?.articuloId ?? "") : String(articuloEditandoId);
+      articuloEditandoId = id;
+
+      // Portada: se sube después, porque necesita el id del artículo
+      let avisoPortada = "";
+      if (archivoNuevo && id) {
+        const form = new FormData();
+        form.append("imagen", archivoNuevo);
+        const ri = await apiEnviar("PUT", `/api/admin/blog/${id}/imagen`, form);
+        if (!ri.ok) avisoPortada = ` Pero la portada no se guardó: ${textoError(ri.data)}`;
+      } else if (quitarPortadaAlGuardar && id) {
+        const ri = await apiEnviar("DELETE", `/api/admin/blog/${id}/imagen`);
+        if (!ri.ok) avisoPortada = " Pero no se pudo quitar la portada.";
+      }
+
+      const tituloAviso = publicado
+        ? (articuloEstabaPublicado ? "Cambios guardados" : "Artículo publicado")
+        : "Borrador guardado";
+      const mensaje = publicado
+        ? "La publicación ya está visible en la sección de artículos." + avisoPortada
+        : "La publicación no será visible hasta que la publiques." + avisoPortada;
+
+      recargarConAviso(tituloAviso, mensaje);
+    } finally {
+      guardando = false;
+      btnGuardar?.removeAttribute("disabled");
+      btnPublicar?.removeAttribute("disabled");
+    }
+  };
+
+  btnGuardar?.addEventListener("click", () => guardarArticulo(false));
+  btnPublicar?.addEventListener("click", () => guardarArticulo(campoEstado?.value !== "Borrador"));
+
+
+  /* =========================================
+     VISTA PREVIA
+     Publicado -> página pública. Borrador -> vista previa del admin.
+  ========================================== */
+
+  // Siempre se abre la vista previa del admin (en la misma pestaña),
+  // así "Volver al blog" regresa a este panel y no al blog público.
+  const abrirVistaPrevia = (id: string) => {
+    window.location.href = `/Administrador/blog-vista/${encodeURIComponent(id)}`;
+  };
+
+  document.querySelectorAll<HTMLButtonElement>(".btn-ver-publicacion").forEach((boton) => {
+    boton.addEventListener("click", (evento) => {
+      evento.stopPropagation();
+      cerrarMenus();
+      abrirVistaPrevia(boton.dataset.id ?? "");
+    });
+  });
+
+  $("previewBlog")?.addEventListener("click", () => {
+    if (!articuloEditandoId) {
+      avisar("Guarda primero", "Guarda el artículo (aunque sea como borrador) para ver la vista previa.", "bi-eye");
+      return;
+    }
+    // Muestra la última versión guardada
+    abrirVistaPrevia(articuloEditandoId);
+  });
+
+
+  /* =========================================
+     ELIMINAR: DELETE /api/admin/blog/:id
+  ========================================== */
+
+  document.querySelectorAll<HTMLButtonElement>(".btn-eliminar-publicacion").forEach((boton) => {
+    boton.addEventListener("click", async (evento) => {
+      evento.stopPropagation();
+      cerrarMenus();
+
+      const { aceptado } = await abrirModal({
+        titulo: "Eliminar publicación",
+        mensaje: `Se eliminará «${boton.dataset.titulo ?? "este artículo"}» de forma permanente. Esta acción no se puede deshacer.`,
+        icono: "bi-trash",
+        aceptar: "Eliminar",
+        cancelar: true,
+        peligro: true,
+      });
+      if (!aceptado) return;
+
+      const r = await apiEnviar("DELETE", `/api/admin/blog/${boton.dataset.id}`);
+      if (r.status === 401) return irALogin();
+      if (!r.ok) return avisar("No se pudo eliminar", textoError(r.data, "No se pudo eliminar el artículo."));
+      recargarConAviso("Publicación eliminada", "La publicación se eliminó correctamente.");
+    });
+  });
 
 
   /* =========================================
      ESC PARA CERRAR
   ========================================== */
 
-  document.addEventListener(
-    "keydown",
-    (evento) => {
-
-      if (evento.key === "Escape") {
-        cerrarPanel();
-      }
-
-    }
-  );
+  document.addEventListener("keydown", (evento) => {
+    if (evento.key !== "Escape") return;
+    if (cerrarModal) cerrarModal(false);
+    else cerrarPanel();
+  });
 </script>

@@ -1,0 +1,433 @@
+---
+// =====================================================================
+// Recuperar contraseña (mismo diseño del login: carrusel + tarjeta).
+//
+// Pasos (se muestra uno a la vez):
+//   1. pasoCorreo   -> escribe su correo         POST /api/auth/recuperar
+//   2. pasoEnviado  -> "Revisa tu correo"
+//   3. pasoRevisando-> abre el enlace del correo GET  /api/auth/recuperar/validar
+//   4. pasoNueva    -> crea la contraseña nueva  POST /api/auth/restablecer
+//   5. pasoListo    -> "Tu contraseña se cambió"
+//   *  pasoInvalido -> el enlace venció o ya se usó
+// =====================================================================
+import { API_URL } from "../../lib/api";
+import "./login.css";
+import "./recuperar.css";
+
+const images = [
+  "/Imagenes/carrucelinicio.1.jpeg",
+  "/Imagenes/carrucelinicio.11.jpg",
+  "/Imagenes/carrucelinicio.3.jpeg",
+  "/Imagenes/carrucelinicio.4.jpg",
+  "/Imagenes/carrucelinicio.5.jpg",
+  "/Imagenes/carrucelinicio.6.jpeg",
+  "/Imagenes/carrucelinicio.7.jpeg",
+  "/Imagenes/carrucelinicio.8.jpeg",
+  "/Imagenes/carrucelinicio.9.jpg",
+  "/Imagenes/carrucelinicio.10.jpg",
+  "/Imagenes/carrucelinicio.2.jpg",
+];
+
+// Hojita de Psynex
+const hoja = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.5 3.5C13.2 3.8 7.4 6.1 5 10.2c-1.8 3.1-.5 6.4 2.2 7.6 2.8 1.3 6.1-.1 7.9-2.8 2.1-3.1 2.6-7.1 5.4-11.5Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20c2.8-4.4 6.2-7.1 11.5-9.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`;
+---
+
+<div class="login-page">
+
+  <!-- MITAD IZQUIERDA: CARRUSEL (igual que el login) -->
+  <div class="login-carousel">
+    <div
+      id="carruselRecuperar"
+      class="carousel slide carousel-fade h-100"
+      data-bs-ride="carousel"
+      data-bs-interval="3500"
+    >
+      <div class="carousel-inner h-100">
+        {images.map((src, i) => (
+          <div class:list={["carousel-item", "h-100", { active: i === 0 }]}>
+            <img src={src} alt={`Psynex - imagen ${i + 1}`} />
+          </div>
+        ))}
+      </div>
+
+      <div class="carousel-overlay"></div>
+
+      <div class="carousel-indicators login-dots">
+        {images.map((_, i) => (
+          <button
+            type="button"
+            data-bs-target="#carruselRecuperar"
+            data-bs-slide-to={i}
+            class:list={[{ active: i === 0 }]}
+            aria-current={i === 0 ? "true" : undefined}
+            aria-label={`Ir a la imagen ${i + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+
+    <a href="/" class="login-home-btn" aria-label="Volver al inicio">
+      <i class="fas fa-home"></i>
+    </a>
+  </div>
+
+  <!-- MITAD DERECHA: TARJETA -->
+  <div class="login-form-side">
+    <div class="login-card rec-card" id="recuperarCard" data-api={API_URL}>
+
+      <div id="recError" class="login-alert login-alert-error" role="alert" hidden></div>
+
+      <!-- 1. PEDIR EL ENLACE -->
+      <section class="rec-paso" id="pasoCorreo">
+        <p class="login-kicker">Recuperar acceso</p>
+        <h1 class="login-title">Recupera tu</h1>
+        <h1 class="login-brand rec-brand">contraseña</h1>
+
+        <p class="rec-texto">
+          Escribe el correo con el que te registraste y te enviaremos
+          un enlace para crear una contraseña nueva.
+        </p>
+
+        <form id="formCorreo" class="login-form" novalidate>
+          <div class="login-field">
+            <label for="recEmail">Correo electrónico</label>
+            <input type="email" id="recEmail" name="email" placeholder="Ingresa tu correo" autocomplete="email" required />
+          </div>
+
+          <button type="submit" id="btnEnviar" class="login-submit">
+            Enviar enlace →
+          </button>
+        </form>
+
+        <a href="/Inicio/login" class="rec-volver">← Volver a iniciar sesión</a>
+      </section>
+
+      <!-- 2. CORREO ENVIADO -->
+      <section class="rec-paso rec-centro" id="pasoEnviado" hidden>
+        <div class="rec-icono" set:html={hoja}></div>
+        <p class="login-kicker">Revisa tu correo</p>
+        <h2 class="rec-titulo">Te enviamos un enlace</h2>
+
+        <p class="rec-texto">
+          Si <strong id="recEmailEnviado">tu correo</strong> está registrado en Psynex,
+          te llegará un mensaje para cambiar tu contraseña.
+        </p>
+
+        <ul class="rec-pistas">
+          <li>El enlace sirve por 30 minutos y solo una vez.</li>
+          <li>Si no lo ves, revisa la carpeta de spam o promociones.</li>
+        </ul>
+
+        <button type="button" id="btnReenviar" class="rec-secundario" disabled>
+          Reenviar en <span id="recCuenta">60</span> s
+        </button>
+
+        <a href="/Inicio/login" class="rec-volver">← Volver a iniciar sesión</a>
+      </section>
+
+      <!-- 3. REVISANDO EL ENLACE -->
+      <section class="rec-paso rec-centro" id="pasoRevisando" hidden>
+        <div class="rec-icono rec-respira" set:html={hoja}></div>
+        <p class="rec-texto">Revisando tu enlace…</p>
+      </section>
+
+      <!-- * ENLACE NO VÁLIDO -->
+      <section class="rec-paso rec-centro" id="pasoInvalido" hidden>
+        <div class="rec-icono rec-icono-alerta">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7"/><path d="M12 7.5V12l3 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <p class="login-kicker">Enlace vencido</p>
+        <h2 class="rec-titulo">Este enlace ya no sirve</h2>
+
+        <p class="rec-texto">
+          Los enlaces duran 30 minutos y se pueden usar una sola vez.
+          Pide uno nuevo y te llegará en un momento.
+        </p>
+
+        <button type="button" id="btnPedirOtro" class="login-submit">
+          Pedir un enlace nuevo →
+        </button>
+
+        <a href="/Inicio/login" class="rec-volver">← Volver a iniciar sesión</a>
+      </section>
+
+      <!-- 4. CONTRASEÑA NUEVA -->
+      <section class="rec-paso" id="pasoNueva" hidden>
+        <p class="login-kicker">Nueva contraseña</p>
+        <h1 class="login-title">Crea tu nueva</h1>
+        <h1 class="login-brand rec-brand">contraseña</h1>
+
+        <p class="rec-texto">
+          Hola <strong id="recNombre">de nuevo</strong>, vas a cambiar la contraseña
+          de <strong id="recCorreoOculto">tu cuenta</strong>.
+        </p>
+
+        <form id="formNueva" class="login-form" novalidate>
+          <div class="login-field login-field-password">
+            <label for="recPassword">Contraseña nueva</label>
+            <input type="password" id="recPassword" placeholder="Mínimo 8 caracteres" autocomplete="new-password" maxlength="72" required />
+            <button type="button" class="login-eye" data-ojo="recPassword" aria-label="Mostrar contraseña" hidden>
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+
+          <div class="login-field login-field-password">
+            <label for="recConfirmar">Confirmar contraseña</label>
+            <input type="password" id="recConfirmar" placeholder="Escríbela otra vez" autocomplete="new-password" maxlength="72" required />
+            <button type="button" class="login-eye" data-ojo="recConfirmar" aria-label="Mostrar contraseña" hidden>
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+
+          <ul class="rec-requisitos" aria-live="polite">
+            <li id="reqLargo">Mínimo 8 caracteres</li>
+            <li id="reqMezcla">Letras y números (recomendado)</li>
+            <li id="reqIguales">Las dos contraseñas coinciden</li>
+          </ul>
+
+          <button type="submit" id="btnCambiar" class="login-submit">
+            Cambiar contraseña →
+          </button>
+        </form>
+      </section>
+
+      <!-- 5. LISTO -->
+      <section class="rec-paso rec-centro" id="pasoListo" hidden>
+        <div class="rec-icono rec-icono-ok" set:html={hoja}></div>
+        <p class="login-kicker">Todo listo</p>
+        <h2 class="rec-titulo">Tu contraseña se cambió</h2>
+
+        <p class="rec-texto">
+          Ya puedes iniciar sesión con tu contraseña nueva.
+          También te enviamos un correo para avisarte del cambio.
+        </p>
+
+        <a href="/Inicio/login" class="login-submit rec-boton-enlace">
+          Iniciar sesión →
+        </a>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const card = document.getElementById("recuperarCard") as HTMLElement;
+  const API = card.dataset.api || "http://localhost:8001";
+
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+
+  const errorBox = $("recError");
+
+  const PASOS = ["pasoCorreo", "pasoEnviado", "pasoRevisando", "pasoInvalido", "pasoNueva", "pasoListo"];
+
+  function mostrarPaso(id: string) {
+    PASOS.forEach((p) => ($(p).hidden = p !== id));
+    ocultarError();
+    // El primer campo del paso queda listo para escribir
+    $(id).querySelector<HTMLInputElement>("input")?.focus();
+  }
+
+  function mostrarError(texto: string) {
+    errorBox.textContent = texto;
+    errorBox.hidden = false;
+  }
+
+  function ocultarError() {
+    errorBox.hidden = true;
+    errorBox.textContent = "";
+  }
+
+  // Une los errores que manda Deno (texto o lista)
+  const textoError = (data: any, porDefecto: string) =>
+    Array.isArray(data?.error) ? data.error.join(". ") : (data?.error || porDefecto);
+
+  async function pedir(ruta: string, opciones: RequestInit = {}) {
+    const res = await fetch(API + ruta, {
+      ...opciones,
+      headers: { "Content-Type": "application/json", ...(opciones.headers || {}) },
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, data };
+  }
+
+  function ocupado(boton: HTMLButtonElement, texto: string | null) {
+    if (texto) {
+      boton.dataset.texto = boton.textContent || "";
+      boton.textContent = texto;
+      boton.disabled = true;
+    } else {
+      boton.textContent = boton.dataset.texto || boton.textContent;
+      boton.disabled = false;
+    }
+  }
+
+
+  /* ---------------- 1 y 2. PEDIR EL ENLACE ---------------- */
+
+  const formCorreo = $<HTMLFormElement>("formCorreo");
+  const email = $<HTMLInputElement>("recEmail");
+  const btnEnviar = $<HTMLButtonElement>("btnEnviar");
+  const btnReenviar = $<HTMLButtonElement>("btnReenviar");
+  let ultimoCorreo = "";
+  let reloj: ReturnType<typeof setInterval> | undefined;
+
+  async function enviarEnlace(correo: string, boton: HTMLButtonElement) {
+    ocultarError();
+    ocupado(boton, "Enviando…");
+    try {
+      const { ok, data } = await pedir("/api/auth/recuperar", {
+        method: "POST",
+        body: JSON.stringify({ email: correo }),
+      });
+      if (!ok) {
+        mostrarError(textoError(data, "No pudimos enviar el enlace. Inténtalo de nuevo."));
+        return false;
+      }
+      return true;
+    } catch {
+      mostrarError("No se pudo conectar con el servidor.");
+      return false;
+    } finally {
+      ocupado(boton, null);
+    }
+  }
+
+  function iniciarCuenta() {
+    let segundos = 60;
+    clearInterval(reloj);
+    btnReenviar.disabled = true;
+    btnReenviar.innerHTML = 'Reenviar en <span id="recCuenta">60</span> s';
+    reloj = setInterval(() => {
+      segundos -= 1;
+      const cuenta = document.getElementById("recCuenta");
+      if (cuenta) cuenta.textContent = String(segundos);
+      if (segundos <= 0) {
+        clearInterval(reloj);
+        btnReenviar.disabled = false;
+        btnReenviar.textContent = "Reenviar enlace";
+      }
+    }, 1000);
+  }
+
+  formCorreo.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const correo = email.value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+      mostrarError("Escribe un correo válido.");
+      email.focus();
+      return;
+    }
+    if (await enviarEnlace(correo, btnEnviar)) {
+      ultimoCorreo = correo;
+      $("recEmailEnviado").textContent = correo;
+      mostrarPaso("pasoEnviado");
+      iniciarCuenta();
+    }
+  });
+
+  btnReenviar.addEventListener("click", async () => {
+    if (!ultimoCorreo) return mostrarPaso("pasoCorreo");
+    if (await enviarEnlace(ultimoCorreo, btnReenviar)) iniciarCuenta();
+  });
+
+  $("btnPedirOtro").addEventListener("click", () => mostrarPaso("pasoCorreo"));
+
+
+  /* ---------------- 3 y 4. CONTRASEÑA NUEVA ---------------- */
+
+  const formNueva = $<HTMLFormElement>("formNueva");
+  const pass1 = $<HTMLInputElement>("recPassword");
+  const pass2 = $<HTMLInputElement>("recConfirmar");
+  const btnCambiar = $<HTMLButtonElement>("btnCambiar");
+  let token = "";
+
+  // Ojito de cada campo: aparece cuando hay algo escrito
+  document.querySelectorAll<HTMLButtonElement>("[data-ojo]").forEach((boton) => {
+    const campo = $<HTMLInputElement>(boton.dataset.ojo || "");
+    campo.addEventListener("input", () => (boton.hidden = campo.value.length === 0));
+    boton.addEventListener("click", () => {
+      const oculta = campo.type === "password";
+      campo.type = oculta ? "text" : "password";
+      boton.innerHTML = oculta ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+      boton.setAttribute("aria-label", oculta ? "Ocultar contraseña" : "Mostrar contraseña");
+    });
+  });
+
+  // Requisitos que se marcan mientras escribe
+  function revisarRequisitos() {
+    const largo = pass1.value.length >= 8;
+    const mezcla = /[a-zA-ZñÑ]/.test(pass1.value) && /\d/.test(pass1.value);
+    const iguales = pass2.value.length > 0 && pass1.value === pass2.value;
+    $("reqLargo").classList.toggle("cumple", largo);
+    $("reqMezcla").classList.toggle("cumple", mezcla);
+    $("reqIguales").classList.toggle("cumple", iguales);
+    return { largo, iguales };
+  }
+
+  pass1.addEventListener("input", revisarRequisitos);
+  pass2.addEventListener("input", revisarRequisitos);
+
+  formNueva.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    ocultarError();
+    const { largo, iguales } = revisarRequisitos();
+    if (!largo) {
+      mostrarError("La contraseña debe tener mínimo 8 caracteres.");
+      pass1.focus();
+      return;
+    }
+    if (!iguales) {
+      mostrarError("Las dos contraseñas no coinciden.");
+      pass2.focus();
+      return;
+    }
+
+    ocupado(btnCambiar, "Guardando…");
+    try {
+      const { ok, data } = await pedir("/api/auth/restablecer", {
+        method: "POST",
+        body: JSON.stringify({ token, password: pass1.value }),
+      });
+      if (!ok) {
+        const texto = textoError(data, "No pudimos cambiar la contraseña.");
+        // Si el enlace venció mientras escribía, se ofrece pedir otro
+        if (/venció|ya se usó/i.test(texto)) return mostrarPaso("pasoInvalido");
+        mostrarError(texto);
+        return;
+      }
+      pass1.value = "";
+      pass2.value = "";
+      mostrarPaso("pasoListo");
+    } catch {
+      mostrarError("No se pudo conectar con el servidor.");
+    } finally {
+      ocupado(btnCambiar, null);
+    }
+  });
+
+
+  /* ---------------- AL ABRIR LA PÁGINA ---------------- */
+
+  (async () => {
+    const params = new URLSearchParams(location.search);
+    token = params.get("token") || "";
+
+    if (!token) return mostrarPaso("pasoCorreo");
+
+    // El token se quita de la barra de direcciones (para que no quede a la vista)
+    history.replaceState(null, "", location.pathname);
+
+    mostrarPaso("pasoRevisando");
+    try {
+      const { ok, data } = await pedir(`/api/auth/recuperar/validar?token=${encodeURIComponent(token)}`);
+      if (!ok) return mostrarPaso("pasoInvalido");
+      $("recNombre").textContent = data.nombre || "de nuevo";
+      $("recCorreoOculto").textContent = data.email || "tu cuenta";
+      mostrarPaso("pasoNueva");
+    } catch {
+      mostrarPaso("pasoInvalido");
+      mostrarError("No se pudo conectar con el servidor.");
+    }
+  })();
+</script>

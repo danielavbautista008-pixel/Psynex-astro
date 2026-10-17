@@ -1,0 +1,29 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import DetalleOferta from "../../../components/Explorar/DetalleOferta.astro";
+import type { OfertaPublica } from "../../../components/Explorar/DetalleOferta.astro";
+import { apiGet } from "../../../lib/api";
+import { obtenerUsuario } from "../../../lib/auth";
+
+// /Explorar/oferta/<id de la oferta>
+const cookie = Astro.request.headers.get("cookie");
+const id = Astro.params.id ?? "";
+
+const [datos, usuario] = await Promise.all([
+  apiGet<{ oferta: OfertaPublica }>(cookie, `/api/explorar/ofertas/${encodeURIComponent(id)}`),
+  obtenerUsuario(cookie ?? undefined),
+]);
+
+// Si la oferta no existe se vuelve a la lista de ofertas
+if (!datos?.oferta) {
+  return Astro.redirect("/Explorar/OfertasLaborales");
+}
+
+const visitante = usuario
+  ? { rol: String(usuario.Rol), nombre: String(usuario.NombreCompleto ?? ""), email: String(usuario.Email ?? "") }
+  : null;
+---
+
+<BaseLayout title={`${datos.oferta.cargo} | Psynex`}>
+  <DetalleOferta oferta={datos.oferta} usuario={visitante} />
+</BaseLayout>

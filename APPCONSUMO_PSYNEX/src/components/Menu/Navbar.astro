@@ -21,16 +21,16 @@ export interface Props {
 const {
   logoSrc = "/Imagenes/logo.png",
   siteName = "PSYNEX",
-  loginHref = "Inicio/login",
+  loginHref = "/Inicio/login",
   loginLabel = "Iniciar sesión",
   menuItems = [
     { label: "Inicio", href: "/" },
-    { label: "Explorar", href: "/dashboard-publico" },
-    { label: "Nosotros", href: "/sobre-nosotros" },
+    { label: "Explorar", href: "/Explorar/explorar" },
+    { label: "Nosotros", href: "/Inicio/Sobrenosotros" },
   ],
 } = Astro.props;
 
-import "./navbar.css";
+import "./Navbar.css";
 ---
 
 <nav class="sticky-nav">

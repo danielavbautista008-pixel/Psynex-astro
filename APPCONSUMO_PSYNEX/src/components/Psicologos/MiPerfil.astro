@@ -1,0 +1,815 @@
+
+---
+import NavbarPsicologo from "../Menu/NavbarPsicologo.astro";
+import "./MiPerfil.css";
+---
+
+<div id="mi-perfil-page" class="mp-page">
+  <NavbarPsicologo />
+
+  <main class="mp-main">
+    <header class="mp-heading">
+      <div>
+        <p class="mp-eyebrow">Espacio profesional</p>
+        <h1>Mi perfil</h1>
+        <p class="mp-subtitle">Esto es lo que ven los pacientes en Psynex.</p>
+      </div>
+      <button class="mp-button mp-button-primary" type="button" data-open="mp-modal-bio">
+        Editar perfil
+      </button>
+    </header>
+
+    <section class="mp-profile-card">
+      <div class="mp-avatar-column">
+        <img
+          id="mp-avatar"
+          class="mp-avatar"
+          src="https://placehold.co/160x160?text=Foto"
+          alt="Foto del psicólogo"
+        />
+        <input id="mp-photo-input" class="mp-sr-only" type="file" accept="image/*" />
+        <button class="mp-button mp-button-outline mp-photo-button" type="button" id="mp-change-photo">
+          Cambiar foto
+        </button>
+      </div>
+
+      <div class="mp-profile-info">
+        <div class="mp-name-line">
+          <h2 id="mp-name">Tu nombre profesional</h2>
+          <span class="mp-status">En revisión</span>
+        </div>
+        <div class="mp-meta">
+          <span class="mp-rating"><span class="mp-stars">★★★★★</span> <strong id="mp-rating">4.8</strong></span>
+          <span id="mp-review-count">124 reseñas</span>
+          <span id="mp-experience-summary">6 años de experiencia</span>
+          <span id="mp-mode-summary">Virtual y presencial</span>
+        </div>
+        <p id="mp-bio-preview" class="mp-profile-description">
+          Aquí aparecerá tu presentación profesional para que los pacientes conozcan tu enfoque y experiencia.
+        </p>
+      </div>
+
+      <div class="mp-profile-actions">
+        <button class="mp-button mp-button-outline" type="button" id="mp-public-profile">
+          Ver mi perfil público
+        </button>
+        <button class="mp-button mp-button-primary" type="button" id="mp-open-reviews">
+          Ver mis reseñas
+        </button>
+      </div>
+    </section>
+
+    <div class="mp-columns">
+      <div class="mp-column mp-column-main">
+        <section class="mp-card">
+          <div class="mp-card-heading">
+            <h2>Sobre mí</h2>
+            <button class="mp-button mp-button-small mp-button-outline" type="button" data-open="mp-modal-bio">Editar</button>
+          </div>
+          <p id="mp-bio-display" class="mp-body-copy">
+            Completa tu biografía para que los pacientes conozcan tu formación, tu enfoque terapéutico y cómo puedes acompañarlos.
+          </p>
+        </section>
+
+        <section class="mp-card">
+          <div class="mp-card-heading">
+            <h2>Especialidades</h2>
+            <button class="mp-button mp-button-small mp-button-outline" type="button" data-open="mp-modal-specialties">Editar</button>
+          </div>
+          <div id="mp-specialty-tags" class="mp-tags">
+            <span class="mp-tag">Ansiedad</span>
+            <span class="mp-tag">Depresión</span>
+            <span class="mp-tag">Autoestima</span>
+          </div>
+        </section>
+
+        <section class="mp-card">
+          <div class="mp-card-heading">
+            <h2>Estudios</h2>
+            <button class="mp-button mp-button-small mp-button-outline" type="button" data-add-education>Agregar</button>
+          </div>
+          <div id="mp-education-list" class="mp-record-list">
+            <p class="mp-empty">Añade tus estudios y títulos profesionales.</p>
+          </div>
+        </section>
+
+        <section class="mp-card">
+          <div class="mp-card-heading">
+            <h2>Experiencia</h2>
+            <button class="mp-button mp-button-small mp-button-outline" type="button" data-add-experience>Agregar</button>
+          </div>
+          <div id="mp-experience-list" class="mp-record-list">
+            <p class="mp-empty">Añade tu experiencia laboral.</p>
+          </div>
+        </section>
+      </div>
+
+      <aside class="mp-column mp-column-side">
+        <section class="mp-card">
+          <div class="mp-card-heading">
+            <h2>Atención</h2>
+            <button class="mp-button mp-button-small mp-button-outline" type="button" data-open="mp-modal-attention">Editar</button>
+          </div>
+          <dl class="mp-details">
+            <div><dt>Modalidad</dt><dd id="mp-mode-display">Virtual y presencial</dd></div>
+            <div><dt>Precio por hora</dt><dd id="mp-price-display">Por definir</dd></div>
+            <div><dt>Dirección del consultorio</dt><dd id="mp-address-display">Por definir</dd></div>
+          </dl>
+        </section>
+
+        <section class="mp-card">
+          <div class="mp-card-heading">
+            <h2>Contacto</h2>
+            <button class="mp-button mp-button-small mp-button-outline" type="button" data-open="mp-modal-contact">Editar</button>
+          </div>
+          <dl class="mp-details">
+            <div><dt>Teléfono</dt><dd id="mp-phone-display">Por definir</dd></div>
+            <div><dt>Correo</dt><dd id="mp-email-display">No configurado</dd></div>
+          </dl>
+          <p class="mp-private-note"><i class="bi bi-eye-slash" aria-hidden="true"></i> No es visible para los pacientes.</p>
+        </section>
+
+        <section class="mp-card mp-public-card">
+          <h2>Tu perfil, tu espacio</h2>
+          <p>Mantén tus datos actualizados para que los pacientes encuentren información clara sobre ti.</p>
+          <button class="mp-button mp-button-primary mp-button-full" type="button" id="mp-save-all">
+            Guardar cambios
+          </button>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <div id="mp-toast" class="mp-toast" role="status" aria-live="polite" hidden></div>
+
+  <!-- 1. Editar biografía -->
+  <section class="mp-modal" id="mp-modal-bio" role="dialog" aria-modal="true" aria-labelledby="mp-bio-title" hidden>
+    <button class="mp-backdrop" type="button" data-close-modal aria-label="Cerrar ventana"></button>
+    <div class="mp-modal-box">
+      <div class="mp-modal-heading">
+        <h2 id="mp-bio-title">Editar sobre mí</h2>
+        <button class="mp-close" type="button" data-close-modal aria-label="Cerrar">×</button>
+      </div>
+      <form id="mp-form-bio">
+        <label class="mp-field">Biografía
+          <textarea id="mp-bio-input" name="bio" rows="7" maxlength="900" placeholder="Cuéntales a tus pacientes sobre tu formación y enfoque..." required></textarea>
+        </label>
+        <div class="mp-character-count"><span id="mp-bio-count">0</span>/900 caracteres</div>
+        <div class="mp-modal-actions">
+          <button class="mp-button mp-button-outline" type="button" data-close-modal>Cancelar</button>
+          <button class="mp-button mp-button-primary" type="submit">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- 2. Editar especialidades -->
+  <section class="mp-modal" id="mp-modal-specialties" role="dialog" aria-modal="true" aria-labelledby="mp-specialties-title" hidden>
+    <button class="mp-backdrop" type="button" data-close-modal aria-label="Cerrar ventana"></button>
+    <div class="mp-modal-box">
+      <div class="mp-modal-heading">
+        <h2 id="mp-specialties-title">Editar especialidades</h2>
+        <button class="mp-close" type="button" data-close-modal aria-label="Cerrar">×</button>
+      </div>
+      <p class="mp-muted">Selecciona hasta 15 especialidades.</p>
+      <form id="mp-form-specialties">
+        <div id="mp-specialty-options" class="mp-specialty-groups">
+          <fieldset>
+            <legend>Clínica</legend>
+            <label><input type="checkbox" name="specialty" value="Ansiedad" /> Ansiedad</label>
+            <label><input type="checkbox" name="specialty" value="Depresión" /> Depresión</label>
+            <label><input type="checkbox" name="specialty" value="Autoestima" /> Autoestima</label>
+            <label><input type="checkbox" name="specialty" value="Duelo" /> Duelo</label>
+            <label><input type="checkbox" name="specialty" value="Manejo del estrés" /> Manejo del estrés</label>
+          </fieldset>
+          <fieldset>
+            <legend>Familia y pareja</legend>
+            <label><input type="checkbox" name="specialty" value="Terapia de pareja" /> Terapia de pareja</label>
+            <label><input type="checkbox" name="specialty" value="Terapia familiar" /> Terapia familiar</label>
+            <label><input type="checkbox" name="specialty" value="Separación" /> Separación</label>
+          </fieldset>
+          <fieldset>
+            <legend>Infantil y adolescente</legend>
+            <label><input type="checkbox" name="specialty" value="Infancia" /> Infancia</label>
+            <label><input type="checkbox" name="specialty" value="Adolescencia" /> Adolescencia</label>
+            <label><input type="checkbox" name="specialty" value="Orientación a padres" /> Orientación a padres</label>
+          </fieldset>
+        </div>
+        <p id="mp-specialty-count" class="mp-muted">0/15 seleccionadas</p>
+        <div class="mp-modal-actions">
+          <button class="mp-button mp-button-outline" type="button" data-close-modal>Cancelar</button>
+          <button class="mp-button mp-button-primary" type="submit">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- 3. Agregar o editar estudio -->
+  <section class="mp-modal" id="mp-modal-education" role="dialog" aria-modal="true" aria-labelledby="mp-education-title" hidden>
+    <button class="mp-backdrop" type="button" data-close-modal aria-label="Cerrar ventana"></button>
+    <div class="mp-modal-box">
+      <div class="mp-modal-heading">
+        <h2 id="mp-education-title">Agregar estudio</h2>
+        <button class="mp-close" type="button" data-close-modal aria-label="Cerrar">×</button>
+      </div>
+      <form id="mp-form-education">
+        <input type="hidden" name="id" />
+        <label class="mp-field">Universidad o institución<input name="institution" required maxlength="120" /></label>
+        <label class="mp-field">Título obtenido<input name="degree" required maxlength="120" /></label>
+        <label class="mp-field">Nivel de estudio
+          <select name="level" required>
+            <option value="Pregrado">Pregrado</option>
+            <option value="Especialización">Especialización</option>
+            <option value="Maestría">Maestría</option>
+            <option value="Doctorado">Doctorado</option>
+          </select>
+        </label>
+        <label class="mp-field">Año de grado<input name="year" type="number" min="1950" max="2100" /></label>
+        <label class="mp-check"><input name="ongoing" type="checkbox" /> En curso</label>
+        <div class="mp-modal-actions">
+          <button class="mp-button mp-button-outline" type="button" data-close-modal>Cancelar</button>
+          <button class="mp-button mp-button-primary" type="submit">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- 4. Agregar o editar experiencia -->
+  <section class="mp-modal" id="mp-modal-experience" role="dialog" aria-modal="true" aria-labelledby="mp-experience-title" hidden>
+    <button class="mp-backdrop" type="button" data-close-modal aria-label="Cerrar ventana"></button>
+    <div class="mp-modal-box">
+      <div class="mp-modal-heading">
+        <h2 id="mp-experience-title">Agregar experiencia</h2>
+        <button class="mp-close" type="button" data-close-modal aria-label="Cerrar">×</button>
+      </div>
+      <form id="mp-form-experience">
+        <input type="hidden" name="id" />
+        <label class="mp-field">Lugar de trabajo<input name="workplace" required maxlength="120" /></label>
+        <label class="mp-field">Cargo<input name="position" required maxlength="120" /></label>
+        <div class="mp-form-row">
+          <label class="mp-field">Fecha de inicio<input name="start" type="month" required /></label>
+          <label class="mp-field">Fecha de fin<input name="end" type="month" /></label>
+        </div>
+        <label class="mp-check"><input name="current" type="checkbox" /> Trabajo aquí actualmente</label>
+        <label class="mp-field">Descripción corta<textarea name="description" rows="3" maxlength="300"></textarea></label>
+        <div class="mp-modal-actions">
+          <button class="mp-button mp-button-outline" type="button" data-close-modal>Cancelar</button>
+          <button class="mp-button mp-button-primary" type="submit">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- 5. Editar atención -->
+  <section class="mp-modal" id="mp-modal-attention" role="dialog" aria-modal="true" aria-labelledby="mp-attention-title" hidden>
+    <button class="mp-backdrop" type="button" data-close-modal aria-label="Cerrar ventana"></button>
+    <div class="mp-modal-box">
+      <div class="mp-modal-heading">
+        <h2 id="mp-attention-title">Editar atención</h2>
+        <button class="mp-close" type="button" data-close-modal aria-label="Cerrar">×</button>
+      </div>
+      <form id="mp-form-attention">
+        <label class="mp-field">Modalidad
+          <select name="mode">
+            <option value="Virtual">Virtual</option>
+            <option value="Presencial">Presencial</option>
+            <option value="Virtual y presencial">Ambas</option>
+          </select>
+        </label>
+        <label class="mp-field">Precio por hora (COP)<input name="price" type="number" min="0" step="1000" placeholder="180000" /></label>
+        <label class="mp-field">Dirección del consultorio<input name="address" maxlength="180" /></label>
+        <div class="mp-modal-actions">
+          <button class="mp-button mp-button-outline" type="button" data-close-modal>Cancelar</button>
+          <button class="mp-button mp-button-primary" type="submit">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- 6. Editar contacto -->
+  <section class="mp-modal" id="mp-modal-contact" role="dialog" aria-modal="true" aria-labelledby="mp-contact-title" hidden>
+    <button class="mp-backdrop" type="button" data-close-modal aria-label="Cerrar ventana"></button>
+    <div class="mp-modal-box">
+      <div class="mp-modal-heading">
+        <h2 id="mp-contact-title">Editar contacto</h2>
+        <button class="mp-close" type="button" data-close-modal aria-label="Cerrar">×</button>
+      </div>
+      <form id="mp-form-contact">
+        <label class="mp-field">Teléfono<input name="phone" type="tel" maxlength="30" required /></label>
+        <label class="mp-field">Correo electrónico<input id="mp-contact-email" type="email" disabled /></label>
+        <p class="mp-muted">El correo se muestra aquí, pero no se puede editar desde esta ventana.</p>
+        <div class="mp-modal-actions">
+          <button class="mp-button mp-button-outline" type="button" data-close-modal>Cancelar</button>
+          <button class="mp-button mp-button-primary" type="submit">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- 7. Confirmar eliminación -->
+  <section class="mp-modal" id="mp-modal-delete" role="dialog" aria-modal="true" aria-labelledby="mp-delete-title" hidden>
+    <button class="mp-backdrop" type="button" data-close-modal aria-label="Cerrar ventana"></button>
+    <div class="mp-modal-box mp-modal-compact">
+      <div class="mp-modal-heading">
+        <h2 id="mp-delete-title">Confirmar eliminación</h2>
+        <button class="mp-close" type="button" data-close-modal aria-label="Cerrar">×</button>
+      </div>
+      <p id="mp-delete-message">¿Eliminar este elemento? Esta acción no se puede deshacer.</p>
+      <div class="mp-modal-actions">
+        <button class="mp-button mp-button-outline" type="button" data-close-modal>Cancelar</button>
+        <button class="mp-button mp-button-danger" type="button" id="mp-confirm-delete">Eliminar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Panel lateral de reseñas -->
+  <aside id="mp-reviews-panel" class="mp-reviews-panel" aria-label="Mis reseñas" aria-hidden="true">
+    <button class="mp-reviews-backdrop" type="button" id="mp-reviews-backdrop" aria-label="Cerrar reseñas"></button>
+    <div class="mp-reviews-content">
+      <div class="mp-reviews-heading">
+        <h2>Mis reseñas</h2>
+        <button class="mp-close" type="button" id="mp-close-reviews" aria-label="Cerrar reseñas">×</button>
+      </div>
+      <div class="mp-review-summary">
+        <strong>4.8</strong>
+        <div><span class="mp-stars">★★★★★</span><p>124 reseñas</p></div>
+      </div>
+      <div class="mp-rating-bars">
+        <div><span>5 estrellas</span><span class="mp-bar"><i style="width:71%"></i></span><b>88</b></div>
+        <div><span>4 estrellas</span><span class="mp-bar"><i style="width:18%"></i></span><b>22</b></div>
+        <div><span>3 estrellas</span><span class="mp-bar"><i style="width:7%"></i></span><b>8</b></div>
+        <div><span>2 estrellas</span><span class="mp-bar"><i style="width:3%"></i></span><b>4</b></div>
+        <div><span>1 estrella</span><span class="mp-bar"><i style="width:2%"></i></span><b>2</b></div>
+      </div>
+      <h3 class="mp-reviews-subtitle">Comentarios de pacientes</h3>
+      <article class="mp-review">
+        <div class="mp-review-top"><strong>María C.</strong><time>12 abr. 2025</time></div>
+        <span class="mp-stars">★★★★★</span>
+        <p>Me sentí muy cómoda en la sesión. La atención fue empática y profesional.</p>
+      </article>
+      <article class="mp-review">
+        <div class="mp-review-top"><strong>Jaime S.</strong><time>3 abr. 2025</time></div>
+        <span class="mp-stars">★★★★★</span>
+        <p>Excelente atención, me ayudó mucho con mi proceso personal.</p>
+      </article>
+      <article class="mp-review">
+        <div class="mp-review-top"><strong>Laura P.</strong><time>21 mar. 2025</time></div>
+        <span class="mp-stars">★★★★☆</span>
+        <p>Muy buena experiencia y un espacio en el que pude expresarme.</p>
+      </article>
+      <p class="mp-muted">Las reseñas mostradas son datos ilustrativos de la interfaz.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+  const page = document.querySelector<HTMLElement>("#mi-perfil-page");
+
+  if (page && !page.dataset.initialized) {
+    page.dataset.initialized = "true";
+
+    type Education = {
+      id: string;
+      institution: string;
+      degree: string;
+      level: string;
+      year: string;
+      ongoing: boolean;
+    };
+
+    type Experience = {
+      id: string;
+      workplace: string;
+      position: string;
+      start: string;
+      end: string;
+      current: boolean;
+      description: string;
+    };
+
+    const $ = <T extends Element>(selector: string) => page.querySelector<T>(selector);
+    const $$ = <T extends Element>(selector: string) => Array.from(page.querySelectorAll<T>(selector));
+
+    const education: Education[] = [];
+    const experience: Experience[] = [];
+    let deleteTarget: { kind: "education" | "experience"; id: string } | null = null;
+    let toastTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const toast = $("#mp-toast");
+    const money = (value: number) =>
+      new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+        maximumFractionDigits: 0,
+      }).format(value);
+
+    function notify(message: string) {
+      if (!(toast instanceof HTMLElement)) return;
+      toast.textContent = message;
+      toast.hidden = false;
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        if (toast) toast.hidden = true;
+      }, 2800);
+    }
+
+    function openModal(id: string) {
+      $$(".mp-modal").forEach((modal) => {
+        if (modal instanceof HTMLElement) modal.hidden = true;
+      });
+      const modal = $<HTMLElement>(`#${id}`);
+      if (!modal) return;
+      modal.hidden = false;
+      document.body.classList.add("mp-modal-open");
+      modal.querySelector<HTMLElement>("input:not([type=hidden]):not([disabled]), textarea, select, button")?.focus();
+    }
+
+    function closeModal(modal?: HTMLElement | null) {
+      if (modal) modal.hidden = true;
+      else $$(".mp-modal").forEach((item) => {
+        if (item instanceof HTMLElement) item.hidden = true;
+      });
+      if (!$<HTMLElement>(".mp-modal:not([hidden])")) {
+        document.body.classList.remove("mp-modal-open");
+      }
+    }
+
+    function text(id: string, value: string) {
+      const element = $<HTMLElement>(`#${id}`);
+      if (element) element.textContent = value;
+    }
+
+    function fieldValue(form: HTMLFormElement, name: string): string {
+      const field = form.elements.namedItem(name);
+      return field instanceof HTMLInputElement ||
+        field instanceof HTMLTextAreaElement ||
+        field instanceof HTMLSelectElement
+        ? field.value.trim()
+        : "";
+    }
+
+    function fieldChecked(form: HTMLFormElement, name: string): boolean {
+      const field = form.elements.namedItem(name);
+      return field instanceof HTMLInputElement && field.checked;
+    }
+
+    function renderEducation() {
+      const list = $("#mp-education-list");
+      if (!list) return;
+      list.replaceChildren();
+
+      if (!education.length) {
+        const empty = document.createElement("p");
+        empty.className = "mp-empty";
+        empty.textContent = "Añade tus estudios y títulos profesionales.";
+        list.append(empty);
+        return;
+      }
+
+      education.forEach((item) => {
+        const row = document.createElement("article");
+        row.className = "mp-record";
+        const info = document.createElement("div");
+        info.className = "mp-record-info";
+        const title = document.createElement("strong");
+        title.textContent = item.degree;
+        const details = document.createElement("p");
+        details.textContent = `${item.institution} · ${item.ongoing ? "En curso" : item.year || "Año no indicado"} · ${item.level}`;
+        info.append(title, details);
+
+        const actions = document.createElement("div");
+        actions.className = "mp-record-actions";
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.className = "mp-button mp-button-small mp-button-outline";
+        edit.textContent = "Editar";
+        edit.addEventListener("click", () => editEducation(item.id));
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "mp-button mp-button-small mp-button-outline";
+        remove.textContent = "Eliminar";
+        remove.addEventListener("click", () => askDelete("education", item.id, item.degree));
+        actions.append(edit, remove);
+        row.append(info, actions);
+        list.append(row);
+      });
+    }
+
+    function renderExperience() {
+      const list = $("#mp-experience-list");
+      if (!list) return;
+      list.replaceChildren();
+
+      if (!experience.length) {
+        const empty = document.createElement("p");
+        empty.className = "mp-empty";
+        empty.textContent = "Añade tu experiencia laboral.";
+        list.append(empty);
+        return;
+      }
+
+      experience.forEach((item) => {
+        const row = document.createElement("article");
+        row.className = "mp-record";
+        const info = document.createElement("div");
+        info.className = "mp-record-info";
+        const title = document.createElement("strong");
+        title.textContent = item.workplace;
+        const details = document.createElement("p");
+        details.textContent = `${item.position} · ${item.start || "Inicio no indicado"} – ${item.current ? "Actualmente" : item.end || "Fin no indicado"}`;
+        info.append(title, details);
+        if (item.description) {
+          const description = document.createElement("p");
+          description.textContent = item.description;
+          info.append(description);
+        }
+
+        const actions = document.createElement("div");
+        actions.className = "mp-record-actions";
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.className = "mp-button mp-button-small mp-button-outline";
+        edit.textContent = "Editar";
+        edit.addEventListener("click", () => editExperience(item.id));
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "mp-button mp-button-small mp-button-outline";
+        remove.textContent = "Eliminar";
+        remove.addEventListener("click", () => askDelete("experience", item.id, item.workplace));
+        actions.append(edit, remove);
+        row.append(info, actions);
+        list.append(row);
+      });
+    }
+
+    function editEducation(id?: string) {
+      const form = $<HTMLFormElement>("#mp-form-education");
+      if (!form) return;
+      form.reset();
+      const item = education.find((entry) => entry.id === id);
+      (form.elements.namedItem("id") as HTMLInputElement).value = item?.id || "";
+      (form.elements.namedItem("institution") as HTMLInputElement).value = item?.institution || "";
+      (form.elements.namedItem("degree") as HTMLInputElement).value = item?.degree || "";
+      (form.elements.namedItem("level") as HTMLSelectElement).value = item?.level || "Pregrado";
+      (form.elements.namedItem("year") as HTMLInputElement).value = item?.year || "";
+      (form.elements.namedItem("ongoing") as HTMLInputElement).checked = item?.ongoing || false;
+      text("mp-education-title", item ? "Editar estudio" : "Agregar estudio");
+      openModal("mp-modal-education");
+    }
+
+    function editExperience(id?: string) {
+      const form = $<HTMLFormElement>("#mp-form-experience");
+      if (!form) return;
+      form.reset();
+      const item = experience.find((entry) => entry.id === id);
+      (form.elements.namedItem("id") as HTMLInputElement).value = item?.id || "";
+      (form.elements.namedItem("workplace") as HTMLInputElement).value = item?.workplace || "";
+      (form.elements.namedItem("position") as HTMLInputElement).value = item?.position || "";
+      (form.elements.namedItem("start") as HTMLInputElement).value = item?.start || "";
+      (form.elements.namedItem("end") as HTMLInputElement).value = item?.end || "";
+      (form.elements.namedItem("current") as HTMLInputElement).checked = item?.current || false;
+      (form.elements.namedItem("description") as HTMLTextAreaElement).value = item?.description || "";
+      text("mp-experience-title", item ? "Editar experiencia" : "Agregar experiencia");
+      openModal("mp-modal-experience");
+    }
+
+    function askDelete(kind: "education" | "experience", id: string, name: string) {
+      deleteTarget = { kind, id };
+      text("mp-delete-title", kind === "education" ? "Eliminar estudio" : "Eliminar experiencia");
+      text("mp-delete-message", `¿Eliminar “${name}”? Esta acción no se puede deshacer.`);
+      openModal("mp-modal-delete");
+    }
+
+    page.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const openButton = target.closest<HTMLElement>("[data-open]");
+      if (openButton) {
+        const id = openButton.dataset.open;
+        if (id) openModal(id);
+      }
+
+      const closeButton = target.closest<HTMLElement>("[data-close-modal]");
+      if (closeButton) closeModal(closeButton.closest<HTMLElement>(".mp-modal"));
+
+      if (target.closest("[data-add-education]")) editEducation();
+      if (target.closest("[data-add-experience]")) editExperience();
+    });
+
+    $("#mp-change-photo")?.addEventListener("click", () => {
+      const photoInput = $("#mp-photo-input"); 
+    
+
+if (photoInput instanceof HTMLInputElement) {
+  photoInput.click();
+}
+    });
+
+    $("#mp-photo-input")?.addEventListener("change", (event) => {
+      const input = event.currentTarget;
+      if (!(input instanceof HTMLInputElement) || !input.files?.[0]) return;
+      const file = input.files[0];
+      if (!file.type.startsWith("image/")) {
+        notify("Selecciona un archivo de imagen válido.");
+        return;
+      }
+      const avatar = $("#mp-avatar");
+      if (avatar instanceof HTMLImageElement) {
+        avatar.src = URL.createObjectURL(file);
+      }
+      notify("Foto actualizada en esta vista.");
+    });
+
+    $("#mp-open-reviews")?.addEventListener("click", () => {
+      const panel = $("#mp-reviews-panel");
+      if (panel instanceof HTMLElement) {
+        panel.classList.add("is-open");
+        panel.setAttribute("aria-hidden", "false");
+      }
+    });
+
+    function closeReviews() {
+      const panel = $("#mp-reviews-panel");
+      if (panel instanceof HTMLElement) {
+        panel.classList.remove("is-open");
+        panel.setAttribute("aria-hidden", "true");
+      }
+    }
+
+    $("#mp-close-reviews")?.addEventListener("click", closeReviews);
+    $("#mp-reviews-backdrop")?.addEventListener("click", closeReviews);
+
+    $("#mp-public-profile")?.addEventListener("click", () => {
+      notify("Conecta aquí la ruta real de tu perfil público.");
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeModal();
+        closeReviews();
+      }
+    });
+
+    const bioForm = $("#mp-form-bio");
+    const bioInput = $("#mp-bio-input");
+    bioInput?.addEventListener("input", () => {
+      text("mp-bio-count", String((bioInput as HTMLTextAreaElement).value.length));
+    });
+
+    bioForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!(bioForm instanceof HTMLFormElement)) return;
+      const bio = fieldValue(bioForm, "bio");
+      text("mp-bio-display", bio);
+      text("mp-bio-preview", bio);
+      closeModal(bioForm.closest<HTMLElement>(".mp-modal"));
+      notify("Biografía actualizada en esta vista.");
+    });
+
+    const specialtyOptions = $$("#mp-specialty-options input[name='specialty']");
+    const selectedSpecialties = () =>
+      specialtyOptions.filter((input): input is HTMLInputElement =>
+        input instanceof HTMLInputElement && input.checked
+      );
+
+    specialtyOptions.forEach((input) => {
+      input.addEventListener("change", () => {
+        const selected = selectedSpecialties();
+        if (selected.length > 15 && input instanceof HTMLInputElement) {
+          input.checked = false;
+          notify("Puedes seleccionar un máximo de 15 especialidades.");
+        }
+        text("mp-specialty-count", `${selectedSpecialties().length}/15 seleccionadas`);
+      });
+    });
+
+    $("#mp-form-specialties")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const selected = selectedSpecialties().map((input) => input.value);
+      const container = $("#mp-specialty-tags");
+      if (!container) return;
+      container.replaceChildren();
+      selected.forEach((specialty) => {
+        const tag = document.createElement("span");
+        tag.className = "mp-tag";
+        tag.textContent = specialty;
+        container.append(tag);
+      });
+      closeModal($("#mp-modal-specialties"));
+      notify("Especialidades actualizadas en esta vista.");
+    });
+
+    $("#mp-form-education")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      if (!(form instanceof HTMLFormElement) || !form.reportValidity()) return;
+      const id = fieldValue(form, "id") || crypto.randomUUID();
+      const item: Education = {
+        id,
+        institution: fieldValue(form, "institution"),
+        degree: fieldValue(form, "degree"),
+        level: fieldValue(form, "level"),
+        year: fieldValue(form, "year"),
+        ongoing: fieldChecked(form, "ongoing"),
+      };
+      const index = education.findIndex((entry) => entry.id === id);
+      if (index >= 0) education[index] = item;
+      else education.push(item);
+      renderEducation();
+      closeModal(form.closest<HTMLElement>(".mp-modal"));
+      notify("Estudio actualizado en esta vista.");
+    });
+
+    $("#mp-form-experience")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      if (!(form instanceof HTMLFormElement) || !form.reportValidity()) return;
+      const id = fieldValue(form, "id") || crypto.randomUUID();
+      const current = fieldChecked(form, "current");
+      const item: Experience = {
+        id,
+        workplace: fieldValue(form, "workplace"),
+        position: fieldValue(form, "position"),
+        start: fieldValue(form, "start"),
+        end: current ? "" : fieldValue(form, "end"),
+        current,
+        description: fieldValue(form, "description"),
+      };
+      const index = experience.findIndex((entry) => entry.id === id);
+      if (index >= 0) experience[index] = item;
+      else experience.push(item);
+      renderExperience();
+      closeModal(form.closest<HTMLElement>(".mp-modal"));
+      notify("Experiencia actualizada en esta vista.");
+    });
+
+    const currentCheckbox = $("#mp-form-experience input[name='current']");
+    currentCheckbox?.addEventListener("change", () => {
+      const form = $("#mp-form-experience");
+      if (!(form instanceof HTMLFormElement)) return;
+      const end = form.elements.namedItem("end");
+      if (end instanceof HTMLInputElement) {
+        end.disabled = fieldChecked(form, "current");
+        if (end.disabled) end.value = "";
+      }
+    });
+
+    $("#mp-form-attention")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      if (!(form instanceof HTMLFormElement) || !form.reportValidity()) return;
+
+      const mode = fieldValue(form, "mode");
+      const price = Number(fieldValue(form, "price") || 0);
+      const address = fieldValue(form, "address");
+
+      text("mp-mode-display", mode);
+      text("mp-mode-summary", mode);
+      text("mp-price-display", price ? money(price) : "Por definir");
+      text("mp-address-display", address || "Por definir");
+      closeModal(form.closest<HTMLElement>(".mp-modal"));
+      notify("Información de atención actualizada en esta vista.");
+    });
+
+    $("#mp-form-contact")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      if (!(form instanceof HTMLFormElement) || !form.reportValidity()) return;
+      text("mp-phone-display", fieldValue(form, "phone") || "Por definir");
+      closeModal(form.closest<HTMLElement>(".mp-modal"));
+      notify("Teléfono actualizado en esta vista.");
+    });
+
+    $("#mp-confirm-delete")?.addEventListener("click", () => {
+      if (!deleteTarget) return;
+      const { kind, id } = deleteTarget;
+      if (kind === "education") {
+        const index = education.findIndex((item) => item.id === id);
+        if (index >= 0) education.splice(index, 1);
+        renderEducation();
+      } else {
+        const index = experience.findIndex((item) => item.id === id);
+        if (index >= 0) experience.splice(index, 1);
+        renderExperience();
+      }
+      deleteTarget = null;
+      closeModal($("#mp-modal-delete"));
+      notify("Elemento eliminado de esta vista.");
+    });
+
+    $("#mp-save-all")?.addEventListener("click", () => {
+      notify("Los cambios están en esta vista. Conecta el backend para guardarlos permanentemente.");
+    });
+
+    const email = $("#mp-contact-email");
+    const emailDisplay = $("#mp-email-display");
+    if (email instanceof HTMLInputElement && emailDisplay) {
+      email.value = emailDisplay.textContent?.trim() || "";
+    }
+
+    renderEducation();
+    renderExperience();
+}
+
+</script>

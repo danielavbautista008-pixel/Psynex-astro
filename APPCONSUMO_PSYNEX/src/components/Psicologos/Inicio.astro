@@ -1,0 +1,288 @@
+---
+
+import NavbarPsicologo from "../Menu/NavbarPsicologo.astro";
+import "./Inicio.css";
+import { apiGet, haceCuanto, hora, textoModalidad } from "../../lib/api";
+
+// ---------------------------------------------------------------
+// Datos reales desde el backend.
+// El middleware ya verificó que es un Psicólogo y dejó sus datos
+// en Astro.locals.usuario.
+// ---------------------------------------------------------------
+const nombre = Astro.locals.usuario?.NombreCompleto ?? "Psicólogo";
+
+// GET /api/psicologo/citas/hoy -> conteos de hoy + 5 próximas citas
+const cookie = Astro.request.headers.get("cookie");
+const [resumen, datosPacientes, datosAlertas, datosNotificaciones] = await Promise.all([
+  apiGet(cookie, "/api/psicologo/citas/hoy"),
+  apiGet(cookie, "/api/psicologo/pacientes"),
+  apiGet(cookie, "/api/psicologo/alertas?estado=pendientes"),
+  apiGet(cookie, "/api/notificaciones?limite=3"),
+]);
+
+// Saludo según la hora en Colombia
+const horaColombia = Number(
+  new Date().toLocaleString("en-US", { hour: "numeric", hour12: false, timeZone: "America/Bogota" }),
+) % 24;
+const saludo =
+  horaColombia >= 5 && horaColombia < 12 ? "Buenos días"
+  : horaColombia >= 12 && horaColombia < 19 ? "Buenas tardes"
+  : "Buenas noches";
+
+// Pacientes con proceso activo o en seguimiento
+const pacientesActivos = ((datosPacientes?.pacientes ?? []) as any[])
+  .filter((p) => p.estado !== "Finalizada").length;
+
+const alertasPendientes: number = datosAlertas?.resumen?.pendientes ?? 0;
+
+// Actividad reciente = últimas notificaciones del psicólogo
+const actividad: { titulo: string; cuando: string }[] =
+  ((datosNotificaciones?.notificaciones ?? []) as any[]).map((n) => ({
+    titulo: String(n.Titulo ?? n.Mensaje ?? "Notificación"),
+    cuando: haceCuanto(n.FechaEnvio),
+  }));
+
+const totalHoy = resumen?.totalHoy ?? 0;
+const pendientesHoy = resumen?.pendientes ?? 0;
+
+// Misma forma que tenían los datos de ejemplo: { hora, paciente, tipo }
+const proximasCitas: { hora: string; paciente: string; tipo: string }[] =
+  (resumen?.proximasCitas ?? []).map((c: any) => ({
+  hora: hora(c.FechaHora),
+  paciente: c.PacienteNombre,
+  tipo: textoModalidad(c.Modalidad),
+}));
+---
+
+<NavbarPsicologo nombre={nombre} />
+
+<main class="psych-home">
+
+  <!-- PRESENTACIÓN -->
+
+  <section class="welcome-section">
+
+    <div class="welcome-content">
+
+      <span class="welcome-label">
+        ESPACIO PROFESIONAL
+      </span>
+
+      <h1>
+        {saludo},{" "}
+        <span>{nombre}</span>
+      </h1>
+
+      <p>
+        Este es tu espacio en Psynex para acompañar,
+        organizar y cuidar cada parte de tu práctica profesional.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- HERO -->
+
+  <section class="psych-hero">
+
+    <div class="hero-image">
+
+      <img
+        src="/Imagenes/imagenpsicologos.jpg"
+        alt="Espacio profesional Psynex"
+      />
+
+      <div class="hero-overlay">
+
+        <span>
+          PSYNEX
+        </span>
+
+        <h2>
+          Acompañar también<br />
+          es escuchar.
+        </h2>
+
+        <p>
+          Tu trabajo comienza mucho antes de cada consulta.
+        </p>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- RESUMEN -->
+
+  <section class="dashboard-grid">
+
+    <div class="day-summary">
+
+      <div class="section-heading">
+        <span>HOY</span>
+
+        <h2>
+          Tu jornada
+        </h2>
+      </div>
+
+      <div class="summary-content">
+
+        <div class="main-number">
+          {totalHoy}
+          <small>citas programadas</small>
+        </div>
+
+        <div class="summary-line"></div>
+
+        <div class="small-summary">
+          <strong>{pendientesHoy}</strong>
+          <span>pendientes</span>
+        </div>
+
+        <div class="small-summary">
+          <strong>{alertasPendientes}</strong>
+          <span>{alertasPendientes === 1 ? "alerta pendiente" : "alertas pendientes"}</span>
+        </div>
+
+      </div>
+
+      <a
+        href="/Psicologos/Citas"
+        class="simple-link"
+      >
+        Ver agenda
+        <span>→</span>
+      </a>
+
+    </div>
+
+
+    <!-- PRÓXIMAS CITAS -->
+
+    <div class="appointments">
+
+      <div class="section-heading appointment-heading">
+
+        <div>
+          <span>AGENDA</span>
+
+          <h2>
+            Próximas citas
+          </h2>
+        </div>
+
+        <a href="/Psicologos/Citas">
+          Ver todas
+        </a>
+
+      </div>
+
+
+      <div class="appointment-list">
+
+        {proximasCitas.length === 0 && (
+          <p class="activity-item">
+            <span>No tienes citas próximas.</span>
+          </p>
+        )}
+
+        {proximasCitas.map((cita) => (
+          <a
+            href="/Psicologos/Citas"
+            class="appointment"
+          >
+
+            <div class="appointment-time">
+              {cita.hora}
+            </div>
+
+            <div class="appointment-info">
+
+              <strong>
+                {cita.paciente}
+              </strong>
+
+              <span>
+                {cita.tipo}
+              </span>
+
+            </div>
+
+            <span class="appointment-arrow">
+              →
+            </span>
+
+          </a>
+        ))}
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- PARTE INFERIOR -->
+
+  <section class="lower-grid">
+
+    <a
+      href="/Psicologos/Pacientes"
+      class="information-card patients-card"
+    >
+
+      <span class="card-label">
+        PACIENTES
+      </span>
+
+      <strong>
+        {pacientesActivos}
+      </strong>
+
+      <p>
+        {pacientesActivos === 1 ? "paciente activo actualmente." : "pacientes activos actualmente."}
+      </p>
+
+      <span class="card-link">
+        Ver pacientes →
+      </span>
+
+    </a>
+
+
+    <div class="information-card activity-card">
+
+      <span class="card-label">
+        ACTIVIDAD RECIENTE
+      </span>
+
+      {actividad.length === 0 && (
+        <div class="activity-item">
+          <span>Sin actividad reciente.</span>
+        </div>
+      )}
+
+      {actividad.map((item) => (
+        <div class="activity-item">
+          <span>
+            {item.titulo}
+          </span>
+
+          <small>
+            {item.cuando}
+          </small>
+        </div>
+      ))}
+
+    </div>
+
+  </section>
+
+</main>
+
+
