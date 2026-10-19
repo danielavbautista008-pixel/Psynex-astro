@@ -1,0 +1,1059 @@
+---
+import "./ResponderCuestionario.css";
+
+// Llega desde /Explorar/cuestionarios/[id].astro con las preguntas y
+// opciones REALES de la base de datos (GET /api/explorar/cuestionarios/:id).
+// El puntaje NO se calcula aquí: se envían las respuestas al backend.
+interface Opcion {
+  id: string;
+  texto: string;
+}
+
+interface Pregunta {
+  id: string;
+  numero: number;
+  texto: string;
+  opciones: Opcion[];
+}
+
+interface Props {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  preguntas: Pregunta[];
+  tiempo: string;
+  imagen?: string;
+  rol: string | null;
+}
+
+const {
+  id,
+  titulo,
+  descripcion,
+  preguntas,
+  tiempo,
+  imagen = "/Imagenes/cuestionarioshero.1.jpg",
+  rol,
+} = Astro.props;
+
+const total = preguntas.length;
+---
+
+<section
+  class="responder-page"
+  data-total={total}
+  data-cuestionario={id}
+  data-rol={rol ?? ""}
+>
+  <header class="responder-header">
+
+    <a
+      href="/Explorar/cuestionarios"
+      class="volver"
+    >
+      ← Volver a cuestionarios
+    </a>
+
+    <a
+      href="/"
+      class="logo"
+    >
+      PSYNEX
+    </a>
+
+    <button
+  type="button"
+  class="salir"
+  id="salir"
+  data-href="/Explorar/cuestionarios"
+>
+  Salir
+</button>
+   
+
+  </header>
+
+
+  <main class="responder-main">
+
+    <!-- INTRO -->
+
+    <section class="intro">
+
+      <div class="intro-copy">
+
+        <span>
+          CUESTIONARIO
+        </span>
+
+        <h1>
+          {titulo}
+        </h1>
+
+        <p>
+          {descripcion}
+        </p>
+
+        <div class="meta">
+
+          <b>
+            {total} preguntas
+          </b>
+
+          <b>
+            {tiempo}
+          </b>
+
+          <b>
+            Gratis
+          </b>
+
+        </div>
+
+      </div>
+
+
+      <div class="intro-image">
+
+        <img
+          src={imagen}
+          alt={`Cuestionario de ${titulo}`}
+        />
+
+      </div>
+
+    </section>
+
+
+    <!-- CUESTIONARIO -->
+
+    <section class="quiz-card">
+
+      <div class="progress-head">
+
+        <span>
+          Pregunta
+          <strong id="current">
+            1
+          </strong>
+          de {total}
+        </span>
+
+        <strong id="percent">
+          0%
+        </strong>
+
+      </div>
+
+
+      <div class="progress">
+
+        <span id="progressBar"></span>
+
+      </div>
+
+
+      <div
+        class="steps"
+        id="steps"
+      >
+
+        {
+          preguntas.map((_, index) => (
+
+            <span
+              class:list={[
+                "step",
+                {
+                  active: index === 0,
+                },
+              ]}
+            ></span>
+
+          ))
+        }
+
+      </div>
+
+
+      <!-- PREGUNTAS -->
+
+      <div class="questions">
+
+        {
+          preguntas.map((pregunta, index) => (
+
+            <article
+              class:list={[
+                "question",
+                {
+                  active: index === 0,
+                },
+              ]}
+              data-question={index}
+              data-pregunta-id={pregunta.id}
+              aria-hidden={
+                index === 0
+                  ? "false"
+                  : "true"
+              }
+            >
+
+              <small>
+                Pregunta {index + 1} de {total}
+              </small>
+
+              <h2>
+                {pregunta.texto}
+              </h2>
+
+              <p>
+                Selecciona la opción que mejor
+                represente tu experiencia.
+              </p>
+
+
+              <div class="options">
+
+                {
+                  pregunta.opciones.map((opcion) => (
+
+                    <button
+                      type="button"
+                      class="option"
+                      data-value={opcion.id}
+                      aria-pressed="false"
+                    >
+
+                      <span>
+                        {opcion.texto}
+                      </span>
+
+                      <span
+                        class="leaf"
+                        aria-hidden="true"
+                      >
+
+                        <svg
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M20.5 3.5C13.4 3.5 7.8 5.1 5 8.3c-2.2 2.5-2.1 5.8-.8 7.8.7 1 1.7 1.7 2.9 2.1-0.4 1-.6 1.9-.6 2.8h2c0-.8.1-1.6.4-2.4 2.8.3 5.5-.8 7.6-3 3.1-3.1 4.2-7.5 4-12.1Z" />
+                        </svg>
+
+                      </span>
+
+                    </button>
+
+                  ))
+                }
+
+              </div>
+
+            </article>
+
+          ))
+        }
+
+      </div>
+
+
+      <!-- BOTONES -->
+
+      <div class="navigation">
+
+        <button
+          type="button"
+          id="previous"
+          class="previous"
+          disabled
+        >
+          ← Anterior
+        </button>
+
+        <button
+          type="button"
+          id="next"
+          class="next"
+          disabled
+        >
+          Siguiente →
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <p class="disclaimer">
+      Este cuestionario es orientativo y no constituye un diagnóstico
+      ni sustituye una valoración profesional de salud mental.
+    </p>
+
+  </main>
+
+</section>
+
+
+<!-- MODAL DE RESULTADO -->
+
+<div
+  class="result-overlay"
+  id="resultModal"
+  aria-hidden="true"
+>
+
+  <div
+    class="result-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="resultTitle"
+  >
+
+    <button
+      type="button"
+      class="close"
+      id="closeResult"
+      aria-label="Cerrar"
+    >
+      ×
+    </button>
+
+
+    <div
+      class="result-leaf"
+      aria-hidden="true"
+    >
+
+      <svg viewBox="0 0 24 24">
+        <path d="M20.5 3.5C13.4 3.5 7.8 5.1 5 8.3c-2.2 2.5-2.1 5.8-.8 7.8.7 1 1.7 1.7 2.9 2.1-.4 1-.6 1.9-.6 2.8h2c0-.8.1-1.6.4-2.4 2.8.3 5.5-.8 7.6-3 3.1-3.1 4.2-7.5 4-12.1Z" />
+      </svg>
+
+    </div>
+
+
+    <span class="result-label">
+      TU RESULTADO
+    </span>
+
+    <h2 id="resultTitle">
+      Tu resultado del cuestionario
+    </h2>
+
+    <div
+      class="level"
+      id="level"
+    >
+      Orientativo
+    </div>
+
+    <p
+      class="result-score"
+      id="resultScore"
+    ></p>
+
+    <p
+      class="summary"
+      id="summary"
+    ></p>
+
+
+    <div class="meaning">
+
+      <h3>
+        ¿Qué significa esto?
+      </h3>
+
+      <p id="meaning"></p>
+
+    </div>
+
+
+    <div class="important">
+
+      <strong>
+        Importante
+      </strong>
+
+      <p>
+        Este resultado es orientativo y no sustituye una valoración
+        profesional de salud mental.
+      </p>
+
+    </div>
+
+    <!-- Solo aparece si el resultado es crítico -->
+    <div class="important result-crisis" id="resultCrisis" hidden>
+
+      <strong>
+        Si sientes que estás en peligro
+      </strong>
+
+      <p>
+        No esperes: comunícate con la línea 123 si es una emergencia,
+        o con la línea 192 (opción 4) de atención en salud mental.
+        Hablar con alguien ayuda.
+      </p>
+
+    </div>
+
+    <!-- Si quedó guardado, o cómo guardarlo -->
+    <p class="result-note" id="resultNote" hidden></p>
+
+
+    <div class="result-actions">
+
+      <a
+        href="/Explorar/Articulos"
+        class="secondary"
+      >
+        Ver recomendaciones
+      </a>
+
+      <a
+        href="/Explorar/Psicologos"
+        class="primary"
+      >
+        Buscar un psicólogo
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- MODAL PARA CONFIRMAR LA SALIDA -->
+
+<div
+  class="result-overlay"
+  id="exitModal"
+  aria-hidden="true"
+>
+
+  <div
+    class="result-modal exit-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="exitTitle"
+  >
+
+    <span class="result-label">
+      SALIR DEL CUESTIONARIO
+    </span>
+
+    <h2 id="exitTitle">
+      ¿Quieres salir?
+    </h2>
+
+    <p class="summary">
+      Si sales ahora, tus respuestas se perderán y tendrás que
+      empezar de nuevo.
+    </p>
+
+    <div class="result-actions">
+
+      <button
+        type="button"
+        class="secondary"
+        id="exitCancel"
+      >
+        Seguir respondiendo
+      </button>
+
+      <a
+        href="/Explorar/cuestionarios"
+        class="primary"
+      >
+        Salir
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+  import { apiEnviar, textoError } from "../../lib/api";
+
+  const page =
+    document.querySelector<HTMLElement>(
+      ".responder-page"
+    );
+
+  if (page) {
+
+    const total =
+      Number(
+        page.dataset.total || 0
+      );
+
+    const questions =
+      Array.from(
+        document.querySelectorAll<HTMLElement>(
+          ".question"
+        )
+      );
+
+    const answers:
+      Array<string | null> =
+      Array(total).fill(null);
+
+
+    const current =
+      document.querySelector<HTMLElement>(
+        "#current"
+      );
+
+    const percent =
+      document.querySelector<HTMLElement>(
+        "#percent"
+      );
+
+    const progressBar =
+      document.querySelector<HTMLElement>(
+        "#progressBar"
+      );
+
+    const steps =
+      Array.from(
+        document.querySelectorAll<HTMLElement>(
+          ".step"
+        )
+      );
+
+    const previous =
+      document.querySelector<HTMLButtonElement>(
+        "#previous"
+      );
+
+    const next =
+      document.querySelector<HTMLButtonElement>(
+        "#next"
+      );
+
+    const modal =
+      document.querySelector<HTMLElement>(
+        "#resultModal"
+      );
+
+    const closeResult =
+      document.querySelector<HTMLButtonElement>(
+        "#closeResult"
+      );
+
+    const level =
+      document.querySelector<HTMLElement>(
+        "#level"
+      );
+
+    const summary =
+      document.querySelector<HTMLElement>(
+        "#summary"
+      );
+
+    const meaning =
+      document.querySelector<HTMLElement>(
+        "#meaning"
+      );
+
+    const salir =
+      document.querySelector<HTMLButtonElement>(
+        "#salir"
+      );
+
+
+    let currentQuestion = 0;
+
+
+    function update() {
+
+      const answered =
+        answers.filter(
+          (answer) => answer !== null
+        ).length;
+
+
+      const percentage =
+        total > 0
+          ? Math.round(
+              (answered / total) * 100
+            )
+          : 0;
+
+
+      if (current) {
+
+        current.textContent =
+          String(
+            currentQuestion + 1
+          );
+
+      }
+
+
+      if (percent) {
+
+        percent.textContent =
+          `${percentage}%`;
+
+      }
+
+
+      if (progressBar) {
+
+        progressBar.style.width =
+          `${percentage}%`;
+
+      }
+
+
+      questions.forEach(
+        (question, index) => {
+
+          const active =
+            index === currentQuestion;
+
+
+          question.classList.toggle(
+            "active",
+            active
+          );
+
+
+          question.setAttribute(
+            "aria-hidden",
+            active
+              ? "false"
+              : "true"
+          );
+
+        }
+      );
+
+
+      steps.forEach(
+        (step, index) => {
+
+          step.classList.toggle(
+            "answered",
+            answers[index] !== null
+          );
+
+
+          step.classList.toggle(
+            "active",
+            index === currentQuestion
+          );
+
+        }
+      );
+
+
+      if (previous) {
+
+        previous.disabled =
+          currentQuestion === 0;
+
+      }
+
+
+      if (next) {
+
+        next.disabled =
+          !answers[currentQuestion];
+
+
+        next.textContent =
+          currentQuestion === total - 1
+            ? "Ver resultado →"
+            : "Siguiente →";
+
+      }
+
+    }
+
+
+    // Textos de cada nivel (los niveles los calcula el backend)
+    const TEXTOS: Record<string, { summary: string; meaning: string }> = {
+      "Sin riesgo": {
+        summary: "Tus respuestas muestran pocas señales de malestar en las áreas exploradas.",
+        meaning: "En este momento parece haber pocas experiencias frecuentes de malestar. Continúa observando cómo te sientes y qué actividades contribuyen a tu bienestar.",
+      },
+      Leve: {
+        summary: "Tus respuestas muestran algunas experiencias que vale la pena observar.",
+        meaning: "Puede ser útil prestar atención a las situaciones que están influyendo en cómo te sientes y reconocer qué recursos te ayudan a sentirte mejor.",
+      },
+      Moderado: {
+        summary: "Tus respuestas muestran experiencias que conviene observar con mayor atención.",
+        meaning: "Algunas experiencias aparecen con una frecuencia importante. Si están afectando tu vida diaria, tus relaciones, estudios o trabajo, considera conversar con un profesional.",
+      },
+      Critico: {
+        summary: "Tus respuestas muestran experiencias frecuentes que merecen especial atención.",
+        meaning: "Si estas experiencias son persistentes o están interfiriendo con diferentes áreas de tu vida, es importante buscar acompañamiento profesional. No tienes que hacerlo solo/a.",
+      },
+    };
+
+    const cuestionarioId =
+      page.dataset.cuestionario || "";
+
+    const rol =
+      page.dataset.rol || "";
+
+    const resultScore =
+      document.querySelector<HTMLElement>("#resultScore");
+
+    const resultNote =
+      document.querySelector<HTMLElement>("#resultNote");
+
+    const resultCrisis =
+      document.querySelector<HTMLElement>("#resultCrisis");
+
+
+    async function showResult() {
+
+      // Se mandan las respuestas al backend, que calcula el puntaje
+      const respuestas =
+        questions.map(
+          (question, index) => ({
+            preguntaId: question.dataset.preguntaId || "",
+            opcionId: answers[index] || "",
+          })
+        );
+
+      if (next) {
+        next.disabled = true;
+        next.textContent = "Calculando…";
+      }
+
+      const r =
+        await apiEnviar(
+          "POST",
+          `/api/explorar/cuestionarios/${cuestionarioId}/resultado`,
+          { respuestas }
+        );
+
+      update();
+
+      if (!r.ok) {
+
+        if (level) level.textContent = "No disponible";
+        if (resultScore) resultScore.textContent = "";
+        if (summary) summary.textContent = textoError(r.data, "No pudimos calcular tu resultado. Inténtalo de nuevo.");
+        if (meaning) meaning.textContent = "";
+        if (resultCrisis) resultCrisis.hidden = true;
+        if (resultNote) resultNote.hidden = true;
+
+      } else {
+
+        const resultado = r.data.resultado as {
+          puntaje: number;
+          maximo: number;
+          nivel: string;
+          mensajeApoyo: string | null;
+          guardado: boolean;
+        };
+
+        const textos =
+          TEXTOS[resultado.nivel] ?? TEXTOS["Leve"];
+
+        if (level) {
+          level.textContent =
+            resultado.nivel === "Critico" ? "Crítico" : resultado.nivel;
+        }
+
+        if (resultScore) {
+          resultScore.textContent =
+            `${resultado.puntaje} de ${resultado.maximo} puntos`;
+        }
+
+        if (summary) {
+          summary.textContent = textos.summary;
+        }
+
+        if (meaning) {
+          // Si el admin escribió un mensaje de apoyo para este nivel, se usa ese
+          meaning.textContent =
+            resultado.mensajeApoyo || textos.meaning;
+        }
+
+        if (resultCrisis) {
+          resultCrisis.hidden =
+            resultado.nivel !== "Critico";
+        }
+
+        if (resultNote) {
+          resultNote.hidden = false;
+
+          if (resultado.guardado) {
+            resultNote.textContent =
+              "Guardamos este resultado en tu historial.";
+          } else if (!rol) {
+            resultNote.innerHTML =
+              'Tu resultado no se guardó. <a href="/Inicio/login?volver=' +
+              encodeURIComponent(location.pathname) +
+              '">Inicia sesión</a> o <a href="/Inicio/registro">crea tu cuenta</a> para guardar tus resultados.';
+          } else {
+            resultNote.hidden = true;
+          }
+        }
+
+      }
+
+      modal?.classList.add(
+        "visible"
+      );
+
+      modal?.setAttribute(
+        "aria-hidden",
+        "false"
+      );
+
+      document.body.classList.add(
+        "modal-open"
+      );
+
+    }
+
+
+    function hideResult() {
+
+      modal?.classList.remove(
+        "visible"
+      );
+
+
+      modal?.setAttribute(
+        "aria-hidden",
+        "true"
+      );
+
+
+      document.body.classList.remove(
+        "modal-open"
+      );
+
+    }
+
+
+    document
+      .querySelectorAll<HTMLButtonElement>(
+        ".option"
+      )
+      .forEach(
+        (button) => {
+
+          button.addEventListener(
+            "click",
+            () => {
+
+              const question =
+                button.closest<HTMLElement>(
+                  ".question"
+                );
+
+
+              if (!question) {
+                return;
+              }
+
+
+              const index =
+                Number(
+                  question.dataset.question
+                );
+
+
+              const value =
+                button.dataset.value;
+
+
+              if (!value) {
+                return;
+              }
+
+
+              answers[index] =
+                value;
+
+
+              question
+                .querySelectorAll<HTMLButtonElement>(
+                  ".option"
+                )
+                .forEach(
+                  (option) => {
+
+                    const selected =
+                      option === button;
+
+
+                    option.classList.toggle(
+                      "selected",
+                      selected
+                    );
+
+
+                    option.setAttribute(
+                      "aria-pressed",
+                      selected
+                        ? "true"
+                        : "false"
+                    );
+
+                  }
+                );
+
+
+              update();
+
+            }
+          );
+
+        }
+      );
+
+
+    previous?.addEventListener(
+      "click",
+      () => {
+
+        if (
+          currentQuestion > 0
+        ) {
+
+          currentQuestion -= 1;
+
+          update();
+
+        }
+
+      }
+    );
+
+
+    next?.addEventListener(
+      "click",
+      () => {
+
+        if (
+          !answers[currentQuestion]
+        ) {
+
+          return;
+
+        }
+
+
+        if (
+          currentQuestion ===
+          total - 1
+        ) {
+
+          void showResult();
+
+          return;
+
+        }
+
+
+        currentQuestion += 1;
+
+        update();
+
+      }
+    );
+
+
+    closeResult?.addEventListener(
+      "click",
+      hideResult
+    );
+
+
+    modal?.addEventListener(
+      "click",
+      (event) => {
+
+        if (
+          event.target === modal
+        ) {
+
+          hideResult();
+
+        }
+
+      }
+    );
+
+
+    document.addEventListener(
+      "keydown",
+      (event) => {
+
+        if (
+          event.key === "Escape"
+        ) {
+
+          hideResult();
+
+          document
+            .querySelector<HTMLElement>("#exitModal")
+            ?.classList.remove("visible");
+
+        }
+
+      }
+    );
+
+
+    /* Salir: se confirma con una ventana propia (no con confirm()) */
+
+    const exitModal =
+      document.querySelector<HTMLElement>(
+        "#exitModal"
+      );
+
+    const cerrarSalida = () => {
+      exitModal?.classList.remove("visible");
+      exitModal?.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    };
+
+    salir?.addEventListener(
+      "click",
+      () => {
+
+        // Si no ha respondido nada, sale directo
+        if (answers.every((answer) => answer === null)) {
+          window.location.href = "/Explorar/cuestionarios";
+          return;
+        }
+
+        exitModal?.classList.add("visible");
+        exitModal?.setAttribute("aria-hidden", "false");
+        document.body.classList.add("modal-open");
+
+      }
+    );
+
+    document
+      .querySelector("#exitCancel")
+      ?.addEventListener("click", cerrarSalida);
+
+    exitModal?.addEventListener(
+      "click",
+      (event) => {
+        if (event.target === exitModal) {
+          cerrarSalida();
+        }
+      }
+    );
+
+
+    update();
+
+  }
+</script>

@@ -1,0 +1,50 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import NavbarPsicologo from "../../../components/Menu/NavbarPsicologo.astro";
+import DetalleOferta from "../../../components/Explorar/DetalleOferta.astro";
+import type { OfertaPublica } from "../../../components/Explorar/DetalleOferta.astro";
+import { apiGet } from "../../../lib/api";
+
+// /Psicologos/oferta/<id>
+// Detalle de una oferta dentro del panel del psicólogo: mismo diseño del
+// detalle público, con su menú, y "Volver a ofertas" regresa a su panel.
+// La postulación usa POST /api/psicologo/ofertas/:id/postular.
+const cookie = Astro.request.headers.get("cookie");
+const id = Astro.params.id ?? "";
+
+const datos = await apiGet<{ oferta: OfertaPublica }>(
+  cookie,
+  `/api/explorar/ofertas/${encodeURIComponent(id)}`,
+);
+
+if (!datos?.oferta) {
+  return Astro.redirect("/Psicologos/OfertasLaborales");
+}
+
+// El middleware ya confirmó que es un psicólogo con sesión
+const u = Astro.locals.usuario;
+const usuario = {
+  rol: String(u?.Rol ?? "Psicologo"),
+  nombre: String(u?.NombreCompleto ?? ""),
+  email: String(u?.Email ?? ""),
+};
+---
+
+<BaseLayout title={`${datos.oferta.cargo} | Psynex`}>
+  <NavbarPsicologo />
+  <!-- El menú del psicólogo es fijo arriba: se deja su espacio -->
+  <div class="espacio-menu-psicologo">
+    <DetalleOferta
+      oferta={datos.oferta}
+      usuario={usuario}
+      volverHref="/Psicologos/OfertasLaborales"
+    />
+  </div>
+</BaseLayout>
+
+<style>
+  .espacio-menu-psicologo {
+    padding-top: 90px;
+    background: #ffffff;
+  }
+</style>

@@ -1,0 +1,147 @@
+---
+import "./Articulos.css";
+import MenuExplorar from "../Menu/Navbar.astro";
+
+import { apiGet, minutosLectura, urlImagenBlog } from "../../lib/api";
+
+// Artículos publicados desde el backend: GET /api/blog
+const datos = await apiGet<{
+  articulos: {
+    ArticuloId: string; Titulo: string; Slug: string; Resumen: string; Categoria: string;
+    ImagenPortada: string | null; LargoContenido: number;
+  }[];
+}>(Astro.request.headers.get("cookie"), "/api/blog?porPagina=50");
+
+// Imágenes de respaldo para los artículos que no tienen portada
+const IMAGENES = [
+  "/Imagenes/imagenc.5.jpeg",
+  "/Imagenes/imagenc.8.jpeg",
+  "/Imagenes/imagenc.6.jpeg",
+  "/Imagenes/imagenc.1.jpeg",
+  "/Imagenes/imagenc.2.jpeg",
+  "/Imagenes/imagenc.3.jpeg",
+];
+
+const articulos = (datos?.articulos ?? []).map((a, i) => ({
+  id: a.Slug,
+  categoria: a.Categoria,
+  titulo: a.Titulo,
+  descripcion: a.Resumen,
+  tiempo: minutosLectura(a.LargoContenido),
+  imagen: urlImagenBlog(a.ArticuloId, a.ImagenPortada) ?? IMAGENES[i % IMAGENES.length],
+}));
+---
+
+<div class="blog-page">
+  <MenuExplorar
+  menuItems={[
+    { label: "Inicio", href: "/" },
+    { label: "Explorar", href: "/Explorar/explorar" },
+    { label: "Psicólogos", href: "/Explorar/Psicologos" },
+    { label: "Ofertas laborales", href: "/Explorar/OfertasLaborales" },
+    { label: "Tests", href: "/Explorar/cuestionarios" },
+    { label: "Blog", href: "/Explorar/Articulos" },
+  ]}
+/>
+
+  <main>
+    <!-- HERO -->
+    <section class="blog-hero">
+      <div class="blog-hero-contenido">
+        <span class="blog-etiqueta">BLOG PSYNEX</span>
+
+        <h1>
+          Ideas para<br />
+          entenderte mejor
+        </h1>
+
+        <p>
+          Artículos sobre bienestar emocional, psicología, relaciones y
+          autocuidado para acompañarte en tu día a día.
+        </p>
+      </div>
+
+      <div class="blog-hero-imagen">
+        <img
+          src="/Imagenes/imagendearticulo.jpg"
+          alt="Persona reflexionando en un espacio tranquilo"
+        />
+
+        <span class="forma forma-uno"></span>
+        <span class="forma forma-dos"></span>
+        <span class="forma forma-tres"></span>
+      </div>
+    </section>
+
+    <!-- ARTÍCULOS -->
+    <section class="articulos-seccion">
+      <div class="seccion-titulo">
+        <h2>Explora nuestros artículos</h2>
+        <p>
+          Lecturas breves y confiables para comprender mejor lo que sientes y
+          vives.
+        </p>
+      </div>
+
+      {articulos.length === 0 && (
+        <p class="articulos-vacio">Pronto publicaremos nuevos artículos.</p>
+      )}
+
+      <div class="articulos-grid">
+        {
+          articulos.map((articulo) => (
+            <article class="articulo-card">
+              <a
+                href={`/articulos/${articulo.id}`}
+                class="articulo-link"
+                aria-label={`Leer ${articulo.titulo}`}
+              >
+                <div class="articulo-imagen">
+                  <img src={articulo.imagen} alt={articulo.titulo} loading="lazy" />
+                </div>
+
+                <div class="articulo-contenido">
+                  <span class="articulo-categoria">
+                    {articulo.categoria}
+                  </span>
+
+                  <h3>{articulo.titulo}</h3>
+
+                  <p>{articulo.descripcion}</p>
+
+                  <div class="articulo-footer">
+                    <span class="tiempo">
+                      <i class="bi bi-clock"></i>
+                      {articulo.tiempo}
+                    </span>
+
+                    <span class="flecha" aria-hidden="true">→</span>
+                  </div>
+                </div>
+              </a>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="blog-cta">
+      <div class="cta-hoja cta-hoja-izquierda">⌁</div>
+
+      <div class="cta-contenido">
+        <h2>¿Quieres seguir explorando tu bienestar?</h2>
+        <p>
+          Realiza uno de nuestros cuestionarios y descubre más sobre ti.
+        </p>
+      </div>
+
+      <a href="/Explorar/cuestionarios" class="cta-boton">
+        Explorar cuestionarios
+        <span>→</span>
+      </a>
+
+      <div class="cta-hoja cta-hoja-derecha">⌁</div>
+    </section>
+  </main>
+</div>

@@ -213,13 +213,24 @@ import "./login.css";
       const rolRaw = String(data.usuario?.Rol ?? data.usuario?.rol ?? "");
       const rol = rolRaw.toLowerCase().trim();
 
-      if (rol === "admin" || rol === "administrador") {
+      // Si llegó desde una página pública (por ejemplo "Agendar cita"),
+      // el login la trae en ?volver=/ruta y lo devolvemos allí.
+      // Solo se aceptan rutas internas ("/algo"), nunca otra página web.
+      const volver = new URLSearchParams(location.search).get("volver") ?? "";
+      const volverSeguro = volver.startsWith("/") && !volver.startsWith("//") ? volver : "";
+
+      if (volverSeguro && (rol === "paciente" || rol === "psicologo")) {
+        window.location.href = volverSeguro;
+      } else if (rol === "admin" || rol === "administrador") {
         window.location.href = "/Administrador/inicio";
       } else if (rol === "empresa") {
         window.location.href = "/Empresa/Inicio";
       } else if (rol === "paciente") {
         window.location.href = "/Paciente/Inicio";
       }else {
+      } else if (rol === "psicologo") {
+        window.location.href = "/Psicologos/Inicio";
+      } else {
         window.location.href = "/";
       }
     } catch (err) {

@@ -2,66 +2,50 @@
 import MenuAdmin from "../Menu/MenuAdmin.astro";
 import "./finanzas.css";
 
-const empresas = [
-  {
-    iniciales: "BL",
-    nombre: "Bienestar Laboral S.A.S.",
-    nit: "NIT 900.456.789-1",
-    plan: "Plan Corporativo Pro",
-    usuarios: "50 usuarios",
-    monto: "$1.800.000",
-    estado: "Al día",
-    estadoClass: "al-dia"
-  },
-  {
-    iniciales: "TS",
-    nombre: "Talento Saludable Ltda.",
-    nit: "NIT 901.123.456-7",
-    plan: "Plan Empresarial",
-    usuarios: "20 usuarios",
-    monto: "$1.200.000",
-    estado: "Al día",
-    estadoClass: "al-dia"
-  },
-  {
-    iniciales: "RC",
-    nombre: "Río Claro S.A.S.",
-    nit: "NIT 900.987.654-3",
-    plan: "Plan Corporativo",
-    usuarios: "30 usuarios",
-    monto: "$1.500.000",
-    estado: "Pendiente",
-    estadoClass: "pendiente"
-  },
-  {
-    iniciales: "IN",
-    nombre: "Innovar Ltda.",
-    nit: "NIT 901.654.321-0",
-    plan: "Plan Básico",
-    usuarios: "10 usuarios",
-    monto: "$800.000",
-    estado: "Al día",
-    estadoClass: "al-dia"
-  },
-  {
-    iniciales: "VM",
-    nombre: "Vita Mental S.A.S.",
-    nit: "NIT 900.321.654-8",
-    plan: "Plan Corporativo Pro",
-    usuarios: "40 usuarios",
-    monto: "$1.600.000",
-    estado: "Al día",
-    estadoClass: "al-dia"
-  }
-];
+import { apiGet } from "../../lib/api";
 
-const psicologos = [
-  { inicial: "1", nombre: "Andrés Ramírez", citas: "42" },
-  { inicial: "2", nombre: "Laura Castro", citas: "35" },
-  { inicial: "3", nombre: "Sofía Vargas", citas: "28" },
-  { inicial: "4", nombre: "Julián Arango", citas: "24" },
-  { inicial: "5", nombre: "Ricardo Silva", citas: "20" }
-];
+// ---------------------------------------------------------------
+// Datos reales: GET /api/admin/finanzas/panel (solo Admin)
+// Todo corresponde al MES ACTUAL.
+// ---------------------------------------------------------------
+const cookie = Astro.request.headers.get("cookie");
+const respuesta = await apiGet(cookie, "/api/admin/finanzas/panel");
+const panel = respuesta?.panel;
+
+const pesos = (n: number) => "$" + Math.round(n ?? 0).toLocaleString("es-CO");
+
+const ingresosMes = panel?.ingresosMes ?? 0;
+const ingresosAnterior = panel?.ingresosMesAnterior ?? 0;
+const cambio = ingresosAnterior > 0
+  ? Math.round(((ingresosMes - ingresosAnterior) / ingresosAnterior) * 100)
+  : null;
+const cambioTexto = cambio === null ? "Sin datos del mes anterior" : `${Math.abs(cambio)}% vs. mes anterior`;
+const cambioFlecha = (cambio ?? 0) >= 0 ? "bi-arrow-up" : "bi-arrow-down";
+
+const comisionPorcentaje = panel?.comisionPorcentaje ?? 30;
+
+// Citas gratis: tope del mes (lo configura el admin en recompensasperiodo)
+const cupo = panel?.recompensas?.cupo ?? 0;
+const usadas = panel?.recompensas?.otorgadas ?? 0;
+const porcentajeUsado = cupo > 0 ? Math.round((usadas / cupo) * 100) : 0;
+const disponibles = Math.max(cupo - usadas, 0);
+// Cuánto representan las citas gratis frente a los ingresos del mes
+const descuentoIngresos = ingresosMes > 0
+  ? Math.round(((panel?.gastoRecompensas ?? 0) / ingresosMes) * 100)
+  : 0;
+
+// La relación empresa -> plan contratado todavía no existe en la base de
+// datos (la está trabajando el módulo de Empresas), así que la tabla queda vacía.
+const empresas: {
+  iniciales: string; nombre: string; nit: string; plan: string;
+  usuarios: string; monto: string; estado: string; estadoClass: string;
+}[] = [];
+
+const psicologos = ((panel?.rankingPsicologos ?? []) as any[]).map((p: any, i: number) => ({
+  inicial: String(i + 1),
+  nombre: p.nombre,
+  citas: String(p.citas),
+}));
 ---
 
 <div class="finanzas-page">
@@ -121,12 +105,12 @@ const psicologos = [
         </div>
 
         <strong class="finanza-value">
-          $8.450.000
+          {pesos(ingresosMes)}
         </strong>
 
         <div class="finanza-change">
-          <i class="bi bi-arrow-up"></i>
-          12% vs. mes anterior
+          <i class={`bi ${cambioFlecha}`}></i>
+          {cambioTexto}
         </div>
 
       </article>
@@ -148,7 +132,7 @@ const psicologos = [
         </div>
 
         <strong class="finanza-value">
-          $5.200.000
+          {pesos(panel?.pagadoEmpresas)}
         </strong>
 
         <span class="finanza-description">
@@ -174,7 +158,7 @@ const psicologos = [
         </div>
 
         <strong class="finanza-value">
-          $1.980.000
+          {pesos(panel?.comisionMes)}
         </strong>
 
         <span class="finanza-description">
@@ -200,7 +184,7 @@ const psicologos = [
         </div>
 
         <strong class="finanza-value">
-          $270.000
+          {pesos(panel?.gastoRecompensas)}
         </strong>
 
         <span class="finanza-description">
@@ -334,7 +318,7 @@ const psicologos = [
         <div class="tabla-footer">
 
           <span>
-            Mostrando 1–5 de 5 empresas
+            Mostrando {empresas.length} empresas
           </span>
 
           <div class="paginacion">
@@ -388,7 +372,7 @@ const psicologos = [
 
             <div class="comision-dato">
 
-              <strong>30% por terapia</strong>
+              <strong>{comisionPorcentaje}% por terapia</strong>
 
               <span>
                 Porcentaje de comisión
@@ -400,7 +384,7 @@ const psicologos = [
 
             <div class="comision-dato monto-comision">
 
-              <strong>$1.980.000</strong>
+              <strong>{pesos(panel?.comisionMes)}</strong>
 
               <span>
                 Total en el mes
@@ -476,17 +460,17 @@ const psicologos = [
           <div class="recompensa-resumen">
 
             <div>
-              <strong>10</strong>
+              <strong>{cupo}</strong>
               <span>Tope mensual</span>
             </div>
 
             <div>
-              <strong>4</strong>
+              <strong>{usadas}</strong>
               <span>Usadas este mes</span>
             </div>
 
             <div>
-              <strong>40%</strong>
+              <strong>{descuentoIngresos}%</strong>
               <span>Descuento en ingresos</span>
             </div>
 
@@ -496,17 +480,17 @@ const psicologos = [
           <div class="progreso-container">
 
             <div class="progreso-barra">
-              <span></span>
+              <span style={`width: ${porcentajeUsado}%`}></span>
             </div>
 
             <div class="progreso-info">
 
               <span>
-                40% del total
+                {porcentajeUsado}% del total
               </span>
 
               <span>
-                6 disponibles
+                {disponibles} disponibles
               </span>
 
             </div>

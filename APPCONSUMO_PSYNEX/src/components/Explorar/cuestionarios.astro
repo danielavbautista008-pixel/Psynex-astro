@@ -1,0 +1,352 @@
+---
+import MenuExplorar from "../Menu/Navbar.astro";
+import "./cuestionarios.css";
+import { apiGet, imagenCuestionario } from "../../lib/api";
+
+// Cuestionarios activos desde el backend: GET /api/explorar/cuestionarios
+const datos = await apiGet<{
+  cuestionarios: {
+    id: string; sigla: string; descripcion: string; categoria: string;
+    preguntas: number; minutos: number; tieneImagen: boolean;
+  }[];
+}>(Astro.request.headers.get("cookie"), "/api/explorar/cuestionarios");
+
+const cuestionarios = datos?.cuestionarios ?? [];
+
+const categorias = [...new Set(cuestionarios.map((c) => c.categoria))].sort();
+
+// "Test general": el GHQ-12 (salud general); si no existe, el primero
+const testGeneral = cuestionarios.find((c) => c.sigla === "GHQ-12") ?? cuestionarios[0];
+---
+
+<!-- =====================================================
+     MENÚ PRINCIPAL
+===================================================== -->
+
+<MenuExplorar
+  menuItems={[
+    { label: "Inicio", href: "/" },
+    { label: "Explorar", href: "/Explorar/explorar" },
+    { label: "Psicólogos", href: "/Explorar/Psicologos" },
+    { label: "Ofertas laborales", href: "/Explorar/OfertasLaborales" },
+    { label: "Tests", href: "/Explorar/cuestionarios" },
+    { label: "Blog", href: "/Explorar/Articulos" },
+  ]}
+/>
+
+
+<main class="cuestionarios-page">
+
+  <!-- =====================================================
+       HERO PRINCIPAL
+  ====================================================== -->
+
+  <section class="hero-cuestionarios">
+
+    <!-- Imagen principal -->
+    <div class="hero-imagen">
+      <img
+        src="/Imagenes/cuestionarioshero.1.jpg"
+        alt="Persona reflexionando sobre su bienestar"
+      />
+    </div>
+
+
+    <!--
+      Degradado que hace que la imagen
+      se funda con el fondo del contenido.
+    -->
+    <div class="hero-overlay"></div>
+
+
+    <!-- Contenido -->
+    <div class="hero-contenido">
+
+      <span class="hero-etiqueta">
+        CUESTIONARIOS PSICOLÓGICOS
+      </span>
+
+      <h1>
+        Conócete un<br />
+        poco más
+      </h1>
+
+      <p>
+        Explora cómo te sientes, identifica áreas de bienestar
+        y da pequeños pasos hacia una vida más equilibrada.
+      </p>
+
+      <div class="hero-beneficios">
+
+        <span>
+          Gratis
+        </span>
+
+        <span>
+          Sin registro
+        </span>
+
+        <span>
+          Resultados inmediatos
+        </span>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       CUESTIONARIOS (carrusel automático con todos los tests)
+  ====================================================== -->
+
+  <section
+    class="categorias"
+    id="categorias"
+  >
+
+    <div class="seccion-titulo">
+
+      <h2>
+        Explora nuestros cuestionarios
+      </h2>
+
+      <p>
+        Herramientas breves para conocer mejor lo que estás viviendo.
+      </p>
+
+    </div>
+
+
+    <!-- Filtro por categoría -->
+    <div class="filtros-cuestionarios" id="filtrosCuestionarios">
+
+      <button type="button" class="filtro-chip activo" data-filtro="todos">
+        Todos
+      </button>
+
+      {
+        categorias.map((categoria) => (
+          <button type="button" class="filtro-chip" data-filtro={categoria}>
+            {categoria}
+          </button>
+        ))
+      }
+
+    </div>
+
+
+    <div
+      class="carrusel-cuestionarios"
+      id="carruselCuestionarios"
+    >
+
+      <button
+        type="button"
+        class="carrusel-control anterior"
+        id="carruselAnterior"
+        aria-label="Cuestionarios anteriores"
+      >
+        <i class="bi bi-chevron-left"></i>
+      </button>
+
+      <div class="carrusel-ventana">
+
+        <div class="categorias-grid carrusel-pista" id="carruselPista">
+
+          {
+            cuestionarios.map((c) => (
+              <article
+                class="categoria-card"
+                data-categoria={c.categoria}
+              >
+
+                <div class="categoria-imagen">
+
+                  <img
+                    src={imagenCuestionario(c)}
+                    alt={`Cuestionario ${c.sigla}`}
+                    loading="lazy"
+                  />
+
+                </div>
+
+
+                <div class="categoria-contenido">
+
+                  <h3>
+                    {c.sigla}
+                  </h3>
+
+                  <p>
+                    {c.descripcion}
+                  </p>
+
+
+                  <div class="categoria-footer">
+
+                    <span>
+                      {c.categoria} · {c.preguntas} preguntas · ~{c.minutos} min
+                    </span>
+
+                    <a
+                      href={`/Explorar/cuestionarios/${c.id}`}
+                      aria-label={`Responder ${c.sigla}`}
+                    >
+                      Ver test →
+                    </a>
+
+                  </div>
+
+                </div>
+
+              </article>
+            ))
+          }
+
+        </div>
+
+      </div>
+
+      <button
+        type="button"
+        class="carrusel-control siguiente"
+        id="carruselSiguiente"
+        aria-label="Más cuestionarios"
+      >
+        <i class="bi bi-chevron-right"></i>
+      </button>
+
+    </div>
+
+
+    <p
+      class="cuestionarios-vacio"
+      id="cuestionariosVacio"
+      hidden={cuestionarios.length > 0}
+    >
+      Pronto agregaremos cuestionarios en esta categoría.
+    </p>
+
+  </section>
+
+
+  <!-- =====================================================
+       TEST GENERAL DE BIENESTAR
+  ====================================================== -->
+
+  <section
+    class="test-general"
+    id="test-general"
+  >
+
+    <div class="test-general-contenido">
+
+      <span class="test-general-etiqueta">
+        ¿NO SABES POR DÓNDE EMPEZAR?
+      </span>
+
+      <h2>
+        Test general de bienestar
+      </h2>
+
+      <p>
+        Si no sabes por dónde empezar, este cuestionario te dará
+        una visión general de tu bienestar emocional y te ayudará
+        a identificar qué áreas podrías explorar.
+      </p>
+
+      <a
+        href={testGeneral ? `/Explorar/cuestionarios/${testGeneral.id}` : "#categorias"}
+        class="btn-general"
+      >
+        Comenzar test general
+        <strong>→</strong>
+      </a>
+
+    </div>
+
+
+   <div class="test-general-imagen">
+
+  <img
+    src="/Imagenes/vaso11..jpg"
+    alt="Espacio tranquilo para reflexionar"
+  />
+
+</div>
+
+  </section>
+
+</main>
+
+
+<script>
+  // =====================================================
+  // CARRUSEL AUTOMÁTICO DE CUESTIONARIOS
+  // Avanza solo cada 5 segundos; se pausa al pasar el mouse
+  // o si la persona prefiere menos movimiento. Los chips
+  // filtran por categoría.
+  // =====================================================
+  const pista = document.getElementById("carruselPista");
+  const carrusel = document.getElementById("carruselCuestionarios");
+  const anterior = document.getElementById("carruselAnterior") as HTMLButtonElement | null;
+  const siguiente = document.getElementById("carruselSiguiente") as HTMLButtonElement | null;
+  const vacio = document.getElementById("cuestionariosVacio");
+  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>(".filtro-chip"));
+  const tarjetas = Array.from(document.querySelectorAll<HTMLElement>("#carruselPista .categoria-card"));
+
+  let indice = 0;
+  let pausado = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const visibles = () => tarjetas.filter((t) => !t.hidden);
+
+  // Cuántas tarjetas caben a la vez (según el ancho de la pantalla)
+  const porVista = () => {
+    const primera = visibles()[0];
+    if (!primera || !pista) return 1;
+    const gap = parseFloat(getComputedStyle(pista).columnGap || "14") || 14;
+    return Math.max(1, Math.round((pista.parentElement!.clientWidth + gap) / (primera.offsetWidth + gap)));
+  };
+
+  const mover = () => {
+    const lista = visibles();
+    const maximo = Math.max(0, lista.length - porVista());
+    if (indice > maximo) indice = 0;
+    if (indice < 0) indice = maximo;
+    const destino = lista[indice];
+    if (pista) pista.style.transform = destino ? `translateX(-${destino.offsetLeft}px)` : "translateX(0)";
+    const sobra = maximo > 0;
+    if (anterior) anterior.hidden = !sobra;
+    if (siguiente) siguiente.hidden = !sobra;
+  };
+
+  siguiente?.addEventListener("click", () => { indice++; mover(); });
+  anterior?.addEventListener("click", () => { indice--; mover(); });
+
+  carrusel?.addEventListener("mouseenter", () => { pausado = true; });
+  carrusel?.addEventListener("mouseleave", () => {
+    pausado = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  });
+  carrusel?.addEventListener("focusin", () => { pausado = true; });
+
+  window.setInterval(() => {
+    if (!pausado && !document.hidden) { indice++; mover(); }
+  }, 5000);
+
+  window.addEventListener("resize", mover);
+
+  chips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      chips.forEach((c) => c.classList.toggle("activo", c === chip));
+      const filtro = chip.dataset.filtro ?? "todos";
+      tarjetas.forEach((t) => { t.hidden = filtro !== "todos" && t.dataset.categoria !== filtro; });
+      if (vacio) vacio.hidden = visibles().length > 0;
+      indice = 0;
+      mover();
+    });
+  });
+
+  mover();
+</script>

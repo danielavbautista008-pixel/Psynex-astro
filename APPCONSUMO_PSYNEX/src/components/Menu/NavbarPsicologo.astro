@@ -1,0 +1,451 @@
+---
+import "./NavbarPsicologo.css";
+import { API_URL } from "../../lib/api";
+import BotonChat from "./BotonChat.astro";
+
+export interface Props {
+  logoSrc?: string;
+  nombre?: string;
+}
+
+const {
+  logoSrc = "/Imagenes/logo.png",
+  nombre: nombreProp,
+} = Astro.props;
+
+// El nombre real viene de la sesión (el middleware lo deja en locals)
+const nombre = Astro.locals.usuario?.NombreCompleto ?? nombreProp ?? "Psicólogo";
+const inicial = nombre.trim().charAt(0).toUpperCase() || "P";
+
+const menuItems = [
+  { label: "Inicio", href: "/Psicologos/Inicio" },
+  { label: "Pacientes", href: "/Psicologos/Pacientes" },
+  { label: "Citas", href: "/Psicologos/Citas" },
+  { label: "Mensajes", href: "/Psicologos/Mensajes" },
+  { label: "Cuestionarios", href: "/Psicologos/Cuestionarios" },
+  { label: "Alertas", href: "/Psicologos/Alertas" },
+  { label: "Empleos", href: "/Psicologos/OfertasLaborales" },
+  { label: "Finanzas", href: "/Psicologos/Finanzas" },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<header class="psych-header">
+  <nav class="psych-navbar">
+
+    <!-- LOGO -->
+    <a href="/Psicologos/Inicio" class="psych-brand">
+      <img
+        src={logoSrc}
+        alt="PSYNEX"
+        class="psych-logo"
+      />
+
+      <div class="psych-brand-text">
+        <span class="psych-brand-name">PSYNEX</span>
+        <span class="psych-brand-role">{nombre}</span>
+      </div>
+    </a>
+
+
+    <!-- MENU -->
+    <div class="psych-menu">
+
+      {menuItems.map((item) => {
+        const isActive =
+          currentPath === item.href ||
+          currentPath.startsWith(item.href + "/");
+
+        return (
+          <a
+            href={item.href}
+            class:list={[
+              "psych-menu-link",
+              { active: isActive },
+            ]}
+          >
+            <span>{item.label}</span>
+            <span class="menu-line"></span>
+          </a>
+        );
+      })}
+
+    </div>
+
+
+    <!-- ACCIONES -->
+    <div class="psych-actions">
+
+      <!-- NOTIFICACIONES: el círculo muestra cuántas hay sin leer
+           y al tocarlo se abre la lista (GET /api/notificaciones) -->
+      <div class="notification-dropdown">
+
+        <button
+          class="notification-button"
+          id="psychNotifButton"
+          type="button"
+          aria-label="Notificaciones"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          <span class="notification-dot"></span>
+          <span class="notification-ring"></span>
+          <span class="notification-count" id="psychNotifCount" hidden>0</span>
+        </button>
+
+        <section class="notification-panel" id="psychNotifPanel" hidden aria-label="Notificaciones">
+          <header class="notification-panel-header">
+            <div>
+              <strong>Notificaciones</strong>
+              <small id="psychNotifSummary">Sin notificaciones nuevas</small>
+            </div>
+            <button type="button" class="notification-read-all" id="psychNotifReadAll" hidden>
+              Marcar todas como leídas
+            </button>
+          </header>
+
+          <div class="notification-list" id="psychNotifList">
+            <p class="notification-empty">Cargando...</p>
+          </div>
+        </section>
+
+      </div>
+
+
+      <!-- PERFIL: al tocar la flecha se abre el menú con "Cerrar sesión" -->
+      <div class="profile-dropdown">
+
+        <div class="psych-profile">
+          <!-- Nombre y foto: llevan a Mi perfil -->
+          <a href="/Psicologos/MiPerfil" class="profile-link" title="Ir a mi perfil">
+            <span class="profile-letter">{inicial}</span>
+
+            <span class="profile-info">
+              <strong>{nombre}</strong>
+              <small>Mi perfil</small>
+            </span>
+          </a>
+
+          <!-- Flecha: abre el menú (también se abre al pasar el mouse) -->
+          <button
+            class="profile-arrow"
+            id="psychProfileButton"
+            type="button"
+            aria-label="Abrir menú de perfil"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >⌄</button>
+        </div>
+
+        <div class="profile-dropdown-menu" id="psychProfileMenu" hidden>
+          <a href="/Psicologos/MiPerfil">
+            <i class="bi bi-person"></i>
+            Mi perfil
+          </a>
+
+          <a href="/Inicio/login" class="dropdown-logout" data-cerrar-sesion>
+            <i class="bi bi-box-arrow-right"></i>
+            Cerrar sesión
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+    
+      
+
+
+
+    <!-- BOTÓN MÓVIL -->
+    <button
+      class="mobile-menu-button"
+      type="button"
+      aria-label="Abrir menú"
+      aria-expanded="false"
+      id="psychMobileButton"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+  </nav>
+
+
+  <!-- MENÚ MÓVIL -->
+  <div class="mobile-menu" id="psychMobileMenu">
+
+    {menuItems.map((item) => {
+      const isActive =
+        currentPath === item.href ||
+        currentPath.startsWith(item.href + "/");
+
+      return (
+        <a
+          href={item.href}
+          class:list={[
+            "mobile-menu-link",
+            { active: isActive },
+          ]}
+        >
+          {item.label}
+        </a>
+      );
+    })}
+
+    <div class="mobile-menu-separator"></div>
+
+    <a href="/Psicologos/MiPerfil" class="mobile-profile-link">
+      Mi perfil
+    </a>
+
+    <a href="/Inicio/login" class="mobile-profile-link" data-cerrar-sesion>
+      Cerrar sesión
+    </a>
+    
+   
+
+
+  </div>
+
+</header>
+
+<!-- Botón flotante para ir a Mensajes (encima del botón de colores) -->
+<BotonChat />
+
+
+<script define:vars={{ API_URL }}>
+  /* ---------- Menú del perfil (flecha) ---------- */
+  const perfilBoton = document.getElementById("psychProfileButton");
+  const perfilMenu = document.getElementById("psychProfileMenu");
+
+  const cerrarPerfil = () => {
+    if (!perfilMenu || !perfilBoton) return;
+    perfilMenu.hidden = true;
+    perfilBoton.setAttribute("aria-expanded", "false");
+  };
+
+  const abrirPerfil = () => {
+    if (!perfilMenu || !perfilBoton) return;
+    perfilMenu.hidden = false;
+    perfilBoton.setAttribute("aria-expanded", "true");
+  };
+
+  perfilBoton?.addEventListener("click", (evento) => {
+    evento.stopPropagation();
+    if (perfilMenu?.hidden) abrirPerfil();
+    else cerrarPerfil();
+  });
+
+  // Con el mouse: se abre al pasar por encima y se cierra al salir
+  // (con una pequeña espera para que dé tiempo de bajar al menú)
+  const zonaPerfil = document.querySelector(".profile-dropdown");
+  let esperaPerfil = null;
+  if (zonaPerfil && window.matchMedia("(hover: hover)").matches) {
+    zonaPerfil.addEventListener("mouseenter", () => {
+      clearTimeout(esperaPerfil);
+      abrirPerfil();
+    });
+    zonaPerfil.addEventListener("mouseleave", () => {
+      esperaPerfil = setTimeout(cerrarPerfil, 250);
+    });
+  }
+
+  /* ---------- Notificaciones ----------
+     GET   /api/notificaciones?limite=10   -> lista + cuántas sin leer
+     PATCH /api/notificaciones/:id/leida   -> marcar una
+     PATCH /api/notificaciones/leer-todas  -> marcar todas */
+  const notifBoton = document.getElementById("psychNotifButton");
+  const notifPanel = document.getElementById("psychNotifPanel");
+  const notifCount = document.getElementById("psychNotifCount");
+  const notifLista = document.getElementById("psychNotifList");
+  const notifResumen = document.getElementById("psychNotifSummary");
+  const notifLeerTodas = document.getElementById("psychNotifReadAll");
+  let noLeidasAntes = -1;
+
+  // A dónde lleva cada notificación y qué ícono usa (según su tipo o su título)
+  const destinoDe = (n) => {
+    const t = String(n.Titulo || "").toLowerCase();
+    if (n.Tipo === "Alerta") return { url: "/Psicologos/Alertas", icono: "bi-exclamation-triangle" };
+    if (t.includes("mensaje")) return { url: "/Psicologos/Mensajes", icono: "bi-chat-dots" };
+    if (t.includes("cita")) return { url: "/Psicologos/Citas", icono: "bi-calendar-check" };
+    if (t.includes("transferencia") || t.includes("reclamo") || t.includes("pago")) {
+      return { url: "/Psicologos/Finanzas", icono: "bi-cash-coin" };
+    }
+    if (t.includes("postulaci") || t.includes("oferta")) return { url: "/Psicologos/OfertasLaborales", icono: "bi-briefcase" };
+    if (t.includes("cuestionario")) return { url: "/Psicologos/Cuestionarios", icono: "bi-clipboard-check" };
+    return { url: "", icono: "bi-bell" };
+  };
+
+  const haceCuanto = (fecha) => {
+    const minutos = Math.floor((Date.now() - new Date(fecha).getTime()) / 60000);
+    if (minutos < 1) return "Ahora";
+    if (minutos < 60) return `Hace ${minutos} min`;
+    const horas = Math.floor(minutos / 60);
+    if (horas < 24) return `Hace ${horas} h`;
+    const dias = Math.floor(horas / 24);
+    return dias === 1 ? "Ayer" : `Hace ${dias} días`;
+  };
+
+  const pintarContador = (n) => {
+    if (!notifCount || !notifBoton) return;
+    notifCount.hidden = n === 0;
+    notifCount.textContent = n > 9 ? "9+" : String(n);
+    notifBoton.classList.toggle("tiene-nuevas", n > 0);
+    // Si llegó una nueva desde la última revisión, la campana "salta"
+    if (noLeidasAntes >= 0 && n > noLeidasAntes) {
+      notifBoton.classList.remove("recien-llegada");
+      void notifBoton.offsetWidth;
+      notifBoton.classList.add("recien-llegada");
+    }
+    noLeidasAntes = n;
+    if (notifResumen) {
+      notifResumen.textContent = n === 0 ? "Sin notificaciones nuevas"
+        : n === 1 ? "Tienes 1 notificación nueva" : `Tienes ${n} notificaciones nuevas`;
+    }
+    if (notifLeerTodas) notifLeerTodas.hidden = n === 0;
+  };
+
+  const marcarLeida = (id) =>
+    fetch(`${API_URL}/api/notificaciones/${encodeURIComponent(id)}/leida`, {
+      method: "PATCH",
+      credentials: "include",
+    }).catch(() => null);
+
+  const pintarLista = (notificaciones) => {
+    if (!notifLista) return;
+    notifLista.replaceChildren();
+    if (!notificaciones.length) {
+      const vacio = document.createElement("p");
+      vacio.className = "notification-empty";
+      vacio.textContent = "No tienes notificaciones.";
+      notifLista.append(vacio);
+      return;
+    }
+    notificaciones.forEach((n) => {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "notification-item" + (Number(n.EstaLeida) === 1 ? "" : " no-leida");
+
+      const icono = document.createElement("span");
+      icono.className = "notification-item-icon";
+      const i = document.createElement("i");
+      const info = destinoDe(n);
+      i.className = "bi " + info.icono;
+      icono.append(i);
+
+      const texto = document.createElement("span");
+      texto.className = "notification-item-text";
+      const titulo = document.createElement("strong");
+      titulo.textContent = n.Titulo || "Notificación";
+      const mensaje = document.createElement("span");
+      mensaje.textContent = n.Mensaje || "";
+      const fecha = document.createElement("small");
+      fecha.textContent = haceCuanto(n.FechaEnvio);
+      texto.append(titulo, mensaje, fecha);
+
+      item.append(icono, texto);
+      item.addEventListener("click", async () => {
+        if (Number(n.EstaLeida) !== 1) await marcarLeida(n.NotificacionId);
+        if (info.url && window.location.pathname !== info.url) window.location.href = info.url;
+        else cargarNotificaciones();
+      });
+      notifLista.append(item);
+    });
+  };
+
+  async function cargarNotificaciones() {
+    try {
+      const res = await fetch(`${API_URL}/api/notificaciones?limite=10`, { credentials: "include" });
+      if (!res.ok) return;
+      const data = await res.json();
+      pintarContador(Number(data.noLeidas || 0));
+      pintarLista(data.notificaciones || []);
+    } catch {
+      /* sin conexión: se intenta en la próxima revisión */
+    }
+  }
+
+  const cerrarNotificaciones = () => {
+    if (!notifPanel || !notifBoton) return;
+    notifPanel.hidden = true;
+    notifBoton.setAttribute("aria-expanded", "false");
+  };
+
+  notifBoton?.addEventListener("click", (evento) => {
+    evento.stopPropagation();
+    if (!notifPanel) return;
+    const abrir = notifPanel.hidden;
+    notifPanel.hidden = !abrir;
+    notifBoton.setAttribute("aria-expanded", String(abrir));
+    if (abrir) {
+      cerrarPerfil();
+      cargarNotificaciones();
+    }
+  });
+
+  notifLeerTodas?.addEventListener("click", async (evento) => {
+    evento.stopPropagation();
+    await fetch(`${API_URL}/api/notificaciones/leer-todas`, { method: "PATCH", credentials: "include" })
+      .catch(() => null);
+    cargarNotificaciones();
+  });
+
+  // Se revisa al cargar y luego cada minuto
+  cargarNotificaciones();
+  setInterval(cargarNotificaciones, 60000);
+
+  document.addEventListener("click", (evento) => {
+    if (perfilMenu && !perfilMenu.contains(evento.target)) cerrarPerfil();
+    if (notifPanel && !notifPanel.contains(evento.target)) cerrarNotificaciones();
+  });
+
+  document.addEventListener("keydown", (evento) => {
+    if (evento.key === "Escape") {
+      cerrarPerfil();
+      cerrarNotificaciones();
+    }
+  });
+
+  /* ---------- Cerrar sesión ----------
+     POST /api/auth/logout borra la cookie "token" y se va al login */
+  document.querySelectorAll("[data-cerrar-sesion]").forEach((enlace) => {
+    enlace.addEventListener("click", async (evento) => {
+      evento.preventDefault();
+      try {
+        await fetch(`${API_URL}/api/auth/logout`, { method: "POST", credentials: "include" });
+      } catch {
+        /* aunque falle la red, se va al login */
+      }
+      window.location.href = "/Inicio/login";
+    });
+  });
+</script>
+
+<script>
+  const button = document.querySelector(
+    "#psychMobileButton"
+  ) as HTMLButtonElement | null;
+
+  const mobileMenu = document.querySelector(
+    "#psychMobileMenu"
+  ) as HTMLElement | null;
+
+  if (button && mobileMenu) {
+    button.addEventListener("click", () => {
+      const abierto =
+        button.getAttribute("aria-expanded") === "true";
+
+      button.setAttribute(
+        "aria-expanded",
+        String(!abierto)
+      );
+
+      mobileMenu.classList.toggle(
+        "mobile-menu-open"
+      );
+    });
+  }
+</script>

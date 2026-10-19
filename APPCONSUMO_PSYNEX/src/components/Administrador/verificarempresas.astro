@@ -1,6 +1,55 @@
 ---
 import MenuAdmin from "../Menu/MenuAdmin.astro";
 import "./verificarempresas.css";
+import { apiGet, API_URL } from "../../lib/api";
+
+// ---------------------------------------------------------------
+// Datos reales: GET /api/admin/empresas?estado=todos y /resumen
+// ---------------------------------------------------------------
+const cookie = Astro.request.headers.get("cookie");
+const [respuesta, datosResumen] = await Promise.all([
+  apiGet(cookie, "/api/admin/empresas?estado=todos&porPagina=100"),
+  apiGet(cookie, "/api/admin/empresas/resumen"),
+]);
+
+const haceCuanto = (fecha: string) => {
+  const dias = Math.floor((Date.now() - new Date(fecha).getTime()) / 86_400_000);
+  if (dias <= 0) return "hoy";
+  if (dias === 1) return "hace 1 día";
+  if (dias < 30) return `hace ${dias} días`;
+  const meses = Math.floor(dias / 30);
+  return meses === 1 ? "hace 1 mes" : `hace ${meses} meses`;
+};
+
+const iniciales = (nombre: string) =>
+  nombre.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join("");
+
+const COLORES = ["purple", "blue", "green"];
+
+// La API responde { empresas: [...] }
+const empresas = ((respuesta?.empresas ?? respuesta?.datos ?? []) as any[]).map((e: any, i: number) => {
+  const nombre = e.NombreEmpresa || e.NombreCompleto;
+  const activa = Number(e.EstaVerificada) === 1;
+  const hace = haceCuanto(e.CreadoEn);
+  return {
+    id: e.PerfileId, // el backend identifica la empresa por su PerfileId
+    nombre,
+    iniciales: iniciales(nombre),
+    nit: e.Nit ? `NIT: ${e.Nit}` : "NIT: —",
+    ciudad: e.Direccion || "—",
+    estado: activa ? "activa" : "pendiente",
+    registro: activa ? `Activa ${hace}` : hace.charAt(0).toUpperCase() + hace.slice(1),
+    color: COLORES[i % COLORES.length],
+    // Logo (si lo subió): GET /api/admin/empresas/:perfileId/logo
+    logo: Number(e.TieneLogo ?? 0) === 1
+      ? `${API_URL}/api/admin/empresas/${encodeURIComponent(e.PerfileId)}/logo`
+      : "",
+  };
+});
+
+const resumen = datosResumen?.resumen ?? { total: 0, verificadas: 0, pendientes: 0 };
+// La base de datos todavía no distingue "rechazada" de "pendiente" (ver notas).
+const rechazadas = 0;
 ---
 
 <div class="empresas-page">
@@ -126,7 +175,7 @@ import "./verificarempresas.css";
                 Pendientes
 
                 <span id="contadorPendientes">
-                    2
+                    {resumen.pendientes}
                 </span>
 
             </button>
@@ -141,7 +190,7 @@ import "./verificarempresas.css";
                 Activas
 
                 <span id="contadorActivas">
-                    2
+                    {resumen.verificadas}
                 </span>
 
             </button>
@@ -178,17 +227,24 @@ import "./verificarempresas.css";
                 </div>
 
 
-                <!-- ================= EMPRESA 1 ================= -->
+                {empresas.map((e) => (
 
                 <article
-                    class="empresa-item seleccionada"
-                    data-nombre="Nova Soluciones S.A.S."
-                    data-ciudad="bogota"
-                    data-estado="pendiente"
+                    class={`empresa-item ${e.estado === "activa" ? "empresa-activa" : ""}`}
+                    data-id={e.id}
+                    data-nombre={e.nombre}
+                    data-nit={e.nit}
+                    data-registro={e.registro}
+                    data-ciudad={e.ciudad}
+                    data-estado={e.estado}
+                    data-logo={e.logo}
                 >
 
-                    <div class="empresa-logo logo-purple">
-                        <i class="bi bi-buildings"></i>
+                    <div class={`empresa-logo logo-${e.color}`}>
+                        {e.estado === "activa"
+                            ? <span>{e.iniciales}</span>
+                            : <i class="bi bi-buildings"></i>}
+                        {e.logo && <img src={e.logo} alt="" loading="lazy" onerror="this.remove()" />}
                     </div>
 
                     <div class="empresa-info">
@@ -196,18 +252,18 @@ import "./verificarempresas.css";
                         <div class="empresa-nombre-row">
 
                             <h3>
-                                Nova Soluciones S.A.S.
+                                {e.nombre}
                             </h3>
 
-                            <span class="estado estado-pendiente">
+                            <span class={`estado estado-${e.estado}`}>
                                 <span></span>
-                                Pendiente
+                                {e.estado === "activa" ? "Activa" : "Pendiente"}
                             </span>
 
                         </div>
 
                         <p class="nit">
-                            NIT: 901.234.567-8
+                            {e.nit}
                         </p>
 
                         <div class="empresa-documentos">
@@ -228,12 +284,12 @@ import "./verificarempresas.css";
 
                             <span>
                                 <i class="bi bi-calendar3"></i>
-                                Hace 2 días
+                                {e.registro}
                             </span>
 
                             <span>
                                 <i class="bi bi-geo-alt"></i>
-                                Bogotá
+                                {e.ciudad}
                             </span>
 
                         </div>
@@ -242,200 +298,7 @@ import "./verificarempresas.css";
 
                 </article>
 
-
-                <!-- ================= EMPRESA 2 ================= -->
-
-                <article
-                    class="empresa-item"
-                    data-nombre="Sana Bienestar Ltda."
-                    data-ciudad="medellin"
-                    data-estado="pendiente"
-                >
-
-                    <div class="empresa-logo logo-green">
-                        <i class="bi bi-leaf"></i>
-                    </div>
-
-                    <div class="empresa-info">
-
-                        <div class="empresa-nombre-row">
-
-                            <h3>
-                                Sana Bienestar Ltda.
-                            </h3>
-
-                            <span class="estado estado-pendiente">
-                                <span></span>
-                                Pendiente
-                            </span>
-
-                        </div>
-
-                        <p class="nit">
-                            NIT: 900.876.543-2
-                        </p>
-
-                        <div class="empresa-documentos">
-
-                            <span>
-                                <i class="bi bi-file-earmark-text"></i>
-                                Cámara de Comercio
-                            </span>
-
-                            <span>
-                                <i class="bi bi-file-earmark-text"></i>
-                                RUT
-                            </span>
-
-                        </div>
-
-                        <div class="empresa-meta">
-
-                            <span>
-                                <i class="bi bi-calendar3"></i>
-                                Hace 3 días
-                            </span>
-
-                            <span>
-                                <i class="bi bi-geo-alt"></i>
-                                Medellín
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                </article>
-
-
-                <!-- ================= EMPRESA 3 ================= -->
-
-                <article
-                    class="empresa-item empresa-activa"
-                    data-nombre="Grupo RR Humano S.A.S."
-                    data-ciudad="cali"
-                    data-estado="activa"
-                >
-
-                    <div class="empresa-logo logo-blue">
-                        <span>RR</span>
-                    </div>
-
-                    <div class="empresa-info">
-
-                        <div class="empresa-nombre-row">
-
-                            <h3>
-                                Grupo RR Humano S.A.S.
-                            </h3>
-
-                            <span class="estado estado-activa">
-                                <span></span>
-                                Activa
-                            </span>
-
-                        </div>
-
-                        <p class="nit">
-                            NIT: 901.112.223-4
-                        </p>
-
-                        <div class="empresa-documentos">
-
-                            <span>
-                                <i class="bi bi-file-earmark-text"></i>
-                                Cámara de Comercio
-                            </span>
-
-                            <span>
-                                <i class="bi bi-file-earmark-text"></i>
-                                RUT
-                            </span>
-
-                        </div>
-
-                        <div class="empresa-meta">
-
-                            <span>
-                                <i class="bi bi-calendar3"></i>
-                                Activa hace 4 días
-                            </span>
-
-                            <span>
-                                <i class="bi bi-geo-alt"></i>
-                                Cali
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                </article>
-
-
-                <!-- ================= EMPRESA 4 ================= -->
-
-                <article
-                    class="empresa-item empresa-activa"
-                    data-nombre="Alfa Construcciones S.A.S."
-                    data-ciudad="bucaramanga"
-                    data-estado="activa"
-                >
-
-                    <div class="empresa-logo logo-blue">
-                        <span>A</span>
-                    </div>
-
-                    <div class="empresa-info">
-
-                        <div class="empresa-nombre-row">
-
-                            <h3>
-                                Alfa Construcciones S.A.S.
-                            </h3>
-
-                            <span class="estado estado-activa">
-                                <span></span>
-                                Activa
-                            </span>
-
-                        </div>
-
-                        <p class="nit">
-                            NIT: 900.198.776-1
-                        </p>
-
-                        <div class="empresa-documentos">
-
-                            <span>
-                                <i class="bi bi-file-earmark-text"></i>
-                                Cámara de Comercio
-                            </span>
-
-                            <span>
-                                <i class="bi bi-file-earmark-text"></i>
-                                RUT
-                            </span>
-
-                        </div>
-
-                        <div class="empresa-meta">
-
-                            <span>
-                                <i class="bi bi-calendar3"></i>
-                                Activa hace 5 días
-                            </span>
-
-                            <span>
-                                <i class="bi bi-geo-alt"></i>
-                                Bucaramanga
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                </article>
+                ))}
 
             </div>
 
@@ -576,105 +439,27 @@ import "./verificarempresas.css";
 
                             </div>
 
-                            <span>
-                                2 documentos
+                            <span id="contadorDocumentosEmpresa">
+                                0 documentos
                             </span>
 
                         </div>
 
 
-                        <!-- CÁMARA -->
-
-                        <div class="documento-row">
-
-                            <div class="documento-icon">
-                                <i class="bi bi-file-earmark-text"></i>
-                            </div>
-
-                            <div class="documento-info">
-
-                                <strong>
-                                    Cámara de Comercio
-                                </strong>
-
-                                <small>
-                                    Certificado de existencia
-                                    y representación legal
-                                </small>
-
-                            </div>
-
-                            <div class="documento-actions">
-
-                                <button
-                                    class="btn-documento btn-ver"
-                                    data-documento="camara"
-                                >
-                                    <i class="bi bi-eye"></i>
-                                    Ver
-                                </button>
-
-                                <button
-                                    class="btn-documento"
-                                    data-documento="camara"
-                                >
-                                    <i class="bi bi-download"></i>
-                                    Descargar
-                                </button>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- RUT -->
-
-                        <div class="documento-row">
-
-                            <div class="documento-icon">
-                                <i class="bi bi-file-earmark-text"></i>
-                            </div>
-
-                            <div class="documento-info">
-
-                                <strong>
-                                    RUT
-                                </strong>
-
-                                <small>
-                                    Registro Único Tributario
-                                </small>
-
-                            </div>
-
-                            <div class="documento-actions">
-
-                                <button
-                                    class="btn-documento btn-ver"
-                                    data-documento="rut"
-                                >
-                                    <i class="bi bi-eye"></i>
-                                    Ver
-                                </button>
-
-                                <button
-                                    class="btn-documento"
-                                    data-documento="rut"
-                                >
-                                    <i class="bi bi-download"></i>
-                                    Descargar
-                                </button>
-
-                            </div>
-
-                        </div>
+                        <!-- Se llena con los documentos reales al elegir una empresa
+                             (GET /api/admin/empresas/:perfileId/documentos) -->
+                        <div id="listaDocumentosEmpresa"></div>
 
                     </div>
 
 
                     <!-- ACCIONES -->
 
-                    <div class="detalle-acciones">
+                    <p class="decision-hecha" id="decisionHecha" hidden>
+                        Esta empresa ya fue verificada y está activa.
+                    </p>
+
+                    <div class="detalle-acciones" id="detalleAcciones">
 
                         <button
                             class="btn-rechazar"
@@ -741,7 +526,7 @@ import "./verificarempresas.css";
                     <i class="bi bi-buildings"></i>
                 </div>
 
-                <strong>6</strong>
+                <strong>{resumen.total}</strong>
 
                 <span>Total</span>
 
@@ -754,7 +539,7 @@ import "./verificarempresas.css";
                     <i class="bi bi-check-lg"></i>
                 </div>
 
-                <strong>3</strong>
+                <strong>{resumen.verificadas}</strong>
 
                 <span>Activas</span>
 
@@ -767,7 +552,7 @@ import "./verificarempresas.css";
                     <i class="bi bi-clock"></i>
                 </div>
 
-                <strong>2</strong>
+                <strong>{resumen.pendientes}</strong>
 
                 <span>Pendientes</span>
 
@@ -780,7 +565,7 @@ import "./verificarempresas.css";
                     <i class="bi bi-x-lg"></i>
                 </div>
 
-                <strong>1</strong>
+                <strong>{rechazadas}</strong>
 
                 <span>Rechazadas</span>
 
@@ -935,6 +720,19 @@ import "./verificarempresas.css";
 
         </div>
 
+    </div>
+
+
+    <!-- =========================================================
+         AVISO PEQUEÑO (reemplaza las alertas del navegador)
+    ========================================================== -->
+
+    <div class="aviso-admin" id="avisoAdmin" hidden>
+        <div class="aviso-admin-caja" role="alertdialog" aria-modal="true" aria-labelledby="avisoAdminTitulo">
+            <h3 id="avisoAdminTitulo">Listo</h3>
+            <p id="avisoAdminTexto"></p>
+            <button type="button" id="avisoAdminCerrar">Entendido</button>
+        </div>
     </div>
 
 
@@ -1205,6 +1003,56 @@ import "./verificarempresas.css";
 
 <script>
 // @ts-nocheck
+    import { API_URL } from "../../lib/api";
+
+    // PerfileId de la empresa seleccionada
+    let empresaSeleccionadaId = "";
+
+
+    /* =====================================================
+       AVISO PEQUEÑO
+    ====================================================== */
+
+    function avisar(texto, titulo) {
+        document.getElementById("avisoAdminTitulo").textContent = titulo || "Listo";
+        document.getElementById("avisoAdminTexto").textContent = texto;
+        document.getElementById("avisoAdmin").hidden = false;
+        document.getElementById("avisoAdminCerrar").focus();
+    }
+
+    document.getElementById("avisoAdminCerrar")?.addEventListener("click", () => {
+        document.getElementById("avisoAdmin").hidden = true;
+    });
+
+    document.getElementById("avisoAdmin")?.addEventListener("click", (event) => {
+        if (event.target === event.currentTarget) event.currentTarget.hidden = true;
+    });
+
+
+    /* =====================================================
+       LOGO Y BOTONES DEL DETALLE
+    ====================================================== */
+
+    function pintarLogoDetalle(empresa) {
+        const caja = document.getElementById("detalleLogo");
+        if (!caja) return;
+        caja.innerHTML = '<i class="bi bi-buildings"></i>';
+        const logo = empresa.getAttribute("data-logo");
+        if (logo) {
+            const img = document.createElement("img");
+            img.src = logo;
+            img.alt = "";
+            img.addEventListener("error", () => img.remove());
+            caja.append(img);
+        }
+    }
+
+    // Si la empresa ya está activa, los botones Activar/Rechazar desaparecen
+    function pintarAcciones(estado) {
+        const activa = estado === "activa";
+        document.getElementById("detalleAcciones").hidden = activa;
+        document.getElementById("decisionHecha").hidden = !activa;
+    }
 
     /* =====================================================
        RESUMEN
@@ -1261,12 +1109,30 @@ import "./verificarempresas.css";
             const nombre =
                 empresa.getAttribute("data-nombre");
 
+            empresaSeleccionadaId =
+                empresa.getAttribute("data-id") || "";
+
+            cargarDocumentos(empresaSeleccionadaId);
+
+            document.getElementById("detalleNit").textContent =
+                empresa.getAttribute("data-nit") || "";
+
+            document.getElementById("detalleRegistro").textContent =
+                empresa.getAttribute("data-registro") || "";
+
+            document.getElementById("detalleCiudad").textContent =
+                empresa.getAttribute("data-ciudad") || "";
+
             const estado =
                 empresa.getAttribute("data-estado");
 
 
             document.getElementById("detalleNombre").textContent =
                 nombre || "Empresa";
+
+            pintarLogoDetalle(empresa);
+
+            pintarAcciones(estado);
 
 
             if (estado === "activa") {
@@ -1360,21 +1226,156 @@ import "./verificarempresas.css";
 
 
     /* =====================================================
-       BOTÓN VER DOCUMENTOS
+       DOCUMENTOS REALES DE LA EMPRESA
+       Lista:   GET /api/admin/empresas/:perfileId/documentos
+       Archivo: GET /api/admin/empresas/documentos/:documentoId
     ====================================================== */
 
-    document.querySelectorAll(".btn-ver").forEach((boton) => {
+    const NOMBRES_DOCUMENTO = {
+        rut: ["RUT", "Registro Único Tributario"],
+        camara_comercio: ["Cámara de Comercio", "Certificado de existencia y representación legal"],
+    };
 
-        boton.addEventListener("click", (event) => {
+    const urlDocumento = (id) =>
+        `${API_URL}/api/admin/empresas/documentos/${encodeURIComponent(id)}`;
 
-            event.stopPropagation();
+    async function descargarDocumento(doc) {
+        try {
+            const res = await fetch(urlDocumento(doc.DocumentoArchivoId), { credentials: "include" });
+            if (!res.ok) throw new Error(String(res.status));
+            const blob = await res.blob();
+            const enlace = document.createElement("a");
+            enlace.href = URL.createObjectURL(blob);
+            enlace.download = doc.NombreOriginal || "documento";
+            enlace.click();
+            setTimeout(() => URL.revokeObjectURL(enlace.href), 1000);
+        } catch (error) {
+            console.error(error);
+            avisar("No se pudo descargar el documento.", "Error");
+        }
+    }
 
-            abrirModal("modalDocumentos");
+    async function cargarDocumentos(perfileId) {
+        const lista = document.getElementById("listaDocumentosEmpresa");
+        const contador = document.getElementById("contadorDocumentosEmpresa");
+        if (!lista) return;
+        lista.innerHTML = "<p class=\"documentos-vacio\">Cargando documentos...</p>";
 
+        let documentos = [];
+        try {
+            const res = await fetch(`${API_URL}/api/admin/empresas/${encodeURIComponent(perfileId)}/documentos`, {
+                credentials: "include",
+            });
+            const data = res.ok ? await res.json() : null;
+            documentos = data?.documentos ?? [];
+        } catch (error) {
+            console.error(error);
+        }
+
+        // Si se eligió otra empresa mientras cargaba, no se pinta
+        if (perfileId !== empresaSeleccionadaId) return;
+
+        if (contador) {
+            contador.textContent = `${documentos.length} ${documentos.length === 1 ? "documento" : "documentos"}`;
+        }
+
+        lista.replaceChildren();
+        if (!documentos.length) {
+            const vacio = document.createElement("p");
+            vacio.className = "documentos-vacio";
+            vacio.textContent = "Esta empresa no ha subido documentos.";
+            lista.append(vacio);
+            return;
+        }
+
+        documentos.forEach((doc) => {
+            const [titulo, descripcion] = NOMBRES_DOCUMENTO[doc.Tipo] ?? [doc.Tipo, ""];
+
+            const fila = document.createElement("div");
+            fila.className = "documento-row";
+
+            const icono = document.createElement("div");
+            icono.className = "documento-icon";
+            icono.innerHTML = '<i class="bi bi-file-earmark-text"></i>';
+
+            const info = document.createElement("div");
+            info.className = "documento-info";
+            const strong = document.createElement("strong");
+            strong.textContent = titulo;
+            const small = document.createElement("small");
+            small.textContent = descripcion ? `${descripcion} · ${doc.NombreOriginal}` : doc.NombreOriginal;
+            info.append(strong, small);
+
+            const acciones = document.createElement("div");
+            acciones.className = "documento-actions";
+
+            const ver = document.createElement("button");
+            ver.type = "button";
+            ver.className = "btn-documento btn-ver";
+            ver.innerHTML = '<i class="bi bi-eye"></i> Ver';
+            ver.addEventListener("click", (event) => {
+                event.stopPropagation();
+                window.open(urlDocumento(doc.DocumentoArchivoId), "_blank", "noopener");
+            });
+
+            const bajar = document.createElement("button");
+            bajar.type = "button";
+            bajar.className = "btn-documento";
+            bajar.innerHTML = '<i class="bi bi-download"></i> Descargar';
+            bajar.addEventListener("click", (event) => {
+                event.stopPropagation();
+                descargarDocumento(doc);
+            });
+
+            acciones.append(ver, bajar);
+            fila.append(icono, info, acciones);
+            lista.append(fila);
         });
+    }
 
-    });
 
+    /* =====================================================
+       BACKEND: PATCH /api/admin/empresas/:perfileId/verificacion
+       Devuelve true si se guardó. El backend también le envía
+       un correo a la empresa con la decisión.
+    ====================================================== */
+    async function enviarDecision(aprobado, motivoRechazo) {
+        if (!empresaSeleccionadaId) {
+            avisar("Selecciona una empresa de la lista.", "Falta la empresa");
+            return false;
+        }
+        try {
+            const res = await fetch(
+                `${API_URL}/api/admin/empresas/${empresaSeleccionadaId}/verificacion`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify(
+                        aprobado ? { aprobado: true } : { aprobado: false, motivoRechazo }
+                    ),
+                }
+            );
+            if (res.status === 401) {
+                window.location.href = "/Inicio/login";
+                return false;
+            }
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                avisar(
+                    Array.isArray(data.error) ? data.error.join(", ")
+                    : (data.error || "No se pudo guardar la decisión."),
+                    "No se pudo guardar"
+                );
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error(error);
+            avisar("No se pudo conectar con el servidor.", "Sin conexión");
+            return false;
+        }
+    }
 
     /* =====================================================
        ACTIVAR
@@ -1391,11 +1392,40 @@ import "./verificarempresas.css";
 
     document
         .getElementById("confirmarActivar")
-        ?.addEventListener("click", () => {
+        ?.addEventListener("click", async () => {
+
+            const guardado = await enviarDecision(true);
+
+            if (!guardado) {
+
+                return;
+
+            }
 
             cerrarModal("modalActivar");
 
-            alert("Empresa activada correctamente.");
+            // Se actualiza en pantalla sin recargar: queda activa y sin botones
+            const item = document.querySelector(
+                `.empresa-item[data-id="${CSS.escape(empresaSeleccionadaId)}"]`
+            );
+            if (item) {
+                item.setAttribute("data-estado", "activa");
+                item.classList.add("empresa-activa");
+                const badge = item.querySelector(".estado");
+                if (badge) {
+                    badge.className = "estado estado-activa";
+                    badge.innerHTML = "<span></span> Activa";
+                }
+            }
+            const detalleEstado = document.getElementById("detalleEstado");
+            detalleEstado.className = "estado estado-activa";
+            detalleEstado.innerHTML = "<span></span> Activa";
+            pintarAcciones("activa");
+
+            avisar(
+                "La empresa quedó activa. Le enviamos un correo con la noticia.",
+                "Empresa activada"
+            );
 
         });
 
@@ -1415,17 +1445,29 @@ import "./verificarempresas.css";
 
     document
         .getElementById("confirmarRechazo")
-        ?.addEventListener("click", () => {
+        ?.addEventListener("click", async () => {
 
             const motivo =
                 document.getElementById("motivoRechazo").value.trim();
 
 
-            if (!motivo) {
+            if (motivo.length < 5) {
 
-                alert("Escribe el motivo del rechazo.");
+                avisar("Escribe el motivo del rechazo (mínimo 5 caracteres).", "Falta el motivo");
 
                 return;
+
+            }
+
+
+            const guardado = await enviarDecision(false, motivo);
+
+
+            if (!guardado) {
+
+
+                return;
+
 
             }
 
@@ -1434,7 +1476,10 @@ import "./verificarempresas.css";
 
             document.getElementById("motivoRechazo").value = "";
 
-            alert("Empresa rechazada correctamente.");
+            avisar(
+                "La solicitud fue rechazada. Le enviamos un correo con el motivo.",
+                "Solicitud rechazada"
+            );
 
         });
 

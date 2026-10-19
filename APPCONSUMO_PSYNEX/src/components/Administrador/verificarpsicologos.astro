@@ -1,6 +1,52 @@
 ---
 import MenuAdmin from "../Menu/MenuAdmin.astro";
 import "./verificarpsicologos.css";
+import { apiGet, API_URL } from "../../lib/api";
+
+// ---------------------------------------------------------------
+// Datos reales: GET /api/admin/psicologos?estado=todos (solo Admin)
+// Se convierten a la misma forma que usaba el arreglo de ejemplo,
+// y se le pasan al <script> de abajo con define:vars.
+// ---------------------------------------------------------------
+const cookie = Astro.request.headers.get("cookie");
+const respuesta = await apiGet(cookie, "/api/admin/psicologos?estado=todos&porPagina=100");
+
+const COLORES = ["morado", "azul", "rosa", "verde"];
+
+// "Hace 3 días", "Hoy", "Hace 2 meses"...
+const haceCuanto = (fecha: string) => {
+  const dias = Math.floor((Date.now() - new Date(fecha).getTime()) / 86_400_000);
+  if (dias <= 0) return "Hoy";
+  if (dias === 1) return "Hace 1 día";
+  if (dias < 30) return `Hace ${dias} días`;
+  const meses = Math.floor(dias / 30);
+  return meses === 1 ? "Hace 1 mes" : `Hace ${meses} meses`;
+};
+
+const estadoDe = (p: any) =>
+  p.EstaVerificado ? "Verificado"
+  : String(p.EstadoVerificacion ?? "").toLowerCase() === "rechazado" ? "Rechazado"
+  : "Pendiente";
+
+// La API responde { psicologos: [...] }
+const psicologosBD = (respuesta?.psicologos ?? respuesta?.datos ?? []).map((p: any, i: number) => ({
+  id: p.PerfilId, // el backend identifica al psicólogo por su PerfilId
+  nombre: p.NombreCompleto,
+  especialidad: p.Especialidades ?? "Sin especialidad registrada",
+  correo: p.Email,
+  telefono: p.Telefono || "—",
+  registro: haceCuanto(p.CreadoEn),
+  ciudad: p.Direccion || "—",
+  experiencia: p.AniosExperiencia != null
+    ? `${p.AniosExperiencia} ${Number(p.AniosExperiencia) === 1 ? "año" : "años"}`
+    : "—",
+  estado: estadoDe(p),
+  color: COLORES[i % COLORES.length],
+  // Foto de perfil (si la subió): GET /api/admin/psicologos/:perfilId/foto
+  foto: Number(p.TieneFoto ?? 0) === 1
+    ? `${API_URL}/api/admin/psicologos/${encodeURIComponent(p.PerfilId)}/foto`
+    : "",
+}));
 ---
 
 <div class="verificacion-page">
@@ -442,161 +488,16 @@ import "./verificarpsicologos.css";
 
                             </div>
 
-                            <span class="documentos-count">
-                                3 documentos
+                            <span class="documentos-count" id="contadorDocumentosPsicologo">
+                                0 documentos
                             </span>
 
                         </div>
 
 
-                        <!-- DIPLOMA -->
-
-                        <div class="documento-row">
-
-                            <div class="documento-info">
-
-                                <div class="documento-icono">
-                                    <i class="bi bi-file-earmark-pdf"></i>
-                                </div>
-
-                                <div>
-
-                                    <strong>
-                                        Diploma universitario
-                                    </strong>
-
-                                    <span>
-                                        Documento de formación académica
-                                    </span>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="documento-actions">
-
-                                <button
-                                    type="button"
-                                    class="btn-documento btn-ver-documento"
-                                    data-documento="Diploma universitario"
-                                >
-                                    <i class="bi bi-eye"></i>
-                                    Ver
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="btn-documento btn-descargar-documento"
-                                    data-documento="Diploma universitario"
-                                >
-                                    <i class="bi bi-download"></i>
-                                    Descargar
-                                </button>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- TARJETA -->
-
-                        <div class="documento-row">
-
-                            <div class="documento-info">
-
-                                <div class="documento-icono">
-                                    <i class="bi bi-file-earmark-text"></i>
-                                </div>
-
-                                <div>
-
-                                    <strong>
-                                        Tarjeta profesional
-                                    </strong>
-
-                                    <span>
-                                        Registro profesional
-                                    </span>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="documento-actions">
-
-                                <button
-                                    type="button"
-                                    class="btn-documento btn-ver-documento"
-                                    data-documento="Tarjeta profesional"
-                                >
-                                    <i class="bi bi-eye"></i>
-                                    Ver
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="btn-documento btn-descargar-documento"
-                                    data-documento="Tarjeta profesional"
-                                >
-                                    <i class="bi bi-download"></i>
-                                    Descargar
-                                </button>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- CÉDULA -->
-
-                        <div class="documento-row">
-
-                            <div class="documento-info">
-
-                                <div class="documento-icono">
-                                    <i class="bi bi-person-vcard"></i>
-                                </div>
-
-                                <div>
-
-                                    <strong>
-                                        Cédula de ciudadanía
-                                    </strong>
-
-                                    <span>
-                                        Documento de identidad
-                                    </span>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="documento-actions">
-
-                                <button
-                                    type="button"
-                                    class="btn-documento btn-ver-documento"
-                                    data-documento="Cédula de ciudadanía"
-                                >
-                                    <i class="bi bi-eye"></i>
-                                    Ver
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="btn-documento btn-descargar-documento"
-                                    data-documento="Cédula de ciudadanía"
-                                >
-                                    <i class="bi bi-download"></i>
-                                    Descargar
-                                </button>
-
-                            </div>
-
-                        </div>
+                        <!-- Se llena con los documentos reales al elegir un psicólogo
+                             (GET /api/admin/psicologos/:perfilId/documentos) -->
+                        <div id="listaDocumentosPsicologo"></div>
 
                     </div>
 
@@ -618,7 +519,9 @@ import "./verificarpsicologos.css";
                         </div>
 
 
-                        <div class="decision-buttons">
+                        <p class="decision-hecha" id="decisionHecha" hidden></p>
+
+                        <div class="decision-buttons" id="decisionBotones">
 
                             <button
                                 type="button"
@@ -884,6 +787,19 @@ import "./verificarpsicologos.css";
 
 
     <!-- =====================================================
+         AVISO PEQUEÑO (reemplaza las alertas del navegador)
+    ====================================================== -->
+
+    <div class="aviso-admin" id="avisoAdmin" hidden>
+        <div class="aviso-admin-caja" role="alertdialog" aria-modal="true" aria-labelledby="avisoAdminTitulo">
+            <h3 id="avisoAdminTitulo">Listo</h3>
+            <p id="avisoAdminTexto"></p>
+            <button type="button" id="avisoAdminCerrar">Entendido</button>
+        </div>
+    </div>
+
+
+    <!-- =====================================================
          MODAL RECHAZAR
     ====================================================== -->
 
@@ -977,118 +893,71 @@ import "./verificarpsicologos.css";
      JAVASCRIPT
 ====================================================== -->
 
-<script is:inline>
+<script is:inline define:vars={{ psicologosBD, API_URL }}>
 
-    const psicologos = [
-
-        {
-            id: 1,
-            nombre: "Dra. Laura Torres",
-            especialidad: "Psicología clínica",
-            correo: "laura.torres@correo.com",
-            telefono: "+57 300 111 2233",
-            registro: "Hace 2 días",
-            ciudad: "Bogotá, Colombia",
-            experiencia: "7 años",
-            estado: "Pendiente",
-            color: "morado"
-        },
-
-        {
-            id: 2,
-            nombre: "Dr. Andrés Silva",
-            especialidad: "Psicología educativa",
-            correo: "andres.silva@correo.com",
-            telefono: "+57 301 222 3344",
-            registro: "Hace 2 días",
-            ciudad: "Medellín, Colombia",
-            experiencia: "4 años",
-            estado: "Pendiente",
-            color: "azul"
-        },
-
-        {
-            id: 3,
-            nombre: "Lic. Valentina Rojas",
-            especialidad: "Psicología infantil",
-            correo: "valentina.rojas@correo.com",
-            telefono: "+57 302 333 4455",
-            registro: "Hace 3 días",
-            ciudad: "Cali, Colombia",
-            experiencia: "6 años",
-            estado: "Pendiente",
-            color: "rosa"
-        },
-
-        {
-            id: 4,
-            nombre: "Dr. Diego Herrera",
-            especialidad: "Psicología organizacional",
-            correo: "diego.herrera@correo.com",
-            telefono: "+57 300 123 4567",
-            registro: "Hace 3 días",
-            ciudad: "Bogotá, Colombia",
-            experiencia: "5 años",
-            estado: "Pendiente",
-            color: "verde"
-        },
-
-        {
-            id: 5,
-            nombre: "Dra. Camila Navarro",
-            especialidad: "Psicología clínica",
-            correo: "camila.navarro@correo.com",
-            telefono: "+57 303 444 5566",
-            registro: "Hace 4 días",
-            ciudad: "Bogotá, Colombia",
-            experiencia: "8 años",
-            estado: "Pendiente",
-            color: "azul"
-        },
-
-        {
-            id: 6,
-            nombre: "Lic. Santiago Muñoz",
-            especialidad: "Psicología educativa",
-            correo: "santiago.munoz@correo.com",
-            telefono: "+57 304 555 6677",
-            registro: "Hace 5 días",
-            ciudad: "Tunja, Colombia",
-            experiencia: "3 años",
-            estado: "Pendiente",
-            color: "rosa"
-        },
-
-        {
-            id: 7,
-            nombre: "Dra. Patricia Gómez",
-            especialidad: "Psicología infantil",
-            correo: "patricia.gomez@correo.com",
-            telefono: "+57 305 666 7788",
-            registro: "Hace 5 días",
-            ciudad: "Manizales, Colombia",
-            experiencia: "9 años",
-            estado: "Pendiente",
-            color: "azul"
-        },
-
-        {
-            id: 8,
-            nombre: "Dr. Felipe Martínez",
-            especialidad: "Psicología organizacional",
-            correo: "felipe.martinez@correo.com",
-            telefono: "+57 306 777 8899",
-            registro: "Hace 6 días",
-            ciudad: "Barranquilla, Colombia",
-            experiencia: "5 años",
-            estado: "Pendiente",
-            color: "verde"
-        }
-
-    ];
+    // Datos reales que vienen del servidor (ver la parte de arriba)
+    const psicologos = psicologosBD;
 
 
     let indiceActual = -1;
+
+
+    /* =====================================================
+       FOTO (si no tiene o no carga, queda el ícono)
+    ====================================================== */
+
+    function htmlAvatar(psicologo) {
+        if (!psicologo.foto) return '<i class="bi bi-person"></i>';
+        return '<i class="bi bi-person"></i><img src="' + psicologo.foto +
+            '" alt="" loading="lazy" onerror="this.remove()" />';
+    }
+
+
+    /* =====================================================
+       AVISO PEQUEÑO
+    ====================================================== */
+
+    function avisar(texto, titulo) {
+        document.getElementById("avisoAdminTitulo").textContent = titulo || "Listo";
+        document.getElementById("avisoAdminTexto").textContent = texto;
+        document.getElementById("avisoAdmin").hidden = false;
+        document.getElementById("avisoAdminCerrar").focus();
+    }
+
+    document.getElementById("avisoAdminCerrar").addEventListener("click", function () {
+        document.getElementById("avisoAdmin").hidden = true;
+    });
+
+    document.getElementById("avisoAdmin").addEventListener("click", function (event) {
+        if (event.target === this) this.hidden = true;
+    });
+
+
+    /* =====================================================
+       BOTONES DE DECISIÓN: desaparecen cuando ya está verificado
+    ====================================================== */
+
+    function pintarDecision(psicologo) {
+        const nota = document.getElementById("decisionHecha");
+        const botones = document.getElementById("decisionBotones");
+        const btnRechazar = document.getElementById("btnRechazar");
+
+        if (psicologo.estado === "Verificado") {
+            botones.hidden = true;
+            nota.hidden = false;
+            nota.textContent = "Este psicólogo ya fue verificado y está activo.";
+        } else if (psicologo.estado === "Rechazado") {
+            // Se puede verificar después si corrige sus documentos
+            botones.hidden = false;
+            btnRechazar.hidden = true;
+            nota.hidden = false;
+            nota.textContent = "Esta solicitud fue rechazada. Puedes verificarla si ya corrigió sus documentos.";
+        } else {
+            botones.hidden = false;
+            btnRechazar.hidden = false;
+            nota.hidden = true;
+        }
+    }
 
 
     const lista = document.getElementById("listaPsicologos");
@@ -1152,7 +1021,8 @@ import "./verificarpsicologos.css";
 
             const coincideEspecialidad =
                 !especialidad ||
-                psicologo.especialidad === especialidad;
+                psicologo.especialidad.toLowerCase()
+                    .includes(especialidad.toLowerCase());
 
             const coincideEstado =
                 !estado ||
@@ -1224,7 +1094,7 @@ import "./verificarpsicologos.css";
             item.innerHTML = `
 
                 <div class="psicologo-avatar avatar-${psicologo.color}">
-                    <i class="bi bi-person"></i>
+                    ${htmlAvatar(psicologo)}
                 </div>
 
                 <div class="psicologo-item-info">
@@ -1291,6 +1161,8 @@ import "./verificarpsicologos.css";
 
         const psicologo = psicologos[indice];
 
+        cargarDocumentos(psicologo.id);
+
 
         detalleVacio.hidden = true;
 
@@ -1330,6 +1202,11 @@ import "./verificarpsicologos.css";
             ${psicologo.estado}
         `;
 
+        document.getElementById("detalleAvatar").innerHTML =
+            htmlAvatar(psicologo);
+
+        pintarDecision(psicologo);
+
 
         actualizarListaSeleccionada();
 
@@ -1345,7 +1222,7 @@ import "./verificarpsicologos.css";
         items.forEach(function (item) {
 
             const id =
-                Number(item.dataset.id);
+                item.dataset.id;
 
 
             item.classList.toggle(
@@ -1576,6 +1453,9 @@ import "./verificarpsicologos.css";
             document.getElementById("perfilExperiencia").textContent =
                 psicologo.experiencia;
 
+            document.querySelector("#modalPerfil .perfil-modal-avatar").innerHTML =
+                htmlAvatar(psicologo);
+
 
             abrirModal("modalPerfil");
 
@@ -1583,85 +1463,161 @@ import "./verificarpsicologos.css";
 
 
     /* =====================================================
-       VER DOCUMENTO
+       DOCUMENTOS REALES DEL PSICÓLOGO
+       Lista:   GET /api/admin/psicologos/:perfilId/documentos
+       Archivo: GET /api/admin/psicologos/documentos/:documentoId
     ====================================================== */
 
-    document
-        .querySelectorAll(".btn-ver-documento")
-        .forEach(function (boton) {
+    var NOMBRES_DOCUMENTO = {
+        tarjeta_profesional: ["Tarjeta profesional", "Registro profesional", "bi-file-earmark-text"],
+        cedula: ["Cédula de ciudadanía", "Documento de identidad", "bi-person-vcard"],
+        diploma: ["Diploma o título profesional", "Documento de formación académica", "bi-file-earmark-pdf"],
+        certificado_vigencia: ["Certificado de vigencia", "Antecedentes / vigencia profesional", "bi-file-earmark-check"],
+    };
 
-            boton.addEventListener("click", function () {
+    var documentosPedidos = "";
 
-                const nombre =
-                    boton.dataset.documento;
+    function urlDocumento(id) {
+        return API_URL + "/api/admin/psicologos/documentos/" + encodeURIComponent(id);
+    }
 
-
-                document.getElementById(
-                    "modalDocumentoTitulo"
-                ).textContent = nombre;
-
-
-                document.getElementById(
-                    "modalDocumentoNombre"
-                ).textContent = nombre;
-
-
-                abrirModal("modalDocumento");
-
+    function descargarDocumento(doc) {
+        fetch(urlDocumento(doc.DocumentoArchivoId), { credentials: "include" })
+            .then(function (res) {
+                if (!res.ok) throw new Error(String(res.status));
+                return res.blob();
+            })
+            .then(function (blob) {
+                var enlace = document.createElement("a");
+                enlace.href = URL.createObjectURL(blob);
+                enlace.download = doc.NombreOriginal || "documento";
+                enlace.click();
+                setTimeout(function () { URL.revokeObjectURL(enlace.href); }, 1000);
+            })
+            .catch(function (error) {
+                console.error(error);
+                avisar("No se pudo descargar el documento.", "Error");
             });
+    }
 
-        });
+    function cargarDocumentos(perfilId) {
+        var lista = document.getElementById("listaDocumentosPsicologo");
+        var contador = document.getElementById("contadorDocumentosPsicologo");
+        if (!lista) return;
+        documentosPedidos = perfilId;
+        lista.innerHTML = "<p class=\"documentos-vacio\">Cargando documentos...</p>";
+
+        fetch(API_URL + "/api/admin/psicologos/" + encodeURIComponent(perfilId) + "/documentos", {
+            credentials: "include",
+        })
+            .then(function (res) { return res.ok ? res.json() : null; })
+            .catch(function () { return null; })
+            .then(function (data) {
+                // Si se eligió otro psicólogo mientras cargaba, no se pinta
+                if (documentosPedidos !== perfilId) return;
+                var documentos = (data && data.documentos) || [];
+
+                if (contador) {
+                    contador.textContent = documentos.length + (documentos.length === 1 ? " documento" : " documentos");
+                }
+
+                lista.replaceChildren();
+                if (!documentos.length) {
+                    var vacio = document.createElement("p");
+                    vacio.className = "documentos-vacio";
+                    vacio.textContent = "Este psicólogo no ha subido documentos.";
+                    lista.append(vacio);
+                    return;
+                }
+
+                documentos.forEach(function (doc) {
+                    var nombres = NOMBRES_DOCUMENTO[doc.Tipo] || [doc.Tipo, "", "bi-file-earmark-text"];
+
+                    var fila = document.createElement("div");
+                    fila.className = "documento-row";
+
+                    var info = document.createElement("div");
+                    info.className = "documento-info";
+
+                    var icono = document.createElement("div");
+                    icono.className = "documento-icono";
+                    var i = document.createElement("i");
+                    i.className = "bi " + nombres[2];
+                    icono.append(i);
+
+                    var textos = document.createElement("div");
+                    var strong = document.createElement("strong");
+                    strong.textContent = nombres[0];
+                    var span = document.createElement("span");
+                    span.textContent = nombres[1] ? nombres[1] + " · " + doc.NombreOriginal : doc.NombreOriginal;
+                    textos.append(strong, span);
+                    info.append(icono, textos);
+
+                    var acciones = document.createElement("div");
+                    acciones.className = "documento-actions";
+
+                    var ver = document.createElement("button");
+                    ver.type = "button";
+                    ver.className = "btn-documento btn-ver-documento";
+                    ver.innerHTML = '<i class="bi bi-eye"></i> Ver';
+                    ver.addEventListener("click", function () {
+                        window.open(urlDocumento(doc.DocumentoArchivoId), "_blank", "noopener");
+                    });
+
+                    var bajar = document.createElement("button");
+                    bajar.type = "button";
+                    bajar.className = "btn-documento btn-descargar-documento";
+                    bajar.innerHTML = '<i class="bi bi-download"></i> Descargar';
+                    bajar.addEventListener("click", function () {
+                        descargarDocumento(doc);
+                    });
+
+                    acciones.append(ver, bajar);
+                    fila.append(info, acciones);
+                    lista.append(fila);
+                });
+            });
+    }
 
 
     /* =====================================================
-       DESCARGAR DOCUMENTO
+       BACKEND: PATCH /api/admin/psicologos/:perfilId/verificacion
+       Devuelve true si se guardó. El backend también le envía
+       un correo al psicólogo con la decisión.
     ====================================================== */
-
-    document
-        .querySelectorAll(".btn-descargar-documento")
-        .forEach(function (boton) {
-
-            boton.addEventListener("click", function () {
-
-                const nombre =
-                    boton.dataset.documento;
-
-
-                const contenido =
-                    "Documento de prueba de PSYNEX\n\n" +
-                    nombre;
-
-
-                const archivo =
-                    new Blob(
-                        [contenido],
-                        { type: "text/plain" }
-                    );
-
-
-                const url =
-                    URL.createObjectURL(archivo);
-
-
-                const enlace =
-                    document.createElement("a");
-
-
-                enlace.href = url;
-
-                enlace.download =
-                    nombre.replaceAll(" ", "_") +
-                    ".txt";
-
-
-                enlace.click();
-
-
-                URL.revokeObjectURL(url);
-
-            });
-
-        });
+    async function enviarDecision(perfilId, aprobado, motivoRechazo) {
+        try {
+            const res = await fetch(
+                API_URL + "/api/admin/psicologos/" + perfilId + "/verificacion",
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify(
+                        aprobado ? { aprobado: true } : { aprobado: false, motivoRechazo }
+                    )
+                }
+            );
+            if (res.status === 401) {
+                window.location.href = "/Inicio/login";
+                return false;
+            }
+            if (!res.ok) {
+                const data = await res.json().catch(function () { return {}; });
+                avisar(
+                    Array.isArray(data.error) ? data.error.join(", ")
+                    : (data.error || "No se pudo guardar la decisión."),
+                    "No se pudo guardar"
+                );
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error(error);
+            avisar("No se pudo conectar con el servidor.", "Sin conexión");
+            return false;
+        }
+    }
 
 
     /* =====================================================
@@ -1670,12 +1626,20 @@ import "./verificarpsicologos.css";
 
     document
         .getElementById("btnVerificar")
-        .addEventListener("click", function () {
+        .addEventListener("click", async function () {
 
             if (indiceActual === -1) {
                 return;
             }
 
+
+            const guardado = await enviarDecision(
+                psicologos[indiceActual].id, true
+            );
+
+            if (!guardado) {
+                return;
+            }
 
             psicologos[indiceActual].estado =
                 "Verificado";
@@ -1685,18 +1649,22 @@ import "./verificarpsicologos.css";
                 psicologos[indiceActual].id;
 
 
-            indiceActual = -1;
-
-
             renderLista();
 
-            mostrarVacio();
+            // Sigue viendo al mismo psicólogo, ya sin los botones
+            if (obtenerFiltrados().some(function (p) { return p.id === id; })) {
+                seleccionarPsicologo(id);
+            } else {
+                indiceActual = -1;
+                mostrarVacio();
+            }
 
             actualizarResumen();
 
 
-            alert(
-                "El psicólogo fue verificado y activado correctamente."
+            avisar(
+                "El psicólogo fue verificado y activado. Le enviamos un correo con la noticia.",
+                "Psicólogo verificado"
             );
 
         });
@@ -1731,7 +1699,7 @@ import "./verificarpsicologos.css";
 
     document
         .getElementById("btnConfirmarRechazo")
-        .addEventListener("click", function () {
+        .addEventListener("click", async function () {
 
             if (indiceActual === -1) {
                 return;
@@ -1744,10 +1712,11 @@ import "./verificarpsicologos.css";
                 ).value.trim();
 
 
-            if (!motivo) {
+            if (motivo.length < 5) {
 
-                alert(
-                    "Debes escribir el motivo del rechazo."
+                avisar(
+                    "Escribe el motivo del rechazo (mínimo 5 caracteres).",
+                    "Falta el motivo"
                 );
 
                 return;
@@ -1755,20 +1724,41 @@ import "./verificarpsicologos.css";
             }
 
 
+            const guardado = await enviarDecision(
+                psicologos[indiceActual].id, false, motivo
+            );
+
+            if (!guardado) {
+                return;
+            }
+
+
+
             psicologos[indiceActual].estado =
                 "Rechazado";
 
 
-            indiceActual = -1;
+            const idRechazado =
+                psicologos[indiceActual].id;
 
 
             cerrarModal("modalRechazar");
 
             renderLista();
 
-            mostrarVacio();
+            if (obtenerFiltrados().some(function (p) { return p.id === idRechazado; })) {
+                seleccionarPsicologo(idRechazado);
+            } else {
+                indiceActual = -1;
+                mostrarVacio();
+            }
 
             actualizarResumen();
+
+            avisar(
+                "La solicitud fue rechazada. Le enviamos un correo con el motivo.",
+                "Solicitud rechazada"
+            );
 
         });
 

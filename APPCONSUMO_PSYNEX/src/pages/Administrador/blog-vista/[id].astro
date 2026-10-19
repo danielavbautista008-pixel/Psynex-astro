@@ -1,0 +1,80 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import ArticuloBlog from "../../../components/Explorar/ArticuloBlog.astro";
+import { apiGet, minutosLectura, urlImagenBlog } from "../../../lib/api";
+
+// /Administrador/blog-vista/<id>
+// Vista previa para el administrador: muestra el artículo tal como se verá
+// en la página pública, también si todavía es un borrador.
+// Usa GET /api/admin/blog/:id (solo Admin).
+interface Articulo {
+  ArticuloId: string;
+  Titulo: string;
+  Resumen: string;
+  Categoria: string;
+  Contenido: string;
+  ImagenPortada: string | null;
+  AutorNombre: string;
+  AutorRol: string | null;
+  Publicado: number;
+  PublicadoEn: string | null;
+  CreadoEn: string;
+}
+
+const id = Astro.params.id ?? "";
+const datos = await apiGet<{ articulo: Articulo }>(
+  Astro.request.headers.get("cookie"),
+  `/api/admin/blog/${encodeURIComponent(id)}`,
+);
+
+if (!datos?.articulo) {
+  return Astro.redirect("/Administrador/blog");
+}
+
+const a = datos.articulo;
+
+const fecha = new Date(a.PublicadoEn ?? a.CreadoEn).toLocaleDateString("es-CO", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "America/Bogota",
+});
+
+const texto = a.Contenido.replace(/<[^>]+>/g, " ");
+---
+
+<BaseLayout title={`Vista previa · ${a.Titulo} | Psynex`}>
+  <div class="aviso-vista-previa">
+    <i class="bi bi-eye"></i>
+    Vista previa {Number(a.Publicado) === 1 ? "· Publicado" : "· Borrador (aún no es visible para el público)"}
+  </div>
+
+  <ArticuloBlog
+    categoria={a.Categoria}
+    titulo={a.Titulo}
+    descripcion={a.Resumen}
+    tiempo={minutosLectura(texto.length)}
+    fecha={fecha}
+    imagen={urlImagenBlog(a.ArticuloId, a.ImagenPortada) ?? "/Imagenes/imagendearticulo.jpeg"}
+    contenido={a.Contenido}
+    autor={a.AutorRol ? `${a.AutorNombre} · ${a.AutorRol}` : a.AutorNombre}
+    volverHref="/Administrador/blog"
+  />
+</BaseLayout>
+
+<style>
+  .aviso-vista-previa {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 12px;
+    background: var(--primary, #6d3df5);
+    color: var(--on-primary, #fff);
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+</style>

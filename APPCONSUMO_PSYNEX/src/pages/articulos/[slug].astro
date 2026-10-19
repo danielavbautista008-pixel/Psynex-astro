@@ -1,0 +1,54 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ArticuloBlog from "../../components/Explorar/ArticuloBlog.astro";
+import { apiGet, minutosLectura, urlImagenBlog } from "../../lib/api";
+
+// /articulos/<slug>  -> GET /api/blog/:slug (solo artículos publicados)
+interface Articulo {
+  ArticuloId: string;
+  Titulo: string;
+  Resumen: string;
+  Categoria: string;
+  Contenido: string;
+  ImagenPortada: string | null;
+  AutorNombre: string;
+  AutorRol: string | null;
+  PublicadoEn: string | null;
+  CreadoEn: string;
+}
+
+const slug = Astro.params.slug ?? "";
+const datos = await apiGet<{ articulo: Articulo }>(
+  Astro.request.headers.get("cookie"),
+  `/api/blog/${encodeURIComponent(slug)}`,
+);
+
+if (!datos?.articulo) {
+  return Astro.redirect("/Explorar/Articulos");
+}
+
+const a = datos.articulo;
+
+const fecha = new Date(a.PublicadoEn ?? a.CreadoEn).toLocaleDateString("es-CO", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "America/Bogota",
+});
+
+// El contenido es HTML: se cuentan solo las letras para el tiempo de lectura
+const texto = a.Contenido.replace(/<[^>]+>/g, " ");
+---
+
+<BaseLayout title={`${a.Titulo} | Psynex`}>
+  <ArticuloBlog
+    categoria={a.Categoria}
+    titulo={a.Titulo}
+    descripcion={a.Resumen}
+    tiempo={minutosLectura(texto.length)}
+    fecha={fecha}
+    imagen={urlImagenBlog(a.ArticuloId, a.ImagenPortada) ?? "/Imagenes/imagendearticulo.jpeg"}
+    contenido={a.Contenido}
+    autor={a.AutorRol ? `${a.AutorNombre} · ${a.AutorRol}` : a.AutorNombre}
+  />
+</BaseLayout>
