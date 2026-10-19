@@ -9,7 +9,7 @@ import "./perfil.css";
         <div class="perfil-empresa-container">
             <!-- Header -->
             <div class="header-perfil">
-                <h1 id="header-titulo">Cargando Empresa...</h1>
+                <h1 id="header-titulo">Cargando Empresa </h1>
                 <p>Gestiona la información de tu empresa.</p>
             </div>
 
@@ -145,9 +145,9 @@ import "./perfil.css";
     </main>
 </div>
 
-<!-- <script>
+ <script>
     const API_URL = "http://localhost:8000/api";
-
+    alert("Recuerda que esta es una versión de prueba. Algunas funciones pueden no estar disponibles.");
     // Referencias DOM
     const headerTitulo = document.getElementById(
         "header-titulo",
@@ -234,6 +234,7 @@ import "./perfil.css";
             empresaData = await res.json();
 
             // Mapear datos a la interfaz
+            console.log("Datos de la empresa:", empresaData);
             if (empresaData) {
                 if (headerTitulo)
                     headerTitulo.textContent =
@@ -360,4 +361,4 @@ import "./perfil.css";
         if (alertaExito) alertaExito.style.display = "none";
         if (alertaError) alertaError.style.display = "none";
     }
-</script> -->
+</script>

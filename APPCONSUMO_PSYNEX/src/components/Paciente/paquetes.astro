@@ -1,0 +1,33 @@
+---
+import "./paquetes.css";
+import Menu from "./menuPac.astro";
+
+---
+<div class="page-layout">
+    <!-- 1. Menú arriba ocupando todo el ancho -->
+    <Menu />
+    <!-- 2. Contenido dividido en 2 columnas abajo -->
+    <main class="dashboard-container">
+        <div class="empty-state-container">
+        <div class="empty-card">
+            <!-- Icono de paquete / regalo -->
+            <div class="icon-wrapper">
+                <i class="fa-solid fa-box-open"></i>
+            </div>
+
+            <!-- Título -->
+            <h2 class="empty-title">No tienes paquetes activos</h2>
+
+            <!-- Descripción -->
+            <p class="empty-description">
+                Obtén hasta un 12% de descuento en tus citas de Terapia individual u otros.
+            </p>
+
+            <!-- Botón de acción -->
+            <button class="btn-primary">
+                Ver paquetes
+            </button>
+        </div>
+    </div>
+    </main>
+</div>

@@ -1,0 +1,155 @@
+---
+/**
+ * MenuPaciente.astro
+ * -------------------------------------------------------------------------
+ * Menú superior interactivo para el panel de Pacientes.
+ *
+ * Utiliza variables globales (--primary, --bg, --surface, --text, --border)
+ * para adaptarse al ThemePicker.
+ */
+
+export interface Props {
+  logoDefault?: string;
+  nombreDefault?: string;
+}
+
+const {
+  logoDefault = "/Imagenes/logo.png",
+  nombreDefault = "PSYNEX",
+} = Astro.props;
+
+import "./menuPac.css";
+---
+
+<nav class="sticky-nav">
+  <!-- Logo + Nombre -->
+  <a href="/Paciente/Inicio" class="nav-logo-area">
+    <img 
+      id="nav-logo-img"
+      src={logoDefault} 
+      alt="Logo PSYNEX" 
+      class="nav-logo-img" 
+    />
+    <span id="nav-logo-text" class="nav-logo-text">
+      {nombreDefault}
+    </span>
+  </a>
+
+  <!-- Menú Central (Íconos arriba, texto abajo) -->
+  <ul class="nav-menu">
+    <li>
+      <a href="/Paciente/Inicio">
+        <i class="bi bi-house-door-fill"></i>
+        <span>Inicio</span>
+      </a>
+    </li>
+    <!-- <li>
+      <a href="/Paciente/BuscarPs">
+        <i class="fa-solid fa-user-doctor"></i>
+        <span>Explorar especialistas</span>
+      </a>
+    </li> -->
+    <li>
+      <a href="/Paciente/ParaTi">
+        <i class="bi bi-heart-pulse-fill"></i>
+        <span>Para ti</span>
+      </a>
+    </li>
+    <li>
+      <a href="/Paciente/Citas">
+        <i class="bi bi-calendar-check-fill"></i>
+        <span>Mis citas</span>
+      </a>
+    </li>
+    <li>
+      <a href="/Paciente/Paquetes">
+        <i class="bi bi-box-seam-fill"></i>
+        <span>Mis paquetes</span>
+      </a>
+    </li>
+    <li>
+      <a href="/Paciente/Especialistas">
+        <i class="bi bi-people-fill"></i>
+        <span>Mis especialistas</span>
+      </a>
+    </li>
+    <li>
+      <a href="/Paciente/Pagos">
+        <i class="bi bi-credit-card-fill"></i>
+        <span>Pagos</span>
+      </a>
+    </li>
+  </ul>
+
+  <!-- Sección derecha (Notificaciones, Chat y Perfil) -->
+  <div class="user-section">
+    <button class="icon-btn" title="Notificaciones" type="button">
+      <i class="bi bi-bell-fill"></i>
+      <span class="btn-label">Notificaciones</span>
+    </button>
+
+    <a href="/Paciente/Chats" class="icon-btn" title="Chat">
+      <i class="bi bi-chat-left-dots-fill"></i>
+      <span class="btn-label">Chat</span>
+    </a>
+
+    <!-- Perfil Desplegable -->
+    <div class="menu-perfil-container">
+      <button type="button" id="perfil-trigger" class="nav-btn-perfil" aria-haspopup="true" aria-expanded="false">
+        <img 
+          id="nav-perfil-img"
+          src="/Imagenes/logo.png" 
+          alt="Foto de perfil" 
+          class="perfil-foto-nav" 
+        />
+        <span>Mi Perfil</span>
+        <i class="bi bi-chevron-down"></i>
+      </button>
+
+      <div id="dropdown-perfil" class="dropdown-perfil hidden">
+        <a href="/Paciente/Perfil" class="dropdown-item">
+          <i class="bi bi-person"></i>
+          <span>Mi Perfil</span>
+        </a>
+        <button type="button" id="btn-logout" class="dropdown-item btn-logout">
+          <i class="bi bi-box-arrow-right"></i>
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="nav-spacer"></div>
+
+<script>
+  const setupMenu = () => {
+    const trigger = document.getElementById("perfil-trigger");
+    const dropdown = document.getElementById("dropdown-perfil");
+    const btnLogout = document.getElementById("btn-logout");
+
+    if (trigger && dropdown) {
+      trigger.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle("hidden");
+      });
+
+      document.addEventListener("click", (e) => {
+        const target = e.target as Node;
+        if (!dropdown.contains(target) && !trigger.contains(target)) {
+          dropdown.classList.add("hidden");
+        }
+      });
+    }
+
+    if (btnLogout) {
+      btnLogout.addEventListener("click", () => {
+        sessionStorage.removeItem("usuarioId");
+        window.location.href = "/";
+      });
+    }
+  };
+
+  setupMenu();
+  document.addEventListener("astro:page-load", setupMenu);
+</script>

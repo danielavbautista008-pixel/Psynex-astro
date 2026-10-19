@@ -9,5 +9,8 @@ export async function obtenerUsuario(cookieHeader: string | undefined) {
 
   if (!res.ok) return null;
   const data = await res.json();
+ 
+  localStorage.setItem("usuario", JSON.stringify(data.usuario));
+  console.log("Usuario obtenido:", data.usuario);
   return data.usuario;
 }

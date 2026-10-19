@@ -10,6 +10,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   if (esProtegida) {
     const usuario = await obtenerUsuario(context.request.headers.get("cookie") ?? undefined);
+    console.log("Usuario en middleware:", usuario);
     if (!usuario) {
       return context.redirect("/login");
     }

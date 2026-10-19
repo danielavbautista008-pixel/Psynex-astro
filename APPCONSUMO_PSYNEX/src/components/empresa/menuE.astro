@@ -8,14 +8,14 @@
  * colores-globales.css para responder al ThemePicker automáticamente.
  */
 
-export interface Props {
-  logoDefault?: string;
-  nombreDefault?: string;
+export interface PerfilEmpresaData {
+  NombreEmpresa: string;
+  Logo: string;
 }
 
 const {
-  logoDefault = "/Imagenes/logo.png",
-  nombreDefault = "PSYNEX", // nombre de la base de datos de la empresa
+  Logo= "/Imagenes/logo.png",
+  NombreEmpresa = "NombreEmpresa", // nombre de la base de datos de la empresa
 } = Astro.props;
 
 import "./menuE.css";
@@ -26,12 +26,12 @@ import "./menuE.css";
   <a href="/Empresa/Inicio" class="nav-logo-area">
     <img 
       id="nav-logo-img"
-      src={logoDefault} 
+      src={Logo} 
       alt="Logo Empresa" 
       class="nav-logo-img" 
     />
     <span id="nav-logo-text" class="nav-logo-text">
-      {nombreDefault}
+      {NombreEmpresa}
     </span>
   </a>
 
@@ -120,7 +120,7 @@ import "./menuE.css";
 
     if (btnLogout) {
       btnLogout.addEventListener('click', () => {
-        sessionStorage.removeItem('usuarioId');
+        sessionStorage.removeItem('UsuarioId');
         window.location.href = '/';
       });
     }

@@ -1,0 +1,127 @@
+/* Reseteo general */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  overflow-x: hidden;
+}
+
+/* Layout Global de la Página (Orden Vertical) */
+
+.page-layout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+/* Contenedor del contenido (Flex horizontal sólo para las 2 columnas) */
+.dashboard-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  gap: 2rem;
+  box-sizing: border-box;
+}
+/* Configuración general y reseteo básico */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body {
+    background-color: #f8f8fc; /* Fondo general muy suave, grisáceo/azulado */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Contenedor principal que centra la tarjeta */
+.empty-state-container {
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Tarjeta central */
+.empty-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e2ec;
+    border-radius: 12px;
+    padding: 40px 30px;
+    width: 100%;
+    max-width: 520px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+/* Contenedor del icono */
+.icon-wrapper {
+    background-color: #f3eff5; /* Fondo morado muy suave */
+    color: #4a2c5a; /* Tono morado oscuro para el icono */
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 24px auto;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+}
+
+/* Título de la tarjeta */
+.empty-title {
+    color: #2b1d31;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 12px;
+}
+
+/* Texto descriptivo */
+.empty-description {
+    color: #6b6375;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 30px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Botón principal */
+.btn-primary {
+    background-color: #4a2c5a; /* Morado institucional */
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    width: 100%;
+    max-width: 320px;
+}
+
+.btn-primary:hover {
+    background-color: #3b2247;
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
