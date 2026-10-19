@@ -193,7 +193,9 @@ import "./login.css";
       });
 
       const data = await res.json();
-
+      console.log("Respuesta del login:", data);
+      localStorage.setItem("modoOscuro", "true");
+      localStorage.setItem("sesionPrueba", JSON.stringify(data));
       if (!res.ok) {
         if (errorBox) {
           errorBox.textContent = Array.isArray(data.error) ? data.error.join(", ") : data.error;
@@ -223,6 +225,9 @@ import "./login.css";
         window.location.href = "/Administrador/inicio";
       } else if (rol === "empresa") {
         window.location.href = "/Empresa/Inicio";
+      } else if (rol === "paciente") {
+        window.location.href = "/Paciente/Inicio";
+      }else {
       } else if (rol === "psicologo") {
         window.location.href = "/Psicologos/Inicio";
       } else {

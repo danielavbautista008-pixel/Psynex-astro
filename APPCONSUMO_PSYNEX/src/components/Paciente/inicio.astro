@@ -1,0 +1,96 @@
+---
+import "./inicio.css";
+import Menu from "./menuPac.astro";
+
+---
+
+<div class="page-layout">
+    <!-- 1. Menú arriba ocupando todo el ancho -->
+    <Menu />
+    <!-- 2. Contenido dividido en 2 columnas abajo -->
+    <main class="dashboard-container">
+        <!-- COLUMNA IZQUIERDA Y CENTRAL -->
+        <section class="main-content">
+            <div class="greeting-header">
+                <h1>¡Hola, Nombre Paciente!</h1>
+                <p>Nos alegra que estés aquí.</p>
+            </div>
+
+            <section class="quick-access">
+                <h2>Accesos rápidos</h2>
+                <div class="quick-cards">
+                    <div class="card">
+                        <i class="fa-solid fa-gift card-icon"></i>
+                        <span>Agendar sesión</span>
+                    </div>
+                    <div class="card">
+                        <i class="fa-regular fa-calendar-check card-icon"></i>
+                        <span>Mis citas</span>
+                    </div>
+                    <div class="card">
+                        <i class="fa-solid fa-clipboard-list card-icon"></i>
+                        <span>Mis chequeos</span>
+                    </div>
+                    <div class="card">
+                        <i class="fa-solid fa-book-open card-icon"></i>
+                        <span>Mi diario emocional</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="search-specialist">
+                <h3>Buscar especialista para:</h3>
+                <div class="tags-container">
+                    <button class="tag"><i class="fa-solid fa-crown"></i> Relaciones interpersonales</button>
+                    <button class="tag"><i class="fa-solid fa-brain"></i> Ansiedad</button>
+                    <button class="tag"><i class="fa-solid fa-cloud-showers-heavy"></i> Depresión</button>
+                    <button class="tag"><i class="fa-solid fa-eye"></i> Sexualidad</button>
+                    <button class="tag"><i class="fa-solid fa-feather"></i> Trauma</button>
+                    <button class="tag">Cambios de vida</button>
+                    <button class="tag"><i class="fa-solid fa-shield-heart"></i> Autolesión</button>
+                </div>
+                <a href="#" class="see-more-link">+ Ver más</a>
+            </section>
+        </section>
+
+        <!-- COLUMNA DERECHA ("Tu plan hoy") -->
+        <aside class="sidebar-content">
+            <div class="plan-card">
+                <div class="plan-header">
+                    <h2>Tu plan hoy</h2>
+                    <span class="badge">Completaste 0 de 2</span>
+                </div>
+
+                <div class="plan-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-node"></div>
+                        <div class="timeline-content mood-card">
+                            <p class="mood-title">¿Cómo te sientes hoy?</p>
+                            <div class="mood-emojis">
+                                <button class="emoji-btn"><i class="fa-regular fa-face-frown"></i></button>
+                                <button class="emoji-btn"><i class="fa-regular fa-face-frown-open"></i></button>
+                                <button class="emoji-btn"><i class="fa-regular fa-face-meh"></i></button>
+                                <button class="emoji-btn"><i class="fa-regular fa-face-smile"></i></button>
+                                <button class="emoji-btn"><i class="fa-regular fa-face-laugh-beam"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-node"></div>
+                        <div class="timeline-content checkup-card">
+                            <div class="checkup-img">
+                                <img src="https://picsum.photos/60/60" alt="Chequeo" />
+                            </div>
+                            <div class="checkup-details">
+                                <span class="sub-text">Chequeo Diario</span>
+                                <h4>Chequeo Diario</h4>
+                                <span class="checkin-tag"><i class="fa-regular fa-square-check"></i> Check-in</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+</div>

@@ -10,6 +10,13 @@ export async function obtenerUsuario(cookieHeader: string | undefined) {
       headers: { cookie: cookieHeader }, // reenviamos la cookie tal cual llegó
     });
 
+  if (!res.ok) return null;
+  const data = await res.json();
+ 
+  localStorage.setItem("usuario", JSON.stringify(data.usuario));
+  console.log("Usuario obtenido:", data.usuario);
+  return data.usuario;
+}
     if (!res.ok) return null; // 401: token inválido, vencido o cuenta inactiva
     const data = await res.json();
     return data.usuario ?? null;

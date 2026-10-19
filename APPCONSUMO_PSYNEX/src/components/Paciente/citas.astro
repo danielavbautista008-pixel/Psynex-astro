@@ -1,0 +1,36 @@
+---
+import "./citas.css";
+import Menu from "./menuPac.astro";
+
+---
+<div class="page-layout">
+    <!-- 1. Menú arriba ocupando todo el ancho -->
+    <Menu />
+
+
+    <!-- 2. Contenido dividido en 2 columnas abajo -->
+    <main class="dashboard-container">
+         <div class="empty-state-container">
+        <div class="empty-card">
+            <!-- Icono superior -->
+            <div class="icon-wrapper">
+                <i class="fa-regular fa-calendar-days"></i>
+            </div>
+
+            <!-- Título -->
+            <h2 class="empty-title">No has agendado tu primera sesión</h2>
+
+            <!-- Descripción -->
+            <p class="empty-description">
+                Aún no tienes citas agendadas, pero este puede ser el primer paso para priorizar tu bienestar emocional
+            </p>
+
+            <!-- Botón de acción -->
+            <button class="btn-primary">
+                Agenda tu primera sesión
+            </button>
+        </div>
+    </div>
+    </main>
+</div>  
+

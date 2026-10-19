@@ -1,0 +1,133 @@
+---
+import "./parati.css";
+import Menu from "./menuPac.astro";
+
+---
+<div class="page-layout">
+    <!-- 1. Menú arriba ocupando todo el ancho -->
+    <Menu />
+<!-- Banner superior de categorías -->
+    <header class="top-banner">
+        <div class="categories-grid">
+            
+            <!-- <div class="category-card">
+                <span class="badge-new">Nuevo</span>
+                <i class="fa-solid fa-route"></i>
+                <span>Rutas de bienestar</span>
+            </div> -->
+
+            <div class="category-card">
+                <span class="badge-new">Nuevo</span>
+                <i class="fa-regular fa-clipboard"></i>
+                <span>Hábitos</span>
+            </div>
+
+            <div class="category-card">
+                <i class="fa-solid fa-bolt"></i>
+                <span>Estrés</span>
+            </div>
+
+            <!-- <div class="category-card">
+                <i class="fa-solid fa-people-roof"></i>
+                <span>Familia y crianza</span>
+            </div> -->
+
+            <div class="category-card">
+                <i class="fa-solid fa-book-open"></i>
+                <span>Aprende</span>
+            </div>
+
+            <!-- <div class="category-card">
+                <i class="fa-solid fa-hand-holding-heart"></i>
+                <span>Relaciones</span>
+            </div>
+
+            <div class="category-card">
+                <i class="fa-solid fa-moon"></i>
+                <span>Sleep</span>
+            </div> -->
+
+            <div class="category-card">
+                <i class="fa-solid fa-seedling"></i>
+                <span>Crecimiento personal</span>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- 2. Contenido dividido en 2 columnas abajo -->
+    <main class="dashboard-container">
+         <!-- Sección En Curso -->
+        <section class="section-in-progress">
+            <span class="section-label">EN CURSO</span>
+            <div class="progress-card">
+                <div class="progress-icon">
+                    <img src="https://via.placeholder.com/48" alt="Icono Ritual">
+                </div>
+                <div class="progress-info">
+                    <span class="progress-subtitle">Hábito · Racha de 0 días</span>
+                    <h4 class="progress-title">Ritual de mañana y noche</h4>
+                </div>
+                <i class="fa-solid fa-chevron-right arrow-icon"></i>
+            </div>
+        </section>
+
+        <!-- Sección Contenidos Destacados -->
+        <section class="section-featured">
+            <h2 class="section-heading">Contenidos destacados</h2>
+
+            <div class="cards-grid">
+
+                <!-- Tarjeta 1 -->
+                <div class="content-card card-bg-1">
+                    <div class="card-overlay"></div>
+                    <div class="card-badge">
+                        <i class="fa-solid fa-book-open"></i> Herramienta
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Volver a encontrarnos</h3>
+                        <span class="card-duration"><i class="fa-regular fa-clock"></i> 10 min</span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 2 -->
+                <div class="content-card card-bg-2">
+                    <div class="card-overlay"></div>
+                    <div class="card-badge">
+                        <i class="fa-solid fa-book-open"></i> Herramienta
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">ES TU PRIMERA VEZ VIVIENDO</h3>
+                        <span class="card-duration"><i class="fa-regular fa-clock"></i> 10 min</span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 3 -->
+                <div class="content-card card-bg-3">
+                    <div class="card-overlay"></div>
+                    <div class="card-badge">
+                        <i class="fa-solid fa-book-open"></i> Herramienta
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Starter Kit de Salud Mental 101</h3>
+                        <span class="card-duration"><i class="fa-regular fa-clock"></i> 10 min</span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 4 -->
+                <div class="content-card card-bg-4">
+                    <div class="card-overlay"></div>
+                    <div class="card-badge">
+                        <i class="fa-solid fa-headphones"></i> Meditación
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">Buenas noches, suelta el día y descansa</h3>
+                        <span class="card-duration"><i class="fa-regular fa-clock"></i> 4 min</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+</div>  
+

@@ -33,6 +33,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
     (p) => ruta === p || ruta.startsWith(p + "/"),
   );
 
+  if (esProtegida) {
+    const usuario = await obtenerUsuario(context.request.headers.get("cookie") ?? undefined);
+    console.log("Usuario en middleware:", usuario);
+    if (!usuario) {
+      return context.redirect("/login");
+    }
+    context.locals.usuario = usuario; // disponible en la página
   // Si no está en la lista, es pública: se muestra sin revisar nada.
   if (!prefijo) return next();
 
