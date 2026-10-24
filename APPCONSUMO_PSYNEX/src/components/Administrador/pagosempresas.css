@@ -1,0 +1,114 @@
+/* =====================================================================
+   components/Administrador/pagosempresas.css
+   Pagos de empresas (planes empresariales). Los botones, chips, tablas
+   y ventanas vienen de ../EmpresaBeneficio/beneficio.css.
+   ===================================================================== */
+
+.pe-page {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.pe-content {
+  width: calc(100% - 310px);
+  margin-left: 310px;
+  min-height: 100vh;
+  padding: 26px 30px 36px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.pe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.pe-header-left { display: flex; align-items: center; gap: 14px; }
+
+.pe-header-icon {
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 23px;
+}
+
+.pe-header h1 { margin: 0; font-size: 26px; font-weight: 700; color: var(--text); }
+.pe-header p { margin: 4px 0 0; color: var(--text-muted); font-size: 12px; line-height: 1.4; max-width: 560px; }
+
+.pe-metricas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pe-filtros { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.pe-filtro {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.pe-filtro.activo { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+
+.pe-empresa strong { display: block; font-size: 13px; }
+.pe-empresa span { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; }
+
+.pe-tabla td { vertical-align: middle; }
+.pe-acciones { display: flex; gap: 6px; justify-content: flex-end; }
+.pe-codigo { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; letter-spacing: .06em; }
+.pe-espera { font-size: 11.5px; color: var(--text-muted); }
+
+.pe-confirmar {
+  margin: 0 0 4px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--bg);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+@media (max-width: 1200px) {
+  .pe-content { width: calc(100% - 280px); margin-left: 280px; padding: 24px; }
+}
+
+@media (max-width: 1000px) {
+  .pe-content { width: 100%; margin-left: 0; }
+  .pe-metricas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 650px) {
+  .pe-content { padding: 18px; }
+}
+
+/* La tabla se acomoda al ancho: solo fechas, montos y botones no se parten */
+.pe-tabla td { white-space: normal; }
+.pe-tabla td:nth-child(2),
+.pe-tabla td:nth-child(4),
+.pe-tabla td:nth-child(5),
+.pe-tabla td:last-child { white-space: nowrap; }
+
+/* Botón del ojito para ver el comprobante */
+.pe-ojo {
+  width: 34px;
+  padding: 0;
+  font-size: 15px;
+}
+
+.pe-tabla .bnf-chip { white-space: nowrap; }

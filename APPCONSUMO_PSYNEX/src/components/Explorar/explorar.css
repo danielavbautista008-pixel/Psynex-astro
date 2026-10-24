@@ -531,3 +531,10 @@
   color: var(--text-muted);
   font-size: 0.85rem;
 }
+
+/* cambio: la foto se acomoda sola a la tarjeta sin importar su tamaño o forma
+   (se centra un poco hacia arriba para que no se corte la cara) */
+.ex-psi-card img {
+  object-fit: cover;
+  object-position: center 20%;
+}

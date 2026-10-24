@@ -1,14 +1,18 @@
+body {
+  background: var(--bg);
+  overflow-x: hidden;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Roboto', sans-serif;
+  font-family: var(--bs-body-font-family); /* cambio de fuente: la misma de las vistas de psicólogo */
 }
 
-body {
-  background: var(--bg);
-  overflow-x: hidden;
-}
 
 .landing-container {
   width: 100%;
@@ -18,7 +22,7 @@ body {
 
 /* Layout y Contenedor Principal (Idéntico a Inicio) */
 .Bienvenida-Em {
-  font-family: 'Roboto', sans-serif;
+  font-family: var(--bs-body-font-family); /* cambio de fuente: la misma de las vistas de psicólogo */
   max-width: 1200px;
   margin: 30px auto;
   padding: 0 200px;

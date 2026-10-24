@@ -2461,3 +2461,27 @@ body.blog-editor-abierto {
   to { opacity: 1; transform: none; }
 
 }
+
+
+/* Aviso del blog: pequeño pero legible */
+.blog-modal-caja {
+  width: min(320px, 100%);
+}
+
+.blog-modal-caja h3 {
+  font-size: 14px;
+}
+
+.blog-modal-caja p {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.blog-modal-caja input {
+  font-size: 12px;
+}
+
+.blog-modal-btn {
+  height: 32px;
+  font-size: 11.5px;
+}

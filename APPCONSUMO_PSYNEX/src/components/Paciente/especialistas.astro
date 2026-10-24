@@ -1,13 +1,11 @@
 ---
+// =====================================================================
+// Especialistas del paciente: es la MISMA vista de Explorar → Psicólogos
+// (datos reales del backend), con el menú del paciente y el corazón de
+// favoritos para guardar a sus psicólogos.
+// =====================================================================
+import Psicologos from "../Explorar/Psicologos.astro";
 import "./especialistas.css";
-import Menu from "./menuPac.astro";
-
 ---
-<div class="page-layout">
-    <!-- 1. Menú arriba ocupando todo el ancho -->
-    <Menu />
-    <!-- 2. Contenido dividido en 2 columnas abajo -->
-    <main class="dashboard-container">
-        
-    </main>
-</div>
+
+<Psicologos paciente />

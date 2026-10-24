@@ -1317,3 +1317,40 @@ body.modal-abierto {
   }
 
 }
+
+/* =====================================================
+   VENTANAS EMERGENTES: títulos más discretos
+===================================================== */
+
+.modal-overlay .modal-box {
+    border-radius: 16px;
+}
+
+.modal-overlay .modal-header h2 {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.modal-overlay .modal-box h3 {
+    font-size: 15px;
+}
+
+.modal-overlay .modal-box p {
+    font-size: 12px;
+}
+
+.modal-overlay .modal-footer button {
+    height: 34px;
+    font-size: 12px;
+}
+
+.modal-overlay .modal-estado h2 {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.modal-overlay .modal-estado button {
+    height: 34px;
+    font-size: 12px;
+}

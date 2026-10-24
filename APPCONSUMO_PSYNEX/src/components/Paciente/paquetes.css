@@ -1,128 +1,94 @@
-/* Reseteo general */
-* {
+/* Paquetes del paciente (lo común está en paciente.css) */
+
+.paq-titulo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.paq-titulo h2 {
   margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 18px;
+  font-weight: 500;
 }
 
-body {
-  background: var(--bg);
-  overflow-x: hidden;
+.paq-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
 }
 
-/* Layout Global de la Página (Orden Vertical) */
-
-.page-layout {
+.paq-item {
+  position: relative;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  min-height: 100vh;
-  background: var(--bg);
+  gap: 8px;
+}
+
+.paq-item.destacado {
+  border-color: var(--primary);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.paq-recomendado {
+  position: absolute;
+  top: -10px;
+  right: 16px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.paq-item h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.paq-item p {
+  margin: 0;
+  flex: 1;
+  line-height: 1.5;
+}
+
+.paq-precio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.paq-precio strong {
+  font-size: 20px;
   color: var(--text);
 }
-/* Contenedor del contenido (Flex horizontal sólo para las 2 columnas) */
-.dashboard-container {
+
+.paq-item .pac-btn {
+  margin-top: 8px;
+}
+
+.paq-resumen {
   display: flex;
-  flex-direction: row;
-  width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem;
-  gap: 2rem;
-  box-sizing: border-box;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--bg);
+  margin-bottom: 10px;
 }
 
-/* Reseteo general */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+.paq-resumen strong {
+  font-size: 17px;
 }
 
-body {
-    background-color: #f6f6fc; /* Fondo claro azulado/violáceo */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-}
-
-/* Contenedor centrador */
-.empty-state-container {
-    width: 100%;
-    padding: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Tarjeta principal */
-.empty-card {
-    background-color: #ffffff;
-    border: 1px solid #e1e0f0;
-    border-radius: 12px;
-    padding: 40px 32px;
-    width: 100%;
-    max-width: 480px;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.015);
-}
-
-/* Contenedor del icono */
-.icon-wrapper {
-    background-color: #f2eef6; /* Fondo morado muy claro */
-    color: #4a2c5a; /* Morado para el icono */
-    width: 54px;
-    height: 54px;
-    margin: 0 auto 20px auto;
-    border-radius: 12px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 22px;
-}
-
-/* Título */
-.empty-title {
-    color: #2b1d31;
-    font-size: 22px;
-    font-weight: 700;
-    line-height: 1.3;
-    margin-bottom: 10px;
-}
-
-/* Texto de descripción */
-.empty-description {
-    color: #6d6678;
-    font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 28px;
-    max-width: 380px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Botón principal */
-.btn-primary {
-    background-color: #4a2c5a; /* Tono morado oscuro institucional */
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    padding: 13px 24px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    width: 100%;
-    max-width: 340px;
-}
-
-.btn-primary:hover {
-    background-color: #3a2147;
-}
-
-.btn-primary:active {
-    transform: scale(0.98);
+@media (max-width: 860px) {
+  .paq-grid {
+    grid-template-columns: 1fr;
+  }
 }

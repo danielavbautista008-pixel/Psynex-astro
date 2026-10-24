@@ -19,6 +19,8 @@ const {
 } = Astro.props;
 
 import "./menuE.css";
+// Campanita de notificaciones: habla con el backend desde el navegador
+import { API_URL } from "../../lib/api";
 ---
 
 <nav class="sticky-nav">
@@ -43,16 +45,17 @@ import "./menuE.css";
         <span>Inicio</span>
       </a>
     </li>
-    <li>
-      <a href="/Empresa/BuscarPs">
-        <i class="bi bi-search-heart"></i>
-        <span>Buscar Psicólogo</span>
-      </a>
-    </li>
+    
     <li>
       <a href="/Empresa/Ofertas">
         <i class="bi bi-file-earmark-plus"></i>
         <span>Publicar Ofertas</span>
+      </a>
+    </li>
+    <li>
+      <a href="/Empresa/BuscarPs">
+        <i class="bi bi-search-heart"></i>
+        <span>Profesionales</span>
       </a>
     </li>
     <li>
@@ -62,12 +65,49 @@ import "./menuE.css";
       </a>
     </li>
     <li>
+      <a href="/Empresa/Planes">
+        <i class="bi bi-box-seam"></i>
+        <span>Planes</span>
+      </a>
+    </li>
+    <li>
+      <a href="/Empresa/Beneficio">
+        <i class="bi bi-shield-check"></i>
+        <span>Mi beneficio</span>
+      </a>
+    </li>
+    <li>
       <a href="/Empresa/Chats">
         <i class="bi bi-chat-left-dots-fill"></i>
         <span>Chats</span>
       </a>
     </li>
   </ul>
+
+  <!-- Lado derecho: campanita + perfil -->
+  <div class="nav-acciones">
+
+  <!-- Campanita de notificaciones (GET /api/notificaciones).
+       El número muestra cuántas hay sin leer; al tocarla se abre la lista. -->
+  <div class="notif-container" id="notifEmpresa" data-api={API_URL}>
+    <button type="button" class="notif-boton" id="notifBoton" aria-label="Notificaciones" aria-haspopup="true" aria-expanded="false">
+      <i class="bi bi-bell"></i>
+      <span class="notif-contador" id="notifContador" hidden>0</span>
+    </button>
+
+    <section class="notif-panel" id="notifPanel" hidden aria-label="Notificaciones">
+      <header class="notif-panel-top">
+        <div>
+          <strong>Notificaciones</strong>
+          <small id="notifResumen">Sin notificaciones nuevas</small>
+        </div>
+        <button type="button" class="notif-leer-todas" id="notifLeerTodas" hidden>Marcar todas como leídas</button>
+      </header>
+      <div class="notif-lista" id="notifLista">
+        <p class="notif-vacio">Cargando...</p>
+      </div>
+    </section>
+  </div>
 
   <!-- Perfil Desplegable -->
   <div class="menu-perfil-container">
@@ -93,6 +133,8 @@ import "./menuE.css";
       </button>
     </div>
   </div>
+
+  </div><!-- fin nav-acciones -->
 </nav>
 
 <div class="nav-spacer"></div>
@@ -117,6 +159,134 @@ import "./menuE.css";
         }
       });
     }
+
+    // ---------------- Campanita de notificaciones ----------------
+    //   GET   /api/notificaciones?limite=10  -> lista + cuántas sin leer
+    //   PATCH /api/notificaciones/:id/leida  -> marcar una como leída
+    //   PATCH /api/notificaciones/leer-todas -> marcar todas
+    const API = document.getElementById('notifEmpresa')?.dataset.api || 'http://localhost:8001';
+    const notifBoton = document.getElementById('notifBoton');
+    const notifPanel = document.getElementById('notifPanel');
+    const notifContador = document.getElementById('notifContador');
+    const notifLista = document.getElementById('notifLista');
+    const notifResumen = document.getElementById('notifResumen');
+    const notifLeerTodas = document.getElementById('notifLeerTodas');
+
+    type Notificacion = { NotificacionId: string; Tipo: string; Titulo: string; Mensaje: string; EstaLeida: number; FechaEnvio: string };
+
+    // A dónde lleva cada notificación y qué ícono usa (según el título)
+    const destinoDe = (n: Notificacion) => {
+      const t = String(n.Titulo || '').toLowerCase();
+      if (t.includes('mensaje')) return { url: '/Empresa/Chats', icono: 'bi-chat-dots' };
+      if (t.includes('postulaci') || t.includes('oferta')) return { url: '/Empresa/Ofertas', icono: 'bi-briefcase' };
+      if (t.includes('plan') || t.includes('beneficio') || t.includes('pago') || t.includes('orden') || t.includes('contrato')) {
+        return { url: '/Empresa/Beneficio', icono: 'bi-shield-check' };
+      }
+      return { url: '', icono: 'bi-bell' };
+    };
+
+    const haceCuanto = (fecha: string) => {
+      const minutos = Math.floor((Date.now() - new Date(fecha).getTime()) / 60000);
+      if (minutos < 1) return 'Ahora';
+      if (minutos < 60) return `Hace ${minutos} min`;
+      const horas = Math.floor(minutos / 60);
+      if (horas < 24) return `Hace ${horas} h`;
+      const dias = Math.floor(horas / 24);
+      return dias === 1 ? 'Ayer' : `Hace ${dias} días`;
+    };
+
+    const pintarContador = (n: number) => {
+      if (notifContador) {
+        notifContador.hidden = n === 0;
+        notifContador.textContent = n > 9 ? '9+' : String(n);
+      }
+      if (notifResumen) {
+        notifResumen.textContent = n === 0 ? 'Sin notificaciones nuevas'
+          : n === 1 ? 'Tienes 1 notificación nueva' : `Tienes ${n} notificaciones nuevas`;
+      }
+      if (notifLeerTodas) notifLeerTodas.hidden = n === 0;
+    };
+
+    const pintarLista = (lista: Notificacion[]) => {
+      if (!notifLista) return;
+      notifLista.replaceChildren();
+      if (!lista.length) {
+        const vacio = document.createElement('p');
+        vacio.className = 'notif-vacio';
+        vacio.textContent = 'No tienes notificaciones.';
+        notifLista.append(vacio);
+        return;
+      }
+      lista.forEach((n) => {
+        const info = destinoDe(n);
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'notif-item' + (Number(n.EstaLeida) === 1 ? '' : ' no-leida');
+        const icono = document.createElement('span');
+        icono.className = 'notif-item-icono';
+        icono.innerHTML = `<i class="bi ${info.icono}"></i>`;
+        const texto = document.createElement('span');
+        texto.className = 'notif-item-texto';
+        const titulo = document.createElement('strong');
+        titulo.textContent = n.Titulo || 'Notificación';
+        const mensaje = document.createElement('span');
+        mensaje.textContent = n.Mensaje || '';
+        const cuando = document.createElement('small');
+        cuando.textContent = haceCuanto(n.FechaEnvio);
+        texto.append(titulo, mensaje, cuando);
+        item.append(icono, texto);
+        item.addEventListener('click', async () => {
+          if (Number(n.EstaLeida) !== 1) {
+            await fetch(`${API}/api/notificaciones/${encodeURIComponent(n.NotificacionId)}/leida`, { method: 'PATCH', credentials: 'include' }).catch(() => null);
+          }
+          if (info.url && window.location.pathname !== info.url) window.location.href = info.url;
+          else cargarNotificaciones();
+        });
+        notifLista.append(item);
+      });
+    };
+
+    async function cargarNotificaciones() {
+      try {
+        const res = await fetch(`${API}/api/notificaciones?limite=10`, { credentials: 'include' });
+        if (!res.ok) return;
+        const data = await res.json();
+        pintarContador(Number(data.noLeidas || 0));
+        pintarLista(data.notificaciones || []);
+      } catch {
+        /* sin conexión: se intenta en la próxima revisión */
+      }
+    }
+
+    notifBoton?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!notifPanel) return;
+      const abrir = notifPanel.hidden;
+      notifPanel.hidden = !abrir;
+      notifBoton.setAttribute('aria-expanded', String(abrir));
+      if (abrir) {
+        dropdown?.classList.add('hidden');
+        cargarNotificaciones();
+      }
+    });
+
+    notifLeerTodas?.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await fetch(`${API}/api/notificaciones/leer-todas`, { method: 'PATCH', credentials: 'include' }).catch(() => null);
+      cargarNotificaciones();
+    });
+
+    // Se cierra al hacer clic afuera
+    document.addEventListener('click', (e) => {
+      if (notifPanel && !notifPanel.hidden && !notifPanel.contains(e.target as Node)) {
+        notifPanel.hidden = true;
+        notifBoton?.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Se revisa al cargar y luego cada minuto
+    cargarNotificaciones();
+    setInterval(cargarNotificaciones, 60000);
 
     if (btnLogout) {
       btnLogout.addEventListener('click', () => {

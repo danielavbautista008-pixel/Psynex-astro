@@ -12,7 +12,7 @@
      /* DASHBOARD SECTION */
 
   .Bienvenida-Em {
-    font-family: "Roboto", sans-serif;
+    font-family: var(--bs-body-font-family); /* cambio de fuente: la misma de las vistas de psicólogo */
     max-width: 1200px;
     margin: 30px auto;
     padding: 0 200px;
@@ -557,4 +557,13 @@
     text-align:left;
     gap: 6px;
     transition: color 0.3s ease;
+}
+
+/* cambio de fuente: botones, campos y listas usan la misma letra que el resto
+   (el navegador no se la pasa sola a los formularios) */
+.Bienvenida-Em button,
+.Bienvenida-Em input,
+.Bienvenida-Em select,
+.Bienvenida-Em textarea {
+  font-family: var(--bs-body-font-family); /* cambio de fuente: la misma de las vistas de psicólogo */
 }

@@ -41,14 +41,16 @@ body {
 }
 
 body {
-    background-color: #f7f7fc;
-    color: #2b1d31;
+    /* cambio: antes colores fijos; ahora los del tema */
+    background-color: var(--bg);
+    color: var(--text);
     min-height: 100vh;
 }
 
 /* Banner superior Lila */
 .top-banner {
-    background-color: #abb3ef; /* Tono violeta/lila de fondo */
+    /* cambio: antes lila fijo (#abb3ef); ahora toma el color del tema */
+    background: linear-gradient(135deg, var(--primary-soft), color-mix(in srgb, var(--primary) 35%, var(--surface)));
     padding: 30px 20px 40px 20px;
     display: flex;
     justify-content: center;
@@ -62,7 +64,7 @@ body {
 
 /* Tarjetas de Categoría */
 .category-card {
-    background-color: #ffffff;
+    background-color: var(--surface); /* cambio: color del tema */
     border-radius: 12px;
     padding: 12px 8px;
     display: flex;
@@ -82,14 +84,14 @@ body {
 
 .category-card i {
     font-size: 20px;
-    color: #3b2247;
+    color: var(--primary); /* cambio: color del tema */
     margin-bottom: 6px;
 }
 
 .category-card span {
     font-size: 11px;
     font-weight: 600;
-    color: #4a4a5a;
+    color: var(--text); /* cambio: color del tema */
     line-height: 1.2;
 }
 
@@ -97,8 +99,8 @@ body {
 .badge-new {
     position: absolute;
     top: -8px;
-    background-color: #fce7cf;
-    color: #8c5311;
+    background-color: var(--warning-bg); /* cambio: color del tema */
+    color: var(--warning-fg);
     font-size: 10px !important;
     font-weight: bold !important;
     padding: 2px 8px;
@@ -120,15 +122,15 @@ body {
 .section-label {
     font-size: 12px;
     font-weight: 800;
-    color: #6b6375;
+    color: var(--text-muted); /* cambio: color del tema */
     letter-spacing: 0.5px;
     margin-bottom: 8px;
     display: block;
 }
 
 .progress-card {
-    background-color: #f0eeef;
-    border: 1px solid #e2dede;
+    background-color: var(--surface); /* cambio: color del tema */
+    border: 1px solid var(--border);
     border-radius: 14px;
     padding: 12px 16px;
     display: inline-flex;
@@ -152,18 +154,18 @@ body {
 
 .progress-subtitle {
     font-size: 12px;
-    color: #83798e;
+    color: var(--text-muted); /* cambio: color del tema */
 }
 
 .progress-title {
     font-size: 13px;
     font-weight: 700;
-    color: #3b2247;
+    color: var(--text); /* cambio: color del tema */
 }
 
 .arrow-icon {
     margin-left: auto;
-    color: #3b2247;
+    color: var(--text); /* cambio: color del tema */
     font-size: 14px;
 }
 
@@ -171,7 +173,7 @@ body {
 .section-heading {
     font-size: 24px;
     font-weight: 700;
-    color: #3b2247;
+    color: var(--text); /* cambio: color del tema */
     margin-bottom: 20px;
 }
 
@@ -218,7 +220,7 @@ body {
     z-index: 2;
     align-self: flex-start;
     background-color: rgba(255, 255, 255, 0.9);
-    color: #3b2247;
+    color: var(--text); /* cambio: color del tema */
     font-size: 11px;
     font-weight: 700;
     padding: 4px 10px;
@@ -249,4 +251,156 @@ body {
     align-items: center;
     gap: 4px;
     opacity: 0.9;
+}
+
+/* =========================================================
+   cambio: espacio para el menú de arriba, categorías como filtro y
+   "Contenidos destacados" con los tests y el blog reales en carrusel
+   ========================================================= */
+.page-layout {
+  padding-top: 66px;
+}
+
+.category-card {
+  border: 2px solid transparent;
+  font: inherit;
+}
+
+.category-card.activa {
+  border-color: var(--primary);
+}
+
+.categories-grid {
+  grid-template-columns: repeat(3, 120px);
+}
+
+.section-in-progress .progress-card {
+  background-color: var(--surface);
+  border-color: var(--border);
+}
+
+/* cambio: todo el contenido va centrado, en una sola columna */
+.dashboard-container {
+  flex-direction: column;
+  align-items: center;
+  max-width: 1200px; /* cambio: más ancho para que se vean varias tarjetas en fila */
+}
+
+.section-in-progress {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.section-in-progress .progress-card {
+  width: 100%;
+}
+
+.section-featured {
+  width: 100%;
+}
+
+.section-featured .section-heading {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+/* cambio: "ventana" del carrusel HORIZONTAL; a los lados se desvanece */
+.pt-ventana {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%);
+}
+
+/* cambio: las tarjetas van una al lado de la otra y pasan solas hacia la izquierda */
+.pt-pista {
+  display: flex;
+  flex-direction: row;
+  gap: 20px; /* cambio: más espacio entre tarjetas grandes */
+  width: max-content;
+  padding: 6px 0 10px;
+  animation: pt-pasar var(--pt-duracion, 40s) linear infinite;
+}
+
+.pt-ventana:hover .pt-pista,
+.pt-ventana:focus-within .pt-pista {
+  animation-play-state: paused;
+}
+
+/* se mueve la mitad (una copia de las tarjetas + su espacio) para dar la vuelta sin cortes */
+@keyframes pt-pasar {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-50% - 10px)); }
+}
+
+.pt-pista .content-card {
+  flex: 0 0 460px; /* cambio: tarjetas grandes y anchas, en fila */
+  height: 400px;
+  background-color: var(--primary-soft);
+  background-size: cover;
+  background-position: center;
+  color: #ffffff;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.pt-pista .content-card[hidden] {
+  display: none;
+}
+
+.pt-pista .content-card:hover {
+  transform: translateY(-4px);
+}
+
+/* cambio: el carrusel SIEMPRE sube solo, aunque Windows tenga las
+   animaciones apagadas, y nunca muestra barra de scroll ni flechas */
+.pt-ventana {
+  overflow: hidden !important;
+  scrollbar-width: none;
+}
+
+.pt-ventana::-webkit-scrollbar {
+  display: none;
+}
+
+.card-texto {
+  display: -webkit-box;
+  margin-bottom: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0.9;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pt-vacio {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+@media (max-width: 760px) {
+  /* cambio: en celular las tarjetas son un poco más angostas */
+  .pt-pista .content-card {
+    flex-basis: 300px;
+    height: 340px;
+  }
+}
+
+/* cambio: en las tarjetas grandes el texto también es un poco más grande */
+.pt-pista .content-card {
+  padding: 16px;
+}
+
+.pt-pista .card-title {
+  font-size: 26px;
+}
+
+.pt-pista .card-texto {
+  font-size: 14px;
+}
+
+/* cambio: el carrusel ocupa TODO el ancho de la pantalla */
+.pt-ventana {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
 }

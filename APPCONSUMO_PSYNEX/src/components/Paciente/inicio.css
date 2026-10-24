@@ -395,3 +395,24 @@ body {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* cambio: el menú del paciente ahora es la barra fija de arriba (igual a la del
+   psicólogo), así que se deja espacio para que no tape el contenido */
+.page-layout {
+  min-height: 100vh;
+  padding-top: 96px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+@media (max-width: 1100px) {
+  .page-layout .dashboard-container {
+    padding: 0 24px;
+  }
+}
+
+@media (max-width: 760px) {
+  .page-layout .dashboard-container {
+    grid-template-columns: 1fr;
+  }
+}

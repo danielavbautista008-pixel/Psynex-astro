@@ -1,0 +1,229 @@
+---
+// =====================================================================
+// Tarjeta "Beneficio de tu empresa": el paciente escribe el código que
+// le dio su empresa (por ejemplo ESAS-7K3P) y ve cuántas sesiones le
+// quedan cubiertas. Se usa en Paquetes y en Mi perfil.
+//
+// DATOS DE PRUEBA: el código se valida en el navegador (utilidades.ts).
+// Códigos que funcionan: ESAS-7K3P y SALU-7K3P.
+// =====================================================================
+---
+
+<section class="pac-card codigo-empresa" id="codigoEmpresa">
+  <div class="pac-card-top">
+    <div>
+      <h2>Beneficio de tu empresa</h2>
+      <small>Si tu empresa tiene un plan con Psynex, te dio un código para tus sesiones.</small>
+    </div>
+    <span class="pac-chip neutro" id="codigoEstado">Sin código</span>
+  </div>
+
+  <!-- Sin código: formulario -->
+  <form class="codigo-form" id="codigoForm" novalidate>
+    <label class="pac-campo">
+      Código de la empresa
+      <input
+        id="codigoInput"
+        name="codigo"
+        maxlength="9"
+        placeholder="Ej: ESAS-7K3P"
+        autocomplete="off"
+        spellcheck="false"
+      />
+    </label>
+    <button type="submit" class="pac-btn">Activar</button>
+  </form>
+  <p class="codigo-error" id="codigoError" role="alert"></p>
+
+  <!-- Con código: resumen -->
+  <div class="codigo-activo" id="codigoActivo" hidden>
+    <div class="codigo-fila">
+      <div>
+        <span class="pac-muted">Empresa</span>
+        <strong id="codigoEmpresaNombre">—</strong>
+      </div>
+      <div>
+        <span class="pac-muted">Código</span>
+        <strong class="codigo-texto" id="codigoTexto">—</strong>
+      </div>
+      <div>
+        <span class="pac-muted">Vence</span>
+        <strong id="codigoVence">—</strong>
+      </div>
+    </div>
+
+    <div class="codigo-barra-info">
+      <span><strong id="codigoDisponibles">0</strong> de <span id="codigoTotales">0</span> sesiones disponibles</span>
+    </div>
+    <div class="codigo-barra"><i id="codigoBarra"></i></div>
+
+    <div class="codigo-acciones">
+      <a href="/Paciente/Especialistas" class="pac-btn pequeno">Agendar con mi beneficio</a>
+      <button type="button" class="pac-btn pequeno borde" id="codigoQuitar">Quitar código</button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .codigo-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  .codigo-form .pac-campo {
+    flex: 1;
+  }
+
+  .codigo-form input {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+  }
+
+  .codigo-form .pac-btn {
+    height: 38px;
+  }
+
+  .codigo-error {
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: var(--danger-fg);
+  }
+
+  .codigo-error:empty {
+    display: none;
+  }
+
+  .codigo-fila {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .codigo-fila span {
+    display: block;
+    font-size: 11px;
+  }
+
+  .codigo-fila strong {
+    font-size: 13.5px;
+    color: var(--text);
+  }
+
+  .codigo-texto {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    letter-spacing: 0.06em;
+  }
+
+  .codigo-barra-info {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .codigo-barra-info strong {
+    color: var(--primary);
+  }
+
+  .codigo-barra {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  .codigo-barra i {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: var(--primary);
+    transition: width 0.4s ease;
+  }
+
+  .codigo-acciones {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  @media (max-width: 560px) {
+    .codigo-form {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .codigo-fila {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>
+
+<script>
+  import { activarCodigo, avisar, fechaBonita, leerBeneficio, quitarBeneficio, type Beneficio } from "./utilidades";
+
+  const caja = document.getElementById("codigoEmpresa");
+  if (caja) {
+    const $ = (id: string) => document.getElementById(id);
+    const form = $("codigoForm") as HTMLFormElement | null;
+    const input = $("codigoInput") as HTMLInputElement | null;
+    const error = $("codigoError");
+    const activo = $("codigoActivo");
+    const estado = $("codigoEstado");
+
+    const texto = (id: string, valor: string) => {
+      const el = $(id);
+      if (el) el.textContent = valor;
+    };
+
+    function pintar(b: Beneficio | null) {
+      if (form) form.hidden = Boolean(b);
+      if (activo) activo.hidden = !b;
+      if (estado) {
+        estado.textContent = b ? "Activo" : "Sin código";
+        estado.className = b ? "pac-chip ok" : "pac-chip neutro";
+      }
+      if (!b) return;
+      const disponibles = Math.max(0, b.sesionesTotales - b.sesionesUsadas);
+      texto("codigoEmpresaNombre", b.empresa);
+      texto("codigoTexto", b.codigo);
+      texto("codigoVence", fechaBonita(b.vence));
+      texto("codigoDisponibles", String(disponibles));
+      texto("codigoTotales", String(b.sesionesTotales));
+      const barra = $("codigoBarra");
+      if (barra) barra.style.width = `${b.sesionesTotales ? (disponibles / b.sesionesTotales) * 100 : 0}%`;
+    }
+
+    // Escribe el guion solo: "esas7k3p" -> "ESAS-7K3P"
+    input?.addEventListener("input", () => {
+      const limpio = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+      input.value = limpio.length > 4 ? `${limpio.slice(0, 4)}-${limpio.slice(4)}` : limpio;
+      if (error) error.textContent = "";
+    });
+
+    form?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const r = activarCodigo(input?.value || "");
+      if (!r.ok) {
+        if (error) error.textContent = r.error;
+        return;
+      }
+      pintar(r.beneficio);
+      avisar("¡Listo! Tu beneficio quedó activo.");
+      document.dispatchEvent(new CustomEvent("psynex:beneficio", { detail: r.beneficio }));
+    });
+
+    $("codigoQuitar")?.addEventListener("click", () => {
+      quitarBeneficio();
+      if (input) input.value = "";
+      pintar(null);
+      avisar("Quitaste el código de tu empresa.");
+      document.dispatchEvent(new CustomEvent("psynex:beneficio", { detail: null }));
+    });
+
+    pintar(leerBeneficio());
+  }
+</script>

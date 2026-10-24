@@ -119,7 +119,16 @@ const currentPath = Astro.url.pathname;
         <div class="psych-profile">
           <!-- Nombre y foto: llevan a Mi perfil -->
           <a href="/Psicologos/MiPerfil" class="profile-link" title="Ir a mi perfil">
-            <span class="profile-letter">{inicial}</span>
+            <span class="profile-letter">
+              {inicial}
+              <!-- cambio: si tiene foto de perfil se ve la foto; si no, queda la inicial -->
+              <img
+                class="profile-foto"
+                src={`${API_URL}/api/psicologo/perfil/foto`}
+                alt=""
+                onerror="this.style.display='none'"
+              />
+            </span>
 
             <span class="profile-info">
               <strong>{nombre}</strong>

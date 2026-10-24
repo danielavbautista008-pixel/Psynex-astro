@@ -1,0 +1,1084 @@
+/* =========================================================================
+   Sala.css — Sala de videollamada de Psynex
+   Usa las variables del tema (--bg, --surface, --primary, --text...).
+   El escenario del video es oscuro para que la imagen se vea bien.
+   ========================================================================= */
+
+.sala-pagina {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 14px 18px 24px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Poppins", sans-serif;
+}
+
+.sala-pagina [hidden] {
+  display: none !important;
+}
+
+/* ---------- Barra superior ---------- */
+.sala-barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.sala-marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary);
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 18px;
+  text-decoration: none;
+}
+
+.sala-marca-hoja svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.sala-quien {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.sala-quien strong {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.sala-quien small {
+  display: block;
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+
+.sala-capital {
+  text-transform: capitalize;
+}
+
+.sala-barra-derecha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sala-privada {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--success-bg, #e6f2ea);
+  color: var(--success-fg, #2f6b45);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.sala-tiempo {
+  min-width: 52px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: right;
+}
+
+/* ---------- Avatar (foto o iniciales) ---------- */
+.sala-avatar {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--primary-soft, color-mix(in srgb, var(--primary) 15%, transparent));
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sala-avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sala-avatar.grande {
+  width: 72px;
+  height: 72px;
+  font-size: 24px;
+}
+
+.sala-avatar.enorme {
+  width: 96px;
+  height: 96px;
+  font-size: 32px;
+  background: color-mix(in srgb, var(--primary) 30%, #2b2724);
+  color: #fff;
+}
+
+/* ---------- Tarjetas (aviso y fin) ---------- */
+.sala-tarjeta {
+  width: min(420px, 100%);
+  margin: 8vh auto 0;
+  padding: 28px 26px 24px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.sala-tarjeta h1 {
+  margin: 0 0 8px;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 21px;
+  font-weight: 500;
+}
+
+.sala-tarjeta p {
+  margin: 0 0 18px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.sala-cuenta strong {
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.sala-icono {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--primary-soft, color-mix(in srgb, var(--primary) 14%, transparent));
+  color: var(--primary);
+}
+
+.sala-icono svg {
+  width: 26px;
+  height: 26px;
+}
+
+.fin-botones {
+  display: grid;
+  gap: 8px;
+}
+
+/* ---------- Botones ---------- */
+.sala-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 42px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary, #fff);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .2s ease, opacity .2s ease;
+}
+
+.sala-boton:hover {
+  background: var(--primary-hover, var(--primary));
+  color: var(--on-primary, #fff);
+}
+
+.sala-boton:disabled {
+  opacity: .6;
+  cursor: default;
+}
+
+.sala-boton.secundario {
+  border: 1.5px solid var(--primary);
+  background: transparent;
+  color: var(--primary);
+}
+
+.sala-boton.secundario:hover {
+  background: var(--primary);
+  color: var(--on-primary, #fff);
+}
+
+.sala-boton.pequeno {
+  width: auto;
+  height: 32px;
+  padding: 0 14px;
+  font-size: 12px;
+}
+
+.sala-enlace {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.sala-enlace:hover {
+  color: var(--primary);
+}
+
+/* ---------- Antes de entrar ---------- */
+.sala-previa {
+  width: min(1000px, 100%);
+  margin: 4vh auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 28px;
+}
+
+.previa-video {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #24211f;
+}
+
+.previa-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* como un espejo */
+}
+
+.previa-sin-video {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 20px;
+  color: #d9d3cc;
+  text-align: center;
+}
+
+.previa-sin-video small {
+  max-width: 300px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.previa-controles {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  display: flex;
+  gap: 10px;
+  transform: translateX(-50%);
+}
+
+.previa-texto h1 {
+  margin: 4px 0 8px;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.previa-texto > p {
+  margin: 0 0 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.sala-etiqueta {
+  color: var(--primary);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+
+
+
+.previa-pistas {
+  margin: 16px 0 0;
+  padding-left: 18px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* ---------- Botones redondos de control ---------- */
+.control {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .14);
+  color: #fff;
+  font-size: 17px;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: background .2s ease, transform .15s ease;
+}
+
+.control:hover:not(:disabled) {
+  background: rgba(255, 255, 255, .24);
+}
+
+.control:active {
+  transform: scale(.95);
+}
+
+.control:disabled {
+  opacity: .4;
+  cursor: default;
+}
+
+.control.apagado {
+  background: #c9434b;
+}
+
+.control.activo {
+  background: var(--primary);
+}
+
+.control.colgar {
+  width: 58px;
+  border-radius: 22px;
+  background: #d64550;
+}
+
+.control.colgar:hover {
+  background: #bb3640;
+}
+
+/* ---------- La sesión ---------- */
+.sala-llamada {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 14px;
+  min-height: 0;
+}
+
+.sala-llamada:has(.notas[hidden]),
+.sala-llamada:not(:has(.notas)) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.llamada-centro {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 22px;
+  background: #1f1c1a;
+}
+
+.escenario {
+  position: relative;
+  flex: 1;
+  min-height: 420px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #2b2724;
+}
+
+
+
+.escenario-espera {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding: 20px;
+  background: #2b2724;
+  color: #ddd6cf;
+  text-align: center;
+}
+
+.escenario-espera p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.hoja-respira svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  color: color-mix(in srgb, var(--primary) 70%, #fff);
+  animation: salaRespira 1.6s ease-in-out infinite;
+}
+
+@keyframes salaRespira {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(.82); opacity: .5; }
+}
+
+
+.mic-apagado {
+  color: #ff8a8f;
+}
+
+
+
+
+
+.controles {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* ---------- Notas del psicólogo ---------- */
+.notas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.notas-cabeza strong {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.notas-cabeza small {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.notas textarea {
+  flex: 1;
+  min-height: 220px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.6;
+  resize: none;
+  outline: none;
+}
+
+.notas textarea:focus {
+  border-color: var(--primary);
+}
+
+.notas-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.notas-pie small {
+  color: var(--text-muted);
+  font-size: 10.5px;
+}
+
+/* ---------- Aviso pequeño ---------- */
+.sala-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 50;
+  max-width: calc(100vw - 32px);
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: #2b2724;
+  color: #f4efe9;
+  font-size: 12.5px;
+  transform: translateX(-50%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+}
+
+/* ---------- Pantallas pequeñas ---------- */
+@media (max-width: 900px) {
+  .sala-previa,
+  .sala-llamada {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sala-quien small {
+    display: none;
+  }
+
+  .escenario {
+    min-height: 60vh;
+  }
+
+
+  .notas textarea {
+    min-height: 140px;
+  }
+}
+
+@media (max-width: 560px) {
+  .sala-pagina {
+    padding: 10px 10px 18px;
+  }
+
+  .sala-quien {
+    display: none;
+  }
+
+  .control {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hoja-respira svg {
+    animation: none;
+  }
+}
+
+/* Íconos dibujados */
+.control svg {
+  width: 20px;
+  height: 20px;
+}
+
+.sala-privada .ico svg,
+.sala-personas .ico svg,
+.mosaico-nombre svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+
+/* El botón de colores no tapa los controles de la sala */
+body:has(.sala-pagina) .theme-container {
+  display: none;
+}
+
+.notas-pie .sala-boton {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+
+/* =====================================================
+   COMPARTIR PANTALLA: la pantalla grande y las dos caras visibles
+===================================================== */
+
+
+/* El otro comparte: su pantalla ocupa el escenario... */
+
+/* ...y su cara pasa a un recuadro arriba a la izquierda */
+
+
+/* Aviso para quien está compartiendo */
+.banner-compartir {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .6);
+  color: #fff;
+  font-size: 12px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.banner-compartir button {
+  height: 26px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 999px;
+  background: #d64550;
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+
+}
+
+
+/* =====================================================
+   QUIÉN ESTÁ HABLANDO
+   El video se ilumina y aparecen barritas que se mueven
+===================================================== */
+
+.ondas {
+  display: none;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+}
+
+.ondas i {
+  width: 3px;
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--primary) 55%, #fff);
+  animation: salaOnda .9s ease-in-out infinite;
+}
+
+.ondas i:nth-child(2) { animation-delay: .15s; }
+.ondas i:nth-child(3) { animation-delay: .3s; }
+
+@keyframes salaOnda {
+  0%, 100% { height: 4px; }
+  50% { height: 12px; }
+}
+
+/* El otro habla: borde verde en su video (o en su recuadro si comparte pantalla) */
+.escenario {
+  box-shadow: inset 0 0 0 0 transparent;
+  transition: box-shadow .15s ease;
+}
+
+/* El borde va en una capa encima del video (si no, el video lo tapa) */
+
+
+
+
+/* Yo hablo: borde verde en mi recuadro */
+
+
+
+
+/* Antes de entrar: así sabe que el micrófono funciona */
+.previa-video {
+  box-shadow: 0 0 0 0 transparent;
+  transition: box-shadow .15s ease;
+}
+
+.previa-video.hablando {
+  box-shadow: 0 0 0 3px var(--primary);
+}
+
+.previa-hablando {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .5);
+  color: #fff;
+  font-size: 11.5px;
+}
+
+.previa-video.hablando .previa-hablando,
+.previa-video.hablando .previa-hablando .ondas {
+  display: inline-flex;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ondas i {
+    animation: none;
+    height: 10px;
+  }
+}
+
+
+.banner-compartir button.flotante {
+  background: rgba(255, 255, 255, .18);
+}
+
+.banner-compartir button.flotante:hover {
+  background: rgba(255, 255, 255, .3);
+}
+
+@media (max-width: 760px) {
+  .banner-compartir {
+    flex-wrap: wrap;
+    justify-content: center;
+    white-space: normal;
+    border-radius: 14px;
+  }
+}
+
+
+/* Copia invisible del video del otro: solo se usa para la ventana flotante */
+.video-flotante {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2px;
+  height: 2px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+
+/* =====================================================
+   SESIONES DE VARIAS PERSONAS (individual, pareja, familia)
+   .escenario.solo   -> nadie más ha entrado
+   .escenario.dos    -> el otro grande y yo en un recuadro
+   .escenario.grupo  -> mosaico con todos del mismo tamaño
+   .compartiendo     -> la pantalla grande y las caras al lado
+===================================================== */
+
+.video-flotante {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mosaicos {
+  position: absolute;
+  inset: 0;
+}
+
+.mosaico {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #3a3531;
+}
+
+.mosaico video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  background: #2b2724;
+}
+
+.mosaico.yo video {
+  transform: scaleX(-1);
+}
+
+/* Sin cámara: sus iniciales (o su foto) en el centro */
+.mosaico-sin {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #3a3531;
+}
+
+.mosaico-sin .sala-avatar {
+  width: 64px;
+  height: 64px;
+  font-size: 22px;
+}
+
+.mosaico-nombre {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: calc(100% - 16px);
+  padding: 3px 9px;
+  border-radius: 7px;
+  background: rgba(0, 0, 0, .5);
+  color: #f4efe9;
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mosaico-estado {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  z-index: 2;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .55);
+  color: #f4efe9;
+  font-size: 11px;
+  transform: translateX(-50%);
+}
+
+/* Quien habla: borde con el color del tema y barritas */
+.mosaico::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 0 transparent;
+  pointer-events: none;
+  transition: box-shadow .15s ease;
+}
+
+.mosaico.hablando::after {
+  box-shadow: inset 0 0 0 3px var(--primary);
+}
+
+.mosaico.hablando .ondas {
+  display: inline-flex;
+}
+
+.mosaico.reconectando video {
+  opacity: .45;
+}
+
+/* --- 2 personas: el otro grande, yo en un recuadro pequeño --- */
+.escenario.dos .mosaico:not(.yo),
+.escenario.solo .mosaico:not(.yo) {
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+}
+
+.escenario.dos .mosaico:not(.yo) video {
+  object-fit: contain;
+}
+
+.escenario.dos .mosaico.yo,
+.escenario.solo .mosaico.yo {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 4;
+  width: 190px;
+  aspect-ratio: 16 / 10;
+  border: 2px solid rgba(255, 255, 255, .25);
+}
+
+.escenario.dos .mosaico.yo .sala-avatar,
+.escenario.solo .mosaico.yo .sala-avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+}
+
+/* --- 3 a 6 personas: mosaico --- */
+.escenario.grupo .mosaicos {
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+}
+
+.escenario.grupo[data-personas="5"] .mosaicos,
+.escenario.grupo[data-personas="6"] .mosaicos {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* 3 personas: la tercera ocupa el ancho de abajo centrada */
+.escenario.grupo:not(.compartiendo)[data-personas="3"] .mosaico:last-child {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: calc(50% - 4px);
+}
+
+/* --- Alguien comparte pantalla: la pantalla grande y las caras al lado --- */
+.pantalla-compartida {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  object-fit: contain;
+  background: #1f1c1a;
+}
+
+.escenario.compartiendo .pantalla-compartida {
+  display: block;
+  right: 212px;
+  width: auto;
+}
+
+.escenario.compartiendo .mosaicos {
+  left: auto;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  overflow-y: auto;
+}
+
+.escenario.compartiendo .mosaico,
+.escenario.compartiendo .mosaico.yo,
+.escenario.compartiendo .mosaico:not(.yo) {
+  position: relative;
+  inset: auto;
+  flex: none;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border: 0;
+  border-radius: 10px;
+  justify-self: auto;
+}
+
+.pantalla-de {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 4;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .55);
+  color: #f4efe9;
+  font-size: 11.5px;
+}
+
+/* --- Barra superior y antes de entrar --- */
+.sala-personas {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.grupo-icono {
+  display: grid;
+  place-items: center;
+  color: var(--primary);
+}
+
+.grupo-icono svg {
+  width: 20px;
+  height: 20px;
+}
+
+.sala-avatar.enorme .grupo-icono svg {
+  width: 44px;
+  height: 44px;
+}
+
+.previa-participantes {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.previa-participantes li {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.previa-participantes .punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  opacity: .5;
+}
+
+.previa-participantes small {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.previa-participantes li.en-sala .punto {
+  background: var(--primary);
+  opacity: 1;
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+.previa-participantes li.en-sala small {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .escenario.dos .mosaico.yo,
+  .escenario.solo .mosaico.yo {
+    width: 120px;
+  }
+
+  .escenario.grupo[data-personas="5"] .mosaicos,
+  .escenario.grupo[data-personas="6"] .mosaicos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .escenario.compartiendo .pantalla-compartida {
+    right: 0;
+    bottom: 110px;
+    height: auto;
+  }
+
+  .escenario.compartiendo .mosaicos {
+    top: auto;
+    left: 0;
+    width: auto;
+    height: 110px;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .escenario.compartiendo .mosaico,
+  .escenario.compartiendo .mosaico.yo,
+  .escenario.compartiendo .mosaico:not(.yo) {
+    width: auto;
+    height: 100%;
+  }
+}

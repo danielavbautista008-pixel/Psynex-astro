@@ -1,33 +1,110 @@
 ---
-import "./paquetes.css";
+// =====================================================================
+// Paquetes del paciente: código de la empresa + paquetes de sesiones.
+// DATOS DE PRUEBA: los paquetes y la compra son de ejemplo. El pago
+// real se conectará con la pasarela (Wompi) más adelante.
+// =====================================================================
 import Menu from "./menuPac.astro";
+import CodigoEmpresa from "./CodigoEmpresa.astro";
+import { pesos } from "../../lib/api";
+import "./paquetes.css";
 
+const paquetes = [
+  { id: "p1", nombre: "Sesión individual", sesiones: 1, precio: 150000, descuento: 0, texto: "Ideal para empezar o para una consulta puntual." },
+  { id: "p4", nombre: "Paquete 4 sesiones", sesiones: 4, precio: 552000, descuento: 8, texto: "Un mes de acompañamiento, una sesión por semana.", destacado: true },
+  { id: "p8", nombre: "Paquete 8 sesiones", sesiones: 8, precio: 1056000, descuento: 12, texto: "Para procesos más largos, con el mejor precio." },
+];
 ---
-<div class="page-layout">
-    <!-- 1. Menú arriba ocupando todo el ancho -->
-    <Menu />
-    <!-- 2. Contenido dividido en 2 columnas abajo -->
-    <main class="dashboard-container">
-        <div class="empty-state-container">
-        <div class="empty-card">
-            <!-- Icono de paquete / regalo -->
-            <div class="icon-wrapper">
-                <i class="fa-solid fa-box-open"></i>
+
+<Menu />
+
+<main class="pac-page">
+  <div class="pac-contenido">
+
+    <header class="pac-header">
+      <div>
+        <span class="pac-etiqueta">Sesiones</span>
+        <h1>Paquetes</h1>
+        <p>Activa el beneficio de tu empresa o compra un paquete de sesiones con descuento.</p>
+      </div>
+    </header>
+
+    <CodigoEmpresa />
+
+    <section>
+      <div class="paq-titulo">
+        <h2>Paquetes de sesiones</h2>
+        <span class="pac-muted">Puedes usarlos con cualquier psicólogo de Psynex</span>
+      </div>
+
+      <div class="paq-grid">
+        {paquetes.map((p) => (
+          <article class:list={["pac-card", "paq-item", { destacado: p.destacado }]}>
+            {p.destacado && <span class="paq-recomendado">Más elegido</span>}
+            <h3>{p.nombre}</h3>
+            <p class="pac-muted">{p.texto}</p>
+            <div class="paq-precio">
+              <strong>{pesos(p.precio)}</strong>
+              {p.descuento > 0 && <span class="pac-chip ok">-{p.descuento}%</span>}
             </div>
-
-            <!-- Título -->
-            <h2 class="empty-title">No tienes paquetes activos</h2>
-
-            <!-- Descripción -->
-            <p class="empty-description">
-                Obtén hasta un 12% de descuento en tus citas de Terapia individual u otros.
-            </p>
-
-            <!-- Botón de acción -->
-            <button class="btn-primary">
-                Ver paquetes
+            <small class="pac-muted">{pesos(Math.round(p.precio / p.sesiones))} por sesión</small>
+            <button
+              type="button"
+              class:list={["pac-btn", { borde: !p.destacado }]}
+              data-comprar={p.nombre}
+              data-precio={pesos(p.precio)}
+            >
+              Comprar
             </button>
-        </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="pac-card">
+      <div class="pac-card-top">
+        <h2>Mis paquetes activos</h2>
+      </div>
+      <div class="pac-vacio" id="sinPaquetes">
+        <span class="pac-icono"><i class="bi bi-box-seam"></i></span>
+        <h3>No tienes paquetes activos</h3>
+        <p>Cuando compres un paquete, aquí verás cuántas sesiones te quedan.</p>
+      </div>
+    </section>
+
+    <span class="pac-prueba"><i class="bi bi-info-circle"></i> Paquetes de prueba · el pago se conectará con Wompi</span>
+  </div>
+</main>
+
+<div class="pac-modal" id="modalComprar" hidden>
+  <button type="button" class="pac-modal-fondo" data-cerrar-modal aria-label="Cerrar"></button>
+  <div class="pac-modal-caja" role="dialog" aria-modal="true" aria-labelledby="comprarTitulo">
+    <h3 id="comprarTitulo">Comprar paquete</h3>
+    <p id="comprarTexto">—</p>
+    <div class="paq-resumen">
+      <span>Total a pagar</span>
+      <strong id="comprarTotal">$0</strong>
     </div>
-    </main>
+    <p class="pac-muted">El pago con tarjeta, Nequi o PSE estará disponible muy pronto.</p>
+    <div class="pac-modal-acciones">
+      <button type="button" class="pac-btn borde pequeno" data-cerrar-modal>Cerrar</button>
+      <button type="button" class="pac-btn pequeno" disabled>Pagar (pronto)</button>
+    </div>
+  </div>
 </div>
+
+<script>
+  import { abrirModal, prepararModales } from "./utilidades";
+
+  prepararModales();
+
+  document.querySelectorAll<HTMLButtonElement>("[data-comprar]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const t = document.getElementById("comprarTexto");
+      const total = document.getElementById("comprarTotal");
+      if (t) t.textContent = b.dataset.comprar || "";
+      if (total) total.textContent = b.dataset.precio || "";
+      abrirModal("modalComprar");
+    })
+  );
+</script>
