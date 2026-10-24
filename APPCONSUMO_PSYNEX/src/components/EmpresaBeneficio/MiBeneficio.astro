@@ -1,0 +1,517 @@
+---
+// =====================================================================
+// components/EmpresaBeneficio/MiBeneficio.astro
+// Vista de Empresa: estado de su plan empresarial.
+//   Pendiente  -> orden de pago + subir comprobante
+//   Rechazado  -> motivo + subir otro comprobante
+//   Activo     -> código para los trabajadores + cifras de uso
+// =====================================================================
+import MenuE from "../empresa/menuE.astro";
+import "./beneficio.css";
+import { apiGet, pesos } from "../../lib/api";
+
+interface Contrato {
+  id: string;
+  numeroOrden: string | null;
+  estado: "Pendiente" | "Rechazado" | "Activo" | "Vencido" | "Finalizado";
+  plan: { nombre: string };
+  duracionDias: number | null;
+  empleados: number;
+  sesionesPorEmpleado: number;
+  sesionesTotales: number;
+  valorTotal: number;
+  valorPorEmpleado: number;
+  tieneComprobante: boolean;
+  motivoRechazo: string | null;
+  creadoEn: string;
+  fechaInicio: string | null;
+  fechaFin: string | null;
+  codigo: string | null;
+  vinculados: number;
+  sesionesUsadas: number;
+}
+
+interface Banco { banco: string; tipoCuenta: string; numeroCuenta: string; titular: string; nit: string }
+
+const cookie = Astro.request.headers.get("cookie");
+const datos = await apiGet<{
+  empresa: { nombre: string; nit: string; verificada: boolean };
+  contratos: Contrato[];
+  banco: Banco | null;
+}>(cookie, "/api/empresa/beneficio");
+
+const contratos = datos?.contratos ?? [];
+const empresa = datos?.empresa ?? { nombre: "", nit: "", verificada: false };
+const banco = datos?.banco ?? null;
+
+// El contrato "actual" es el que está en curso o vigente
+const actual = contratos.find((c) => ["Pendiente", "Rechazado", "Activo"].includes(c.estado)) ?? null;
+const historial = contratos.filter((c) => c !== actual);
+
+const ZONA = "America/Bogota";
+const fecha = (f: string | null) =>
+  f ? new Date(f).toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric", timeZone: ZONA }) : "—";
+const duracion = (d: number | null) =>
+  !d ? "—" : d % 30 === 0 ? `${d / 30} ${d / 30 === 1 ? "mes" : "meses"}` : `${d} días`;
+const diasRestantes = (f: string | null) =>
+  f ? Math.max(0, Math.ceil((new Date(f).getTime() - Date.now()) / 86_400_000)) : 0;
+const porcentaje = (a: number, b: number) => (b > 0 ? Math.min(100, Math.round((a / b) * 100)) : 0);
+
+const CHIP: Record<string, { clase: string; texto: string }> = {
+  Pendiente: { clase: "", texto: "Pago pendiente" },
+  Rechazado: { clase: "rechazado", texto: "Pago rechazado" },
+  Activo: { clase: "activo", texto: "Activo" },
+  Vencido: { clase: "neutro", texto: "Vencido" },
+  Finalizado: { clase: "neutro", texto: "Finalizado" },
+};
+
+// Datos para la orden de pago (se arma en el navegador)
+const ordenJson = JSON.stringify(
+  actual
+    ? {
+      empresa,
+      banco,
+      contrato: {
+        id: actual.id,
+        numeroOrden: actual.numeroOrden,
+        plan: actual.plan.nombre,
+        empleados: actual.empleados,
+        sesionesPorEmpleado: actual.sesionesPorEmpleado,
+        duracion: duracion(actual.duracionDias),
+        valorPorEmpleado: actual.valorPorEmpleado,
+        valorTotal: actual.valorTotal,
+        creadoEn: actual.creadoEn,
+      },
+    }
+    : null,
+);
+---
+
+<div class="bnf-page">
+  <MenuE />
+
+  <main class="bnf-main">
+    <header class="bnf-header">
+      <div>
+       <!-- <span class="bnf-eyebrow">Beneficio empresarial</span>--> 
+        <h1>Mi beneficio</h1>
+        <p>Sigue el pago de tu plan y comparte el código con tus trabajadores cuando esté activo.</p>
+      </div>
+      <a href="/Empresa/Planes" class="bnf-btn secundario"><i class="bi bi-box-seam"></i> Ver planes</a>
+    </header>
+
+    {!datos && (
+      <div class="bnf-aviso error">
+        <i class="bi bi-exclamation-circle"></i>
+        <div>No pudimos cargar tu beneficio. Revisa tu conexión e intenta de nuevo.</div>
+      </div>
+    )}
+
+    {datos && !actual && (
+      <section class="bnf-vacio">
+        <i class="bi bi-people"></i>
+        <h2>Todavía no tienes un plan activo</h2>
+        <p>Contrata un plan para que tus trabajadores puedan agendar sesiones con psicólogos de Psynex.</p>
+        <a href="/Empresa/Planes" class="bnf-btn">Ver planes empresariales</a>
+      </section>
+    )}
+
+    {/* --------------------- Solicitud en curso --------------------- */}
+    {actual && actual.estado !== "Activo" && (
+      <section class="bnf-card">
+        <div class="bnf-card-top">
+          <div>
+            <h2>Orden {actual.numeroOrden}</h2>
+            <p>Solicitada el {fecha(actual.creadoEn)}</p>
+          </div>
+          <span class={`bnf-chip ${CHIP[actual.estado].clase}`}>{CHIP[actual.estado].texto}</span>
+        </div>
+
+        <div class="bnf-resumen">
+          <div class="bnf-dato"><small>Plan</small><strong>{actual.plan.nombre}</strong></div>
+          <div class="bnf-dato"><small>Trabajadores</small><strong>{actual.empleados.toLocaleString("es-CO")}</strong></div>
+          <div class="bnf-dato"><small>Sesiones c/u</small><strong>{actual.sesionesPorEmpleado}</strong></div>
+          <div class="bnf-dato"><small>Vigencia</small><strong>{duracion(actual.duracionDias)}</strong></div>
+          <div class="bnf-dato"><small>Total</small><strong>{pesos(actual.valorTotal)}</strong></div>
+        </div>
+
+        {actual.estado === "Rechazado" && (
+          <div class="bnf-aviso error" style="margin-bottom:14px">
+            <i class="bi bi-x-octagon"></i>
+            <div><strong>No pudimos confirmar tu pago.</strong> {actual.motivoRechazo} Sube un nuevo comprobante para revisarlo otra vez.</div>
+          </div>
+        )}
+
+        <ol class="bnf-proceso">
+          <li class="hecho">
+            <span class="bnf-paso-num"><i class="bi bi-check-lg"></i></span>
+            <div>
+              <strong>Orden de pago generada</strong>
+              <span>Transfiere el total a la cuenta de Psynex usando el número de orden como referencia.</span>
+            </div>
+            <div class="bnf-proceso-acciones">
+              <button type="button" class="bnf-btn secundario pequeno" data-ver-orden>
+                <i class="bi bi-file-earmark-text"></i> Ver orden de pago
+              </button>
+            </div>
+          </li>
+
+          <li class:list={[{ hecho: actual.tieneComprobante && actual.estado === "Pendiente" }]}>
+            <span class="bnf-paso-num">
+              {actual.tieneComprobante && actual.estado === "Pendiente" ? <i class="bi bi-check-lg"></i> : "2"}
+            </span>
+            <div>
+              <strong>{actual.tieneComprobante && actual.estado === "Pendiente" ? "Comprobante recibido" : "Sube el comprobante"}</strong>
+              <span>PDF, JPG o PNG de máximo 5 MB.</span>
+            </div>
+            <div class="bnf-proceso-acciones">
+              {actual.tieneComprobante && (
+                <button type="button" class="bnf-btn secundario pequeno" data-ver-comprobante={actual.id}>
+                  <i class="bi bi-eye"></i> Ver
+                </button>
+              )}
+              <div class="bnf-archivo">
+                <input type="file" id="archivoComprobante" accept="application/pdf,image/jpeg,image/png" />
+                <span class="bnf-archivo-nombre" id="nombreComprobante"></span>
+                <button type="button" class="bnf-btn pequeno" id="elegirComprobante" data-contrato={actual.id}>
+                  <i class="bi bi-upload"></i> {actual.tieneComprobante ? "Cambiar" : "Subir comprobante"}
+                </button>
+              </div>
+            </div>
+          </li>
+
+          <li>
+            <span class="bnf-paso-num">3</span>
+            <div>
+              <strong>Psynex confirma el pago</strong>
+              <span>Lo revisamos en 1 a 2 días hábiles. Te avisaremos y aquí aparecerá el código para tus trabajadores.</span>
+            </div>
+          </li>
+        </ol>
+
+        <p class="bnf-error" id="comprobanteError" role="alert"></p>
+
+        <div class="bnf-pie">
+          <span class="bnf-nota"><i class="bi bi-receipt"></i><span>La factura electrónica se emite cuando Psynex confirma el pago.</span></span>
+          <button type="button" class="bnf-btn peligro pequeno" id="abrirCancelar">
+            <i class="bi bi-x-circle"></i> Cancelar solicitud
+          </button>
+        </div>
+      </section>
+    )}
+
+    {/* ------------------------- Plan activo ------------------------- */}
+    {actual && actual.estado === "Activo" && (
+      <>
+        <section class="bnf-codigo-card">
+          <div>
+            <h2>Tu plan {actual.plan.nombre} está activo</h2>
+            <p>
+              Comparte este código con tus trabajadores. Cada uno lo escribe en Psynex con su cuenta de
+              paciente y queda cubierto con {actual.sesionesPorEmpleado} sesiones.
+            </p>
+          </div>
+          <div class="bnf-codigo">
+            <code id="codigoBeneficio">{actual.codigo}</code>
+            <button type="button" class="bnf-copiar" id="copiarCodigo"><i class="bi bi-copy"></i> <span>Copiar</span></button>
+          </div>
+        </section>
+
+        <section class="bnf-metricas">
+          <div class="bnf-metrica">
+            <small>Trabajadores vinculados</small>
+            <strong>{actual.vinculados.toLocaleString("es-CO")}</strong>
+            <span> de {actual.empleados.toLocaleString("es-CO")}</span>
+            <div class="bnf-barra"><div style={`width:${porcentaje(actual.vinculados, actual.empleados)}%`}></div></div>
+          </div>
+          <div class="bnf-metrica">
+            <small>Sesiones usadas</small>
+            <strong>{actual.sesionesUsadas.toLocaleString("es-CO")}</strong>
+            <span> de {actual.sesionesTotales.toLocaleString("es-CO")}</span>
+            <div class="bnf-barra"><div style={`width:${porcentaje(actual.sesionesUsadas, actual.sesionesTotales)}%`}></div></div>
+          </div>
+          <div class="bnf-metrica">
+            <small>Vigente hasta</small>
+            <strong style="font-size:17px">{fecha(actual.fechaFin)}</strong>
+            <span style="display:block;margin-top:4px">{diasRestantes(actual.fechaFin)} días restantes</span>
+          </div>
+        </section>
+
+        <div class="bnf-pie" style="margin-top:0">
+          <p class="bnf-nota">
+            <i class="bi bi-lock"></i>
+            <span>Por confidencialidad solo ves cifras: nunca quién se atendió, con quién ni qué se habló.</span>
+          </p>
+          <button type="button" class="bnf-btn secundario pequeno" data-ver-orden>
+            <i class="bi bi-file-earmark-text"></i> Orden {actual.numeroOrden}
+          </button>
+        </div>
+      </>
+    )}
+
+    {/* -------------------------- Historial -------------------------- */}
+    {historial.length > 0 && (
+      <section class="bnf-card">
+        <div class="bnf-card-top"><div><h2>Historial</h2><p>Planes anteriores de tu empresa</p></div></div>
+        <div class="bnf-tabla-wrap">
+          <table class="bnf-tabla">
+            <thead>
+              <tr><th>Orden</th><th>Plan</th><th>Trabajadores</th><th>Valor</th><th>Vigencia</th><th>Estado</th></tr>
+            </thead>
+            <tbody>
+              {historial.map((c) => (
+                <tr>
+                  <td>{c.numeroOrden}</td>
+                  <td>{c.plan.nombre}</td>
+                  <td>{c.empleados.toLocaleString("es-CO")}</td>
+                  <td>{pesos(c.valorTotal)}</td>
+                  <td>{c.fechaInicio ? `${fecha(c.fechaInicio)} – ${fecha(c.fechaFin)}` : "—"}</td>
+                  <td><span class={`bnf-chip ${CHIP[c.estado]?.clase ?? "neutro"}`}>{CHIP[c.estado]?.texto ?? c.estado}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    )}
+  </main>
+
+  {/* ------------------------ Orden de pago ------------------------ */}
+  <div class="bnf-overlay" id="modalOrden" aria-hidden="true">
+    <div class="bnf-dialog ancho" role="dialog" aria-modal="true" aria-label="Orden de pago">
+      <div class="bnf-dialog-top">
+        <div><h3>Orden de pago</h3><p>Imprímela o guárdala como PDF para tu área contable.</p></div>
+        <button type="button" class="bnf-cerrar" data-cerrar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="bnf-orden" id="ordenImprimible"></div>
+      <div class="bnf-dialog-acciones">
+        <button type="button" class="bnf-btn secundario" data-cerrar>Cerrar</button>
+        <button type="button" class="bnf-btn" id="imprimirOrden"><i class="bi bi-printer"></i> Imprimir o guardar PDF</button>
+      </div>
+    </div>
+  </div>
+
+  {/* -------------------- Confirmar cancelación -------------------- */}
+  <div class="bnf-overlay" id="modalCancelar" aria-hidden="true">
+    <div class="bnf-dialog" role="dialog" aria-modal="true" aria-labelledby="cancelarTitulo">
+      <div class="bnf-dialog-top">
+        <div><h3 id="cancelarTitulo">¿Cancelar la solicitud?</h3><p>Se borrará la orden de pago y el comprobante que hayas subido.</p></div>
+        <button type="button" class="bnf-cerrar" data-cerrar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <p class="bnf-error" id="cancelarError" role="alert"></p>
+      <div class="bnf-dialog-acciones">
+        <button type="button" class="bnf-btn secundario" data-cerrar>Volver</button>
+        <button type="button" class="bnf-btn" id="confirmarCancelar" data-contrato={actual?.id ?? ""}>Sí, cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/json" id="ordenDatos" set:html={ordenJson}></script>
+</div>
+
+<script>
+  import { API_URL, apiEnviar, textoError } from "../../lib/api";
+
+  type Orden = {
+    empresa: { nombre: string; nit: string };
+    banco: { banco: string; tipoCuenta: string; numeroCuenta: string; titular: string; nit: string } | null;
+    contrato: {
+      id: string; numeroOrden: string; plan: string; empleados: number; sesionesPorEmpleado: number;
+      duracion: string; valorPorEmpleado: number; valorTotal: number; creadoEn: string;
+    };
+  };
+
+  const orden: Orden | null = JSON.parse(document.getElementById("ordenDatos")?.textContent || "null");
+
+  const pesos = (v: number) =>
+    new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v).replace(/\s/g, "");
+  const fecha = (f: string) =>
+    new Date(f).toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric", timeZone: "America/Bogota" });
+
+  // ---------------------------- Modales ----------------------------
+  function abrirModal(id: string) {
+    const m = document.getElementById(id);
+    m?.classList.add("visible");
+    m?.setAttribute("aria-hidden", "false");
+  }
+  function cerrarModales() {
+    document.querySelectorAll(".bnf-overlay.visible").forEach((m) => {
+      m.classList.remove("visible");
+      m.setAttribute("aria-hidden", "true");
+    });
+  }
+  document.querySelectorAll(".bnf-overlay").forEach((m) => {
+    m.addEventListener("click", (e) => { if (e.target === m) cerrarModales(); });
+    m.querySelectorAll("[data-cerrar]").forEach((b) => b.addEventListener("click", cerrarModales));
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") cerrarModales(); });
+
+  // ------------------------- Orden de pago -------------------------
+  function el<K extends keyof HTMLElementTagNameMap>(tag: K, texto?: string, clase?: string) {
+    const e = document.createElement(tag);
+    if (texto !== undefined) e.textContent = texto;
+    if (clase) e.className = clase;
+    return e;
+  }
+
+  function pintarOrden() {
+    const caja = document.getElementById("ordenImprimible");
+    if (!caja || !orden) return;
+    const { empresa, banco, contrato: c } = orden;
+    caja.replaceChildren();
+
+    const top = el("div", undefined, "bnf-orden-top");
+    const marca = el("div");
+    marca.append(el("div", "PSYNEX", "bnf-orden-marca"), el("small", "Plataforma de bienestar psicológico"));
+    const num = el("div", undefined, "bnf-orden-num");
+    num.append(el("small", "Orden de pago"), el("strong", c.numeroOrden), el("small", `Emitida el ${fecha(c.creadoEn)}`));
+    top.append(marca, num);
+
+    const cliente = el("div");
+    cliente.append(el("h4", "Cliente"), el("p", empresa.nombre), el("p", `NIT ${empresa.nit || "—"}`));
+
+    const tabla = el("table");
+    const thead = el("thead");
+    const trh = el("tr");
+    ["Descripción", "Trabajadores", "Valor unitario", "Total"].forEach((t, i) => trh.append(el("th", t, i ? "num" : undefined)));
+    thead.append(trh);
+    const tbody = el("tbody");
+    const tr = el("tr");
+    tr.append(
+      el("td", `${c.plan} — ${c.sesionesPorEmpleado} sesiones por trabajador, vigencia ${c.duracion}`),
+      el("td", c.empleados.toLocaleString("es-CO"), "num"),
+      el("td", pesos(c.valorPorEmpleado), "num"),
+      el("td", pesos(c.valorTotal), "num"),
+    );
+    tbody.append(tr);
+    const tfoot = el("tfoot");
+    const trt = el("tr");
+    const etiqueta = el("td", "Total a pagar", "num");
+    etiqueta.colSpan = 3;
+    trt.append(etiqueta, el("td", pesos(c.valorTotal), "num"));
+    tfoot.append(trt);
+    tabla.append(thead, tbody, tfoot);
+
+    const pago = el("div");
+    pago.append(el("h4", "Cómo pagar"));
+    if (banco) {
+      const datos = el("div", undefined, "bnf-orden-banco");
+      const fila = (k: string, v: string) => {
+        const p = el("p");
+        p.append(el("span", `${k}: `), document.createTextNode(v));
+        return p;
+      };
+      datos.append(
+        fila("Banco", banco.banco),
+        fila("Tipo de cuenta", banco.tipoCuenta),
+        fila("Número de cuenta", banco.numeroCuenta),
+        fila("Titular", banco.titular),
+        fila("NIT", banco.nit),
+      );
+      pago.append(datos);
+    } else {
+      pago.append(el("p", "Psynex aún no ha registrado su cuenta bancaria. Te avisaremos por notificación."));
+    }
+    const ref = el("p", undefined, "bnf-orden-ref");
+    ref.append(el("strong", "Referencia de pago: "), document.createTextNode(`${c.numeroOrden}. Escríbela en la descripción de la transferencia.`));
+    pago.append(ref);
+
+    const legal = el(
+      "p",
+      "Documento no válido como factura electrónica. La factura electrónica se emite cuando Psynex confirma el pago.",
+      "bnf-orden-legal",
+    );
+
+    caja.append(top, cliente, el("h4", "Detalle"), tabla, pago, legal);
+  }
+
+  document.querySelectorAll("[data-ver-orden]").forEach((b) =>
+    b.addEventListener("click", () => {
+      pintarOrden();
+      abrirModal("modalOrden");
+    })
+  );
+  document.getElementById("imprimirOrden")?.addEventListener("click", () => window.print());
+
+  // --------------------------- Comprobante ---------------------------
+  const errorComprobante = document.getElementById("comprobanteError");
+  const entrada = document.getElementById("archivoComprobante") as HTMLInputElement | null;
+  const botonSubir = document.getElementById("elegirComprobante") as HTMLButtonElement | null;
+  const nombreArchivo = document.getElementById("nombreComprobante");
+
+  botonSubir?.addEventListener("click", () => entrada?.click());
+
+  entrada?.addEventListener("change", async () => {
+    const archivo = entrada.files?.[0];
+    if (!archivo || !botonSubir) return;
+    if (errorComprobante) errorComprobante.textContent = "";
+    if (archivo.size > 5 * 1024 * 1024) {
+      if (errorComprobante) errorComprobante.textContent = "El archivo supera los 5 MB.";
+      entrada.value = "";
+      return;
+    }
+    if (nombreArchivo) nombreArchivo.textContent = archivo.name;
+    botonSubir.disabled = true;
+    botonSubir.textContent = "Subiendo…";
+    const datos = new FormData();
+    datos.append("comprobante", archivo);
+    const r = await apiEnviar("POST", `/api/empresa/beneficio/solicitudes/${botonSubir.dataset.contrato}/comprobante`, datos);
+    if (r.ok) {
+      location.reload();
+      return;
+    }
+    if (errorComprobante) errorComprobante.textContent = textoError(r.data, "No se pudo subir el comprobante");
+    botonSubir.disabled = false;
+    botonSubir.textContent = "Subir comprobante";
+    entrada.value = "";
+  });
+
+  document.querySelectorAll<HTMLButtonElement>("[data-ver-comprobante]").forEach((b) =>
+    b.addEventListener("click", async () => {
+      const ventana = window.open("", "_blank");
+      try {
+        const res = await fetch(`${API_URL}/api/empresa/beneficio/solicitudes/${b.dataset.verComprobante}/comprobante`, {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error();
+        const url = URL.createObjectURL(await res.blob());
+        if (ventana) ventana.location.href = url;
+        else window.open(url, "_blank");
+      } catch {
+        ventana?.close();
+        if (errorComprobante) errorComprobante.textContent = "No se pudo abrir el comprobante.";
+      }
+    })
+  );
+
+  // --------------------------- Cancelar ---------------------------
+  document.getElementById("abrirCancelar")?.addEventListener("click", () => abrirModal("modalCancelar"));
+  const confirmar = document.getElementById("confirmarCancelar") as HTMLButtonElement | null;
+  confirmar?.addEventListener("click", async () => {
+    confirmar.disabled = true;
+    const r = await apiEnviar("DELETE", `/api/empresa/beneficio/solicitudes/${confirmar.dataset.contrato}`);
+    if (r.ok) {
+      location.reload();
+      return;
+    }
+    const e = document.getElementById("cancelarError");
+    if (e) e.textContent = textoError(r.data, "No se pudo cancelar la solicitud");
+    confirmar.disabled = false;
+  });
+
+  // ----------------------------- Código -----------------------------
+  const copiar = document.getElementById("copiarCodigo");
+  copiar?.addEventListener("click", async () => {
+    const codigo = document.getElementById("codigoBeneficio")?.textContent?.trim() ?? "";
+    try {
+      await navigator.clipboard.writeText(codigo);
+      const t = copiar.querySelector("span");
+      if (t) {
+        t.textContent = "Copiado";
+        setTimeout(() => (t.textContent = "Copiar"), 1800);
+      }
+    } catch {
+      /* el navegador no dejó copiar: el código sigue visible */
+    }
+  });
+</script>

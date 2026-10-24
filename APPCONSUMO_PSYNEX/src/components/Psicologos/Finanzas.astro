@@ -1,7 +1,91 @@
 
 ---
 import NavbarPsicologo from "../Menu/NavbarPsicologo.astro";
+import { apiGet, pesos, hora } from "../../lib/api";
 import "./Finanzas.css";
+
+// ---------------------------------------------------------------
+// Datos reales desde el backend (Deno): /api/psicologo/finanzas/*
+// Cada pago completado de una cita del psicólogo es un movimiento.
+// MontoNeto = lo que recibe el psicólogo (pago - comisión de Psynex).
+// ---------------------------------------------------------------
+const cookie = Astro.request.headers.get("cookie");
+const [rResumen, rMovs, rCuentas, rReclamos, rCitas] = await Promise.all([
+  apiGet(cookie, "/api/psicologo/finanzas/resumen"),
+  apiGet(cookie, "/api/psicologo/finanzas/movimientos?porPagina=100"),
+  apiGet(cookie, "/api/psicologo/finanzas/cuentas"),
+  apiGet(cookie, "/api/psicologo/finanzas/reclamos"),
+  apiGet(cookie, "/api/psicologo/citas?estado=Pendiente&porPagina=50"),
+]);
+
+const resumen = rResumen?.resumen ?? {
+  netoMes: 0, comisionMes: 0, citasPagadasMes: 0, porTransferir: 0,
+  transferido: 0, citasGratuitas: 0, comisionPorcentaje: 20,
+};
+const movimientos: any[] = rMovs?.movimientos ?? [];
+const cuentas: any[] = rCuentas?.cuentas ?? [];
+const reclamos: any[] = rReclamos?.reclamos ?? [];
+const sinConexion = !rResumen;
+
+const principal = cuentas.find((c) => Number(c.EsPrincipal) === 1) ?? cuentas[0] ?? null;
+
+// Citas que esperan respuesta (las próximas primero)
+const ahora = Date.now();
+const pendientes = (rCitas?.citas ?? [])
+  .filter((c: any) => new Date(c.FechaHora).getTime() > ahora)
+  .sort((a: any, b: any) => new Date(a.FechaHora).getTime() - new Date(b.FechaHora).getTime());
+const proximaCita = pendientes[0] ?? null;
+
+// ---------------------------- Formatos ----------------------------
+const ZONA = "America/Bogota";
+const fechaNum = (f: string) =>
+  new Date(f).toLocaleDateString("es-CO", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: ZONA });
+const fechaTexto = (f: string) =>
+  new Date(f).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric", timeZone: ZONA }).replace(".", "");
+// "2026-10" para filtrar por mes (en hora de Colombia)
+const mesDe = (f: string) => {
+  const d = new Date(f).toLocaleDateString("en-CA", { year: "numeric", month: "2-digit", timeZone: ZONA });
+  return d.slice(0, 7);
+};
+const mesActual = mesDe(new Date().toISOString());
+
+const ORIGEN: Record<string, string> = {
+  Recompensa: "Gratuita",
+  Empresarial: "Empresa",
+};
+const tipoDe = (m: any) => ORIGEN[m.Origen] ?? "Paciente";
+const modalidad = (m: string | null) => (m ? m.toLowerCase() : "virtual");
+
+// Última transferencia hecha por Psynex
+const ultimaTransferencia = movimientos
+  .map((m) => m.FechaTransferencia)
+  .filter(Boolean)
+  .sort()
+  .at(-1);
+
+// Meses con movimientos (para el selector del resumen)
+const NOMBRE_MES = new Intl.DateTimeFormat("es-CO", { month: "long", year: "numeric", timeZone: "UTC" });
+const meses = [...new Set([mesActual, ...movimientos.filter((m) => m.FechaPago).map((m) => mesDe(m.FechaPago))])]
+  .sort()
+  .reverse()
+  .map((clave) => {
+    const t = NOMBRE_MES.format(new Date(`${clave}-15T12:00:00Z`)).replace(" de ", " ");
+    return { clave, texto: t.charAt(0).toUpperCase() + t.slice(1) };
+  });
+
+// Lo que necesita el script del navegador (sin datos bancarios completos)
+const datos = {
+  mesActual,
+  comision: resumen.comisionPorcentaje,
+  movimientos: movimientos.map((m) => ({
+    id: m.PagoId,
+    mes: m.FechaPago ? mesDe(m.FechaPago) : "",
+    origen: m.Origen,
+    total: Number(m.MontoTotal),
+    comision: Number(m.ComisionPsynex),
+    neto: Number(m.MontoNeto),
+  })),
+};
 ---
 
 <div class="finanzas-shell">
@@ -19,33 +103,37 @@ import "./Finanzas.css";
       </button>
     </header>
 
+    {sinConexion && (
+      <p class="fin-aviso">No pudimos cargar tus finanzas. Revisa que el servidor esté encendido y vuelve a intentar.</p>
+    )}
+
     <section class="fin-stats">
       <article class="fin-card fin-stat">
-        <span>Saldo disponible</span>
-        <strong id="saldo-disponible">$ 187.000</strong>
-        <small>Saldo de demostración</small>
+        <span>Por transferir</span>
+        <strong id="saldo-disponible">{pesos(resumen.porTransferir)}</strong>
+        <small>Psynex te lo transfiere</small>
       </article>
       <article class="fin-card fin-stat">
         <span>Ingresos del mes</span>
-        <strong>$ 220.000</strong>
-        <small>Ingresos registrados</small>
+        <strong>{pesos(resumen.netoMes)}</strong>
+        <small>Después de la comisión ({resumen.comisionPorcentaje}%)</small>
       </article>
       <article class="fin-card fin-stat">
         <span>Citas gratuitas</span>
-        <strong>1</strong>
-        <small>Este mes</small>
+        <strong>{resumen.citasGratuitas}</strong>
+        <small>En total</small>
       </article>
       <article class="fin-card fin-stat">
-        <span>Total de citas</span>
-        <strong>2</strong>
+        <span>Citas pagadas</span>
+        <strong>{resumen.citasPagadasMes}</strong>
         <small>Este mes</small>
       </article>
       <article class="fin-card fin-stat fin-stat-bank">
         <span>Cuenta bancaria</span>
-        <strong class="fin-bank-name" id="banco-resumen">Banco de Bogotá</strong>
+        <strong class="fin-bank-name" id="banco-resumen">{principal ? principal.Banco : "Sin cuenta"}</strong>
         <div class="fin-bank-row">
-          <small id="cuenta-resumen">•••• 4587</small>
-          <button class="fin-btn fin-btn-outline fin-btn-sm" data-open="modal-cuentas">Ver detalles</button>
+          <small id="cuenta-resumen">{principal ? principal.NumeroCuenta : "Agrega una cuenta"}</small>
+          <button class="fin-btn fin-btn-outline fin-btn-sm" data-open="modal-cuentas">{principal ? "Ver detalles" : "Agregar"}</button>
         </div>
       </article>
     </section>
@@ -61,6 +149,7 @@ import "./Finanzas.css";
             <span>Periodo</span>
             <select id="filtro-periodo">
               <option value="actual">Mes actual</option>
+              <option value="pendientes">Por transferir</option>
               <option value="todos">Todos</option>
             </select>
           </label>
@@ -74,53 +163,46 @@ import "./Finanzas.css";
                 <th>Descripción</th>
                 <th>Tipo</th>
                 <th>Estado</th>
-                <th class="fin-right">Monto</th>
+                <th class="fin-right">Recibes</th>
                 <th></th>
               </tr>
             </thead>
             <tbody id="lista-movimientos">
-              <tr data-movement data-type="Ingreso" data-status="Completado"
-                  data-description="Consulta psicológica" data-date="15/10/2026"
-                  data-amount="120000" data-destination="Camila Rojas"
-                  data-category="Consulta">
-                <td>15/10/2026</td><td class="fin-description">Consulta psicológica</td>
-                <td>Ingreso</td><td><span class="fin-status">Completado</span></td>
-                <td class="fin-right fin-income">+ $ 120.000</td>
-                <td><button class="fin-mini-action" data-payment="this">Ver</button></td>
-              </tr>
-              <tr data-movement data-type="Ingreso" data-status="Completado"
-                  data-description="Consulta de seguimiento" data-date="14/10/2026"
-                  data-amount="100000" data-destination="Paciente de seguimiento"
-                  data-category="Consulta">
-                <td>14/10/2026</td><td class="fin-description">Consulta de seguimiento</td>
-                <td>Ingreso</td><td><span class="fin-status">Completado</span></td>
-                <td class="fin-right fin-income">+ $ 100.000</td>
-                <td><button class="fin-mini-action" data-payment="this">Ver</button></td>
-              </tr>
-              <tr data-movement data-type="Egreso" data-status="Completado"
-                  data-description="Gastos administrativos" data-date="13/10/2026"
-                  data-amount="25000" data-destination="Administración"
-                  data-category="Gasto administrativo">
-                <td>13/10/2026</td><td class="fin-description">Gastos administrativos</td>
-                <td>Egreso</td><td><span class="fin-status">Completado</span></td>
-                <td class="fin-right fin-expense">− $ 25.000</td>
-                <td><button class="fin-mini-action" data-payment="this">Ver</button></td>
-              </tr>
-              <tr data-movement data-type="Egreso" data-status="Completado"
-                  data-description="Comisión de plataforma" data-date="11/10/2026"
-                  data-amount="8000" data-destination="Plataforma"
-                  data-category="Comisión">
-                <td>11/10/2026</td><td class="fin-description">Comisión de plataforma</td>
-                <td>Egreso</td><td><span class="fin-status">Completado</span></td>
-                <td class="fin-right fin-expense">− $ 8.000</td>
-                <td><button class="fin-mini-action" data-payment="this">Ver</button></td>
-              </tr>
+              {movimientos.map((m) => (
+                <tr
+                  data-movement
+                  data-mes={m.FechaPago ? mesDe(m.FechaPago) : ""}
+                  data-transferencia={m.EstadoTransferencia}
+                  data-description={`Consulta ${modalidad(m.Modalidad)}`}
+                  data-date={m.CitaFecha ? `${fechaTexto(m.CitaFecha)} · ${hora(m.CitaFecha)}` : "—"}
+                  data-paciente={m.PacienteNombre}
+                  data-modalidad={m.Modalidad ?? "Virtual"}
+                  data-tipo={tipoDe(m)}
+                  data-total={m.MontoTotal}
+                  data-porcentaje={m.PorcentajeComision}
+                  data-comision={m.ComisionPsynex}
+                  data-neto={m.MontoNeto}
+                  data-pagado={m.FechaPago ? fechaTexto(m.FechaPago) : "—"}
+                  data-transferido={m.FechaTransferencia ? fechaTexto(m.FechaTransferencia) : ""}
+                >
+                  <td>{m.FechaPago ? fechaNum(m.FechaPago) : "—"}</td>
+                  <td class="fin-description">Consulta {modalidad(m.Modalidad)} · {m.PacienteNombre}</td>
+                  <td>{tipoDe(m)}</td>
+                  <td>
+                    <span class={`fin-status ${m.EstadoTransferencia === "Transferido" ? "" : "is-pendiente"}`}>
+                      {m.EstadoTransferencia === "Transferido" ? "Transferido" : "Por transferir"}
+                    </span>
+                  </td>
+                  <td class="fin-right fin-income">+ {pesos(Number(m.MontoNeto))}</td>
+                  <td><button class="fin-mini-action" data-payment>Ver</button></td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
         <p class="fin-empty" id="sin-movimientos" hidden>No hay movimientos para este periodo.</p>
         <footer class="fin-table-footer">
-          <span id="total-movimientos">4 movimientos</span>
+          <span id="total-movimientos">{movimientos.length} movimientos</span>
           <button class="fin-link" id="ver-todos">Ver todos →</button>
         </footer>
       </article>
@@ -134,42 +216,40 @@ import "./Finanzas.css";
           <label class="fin-month">
             <span class="fin-sr-only">Mes</span>
             <select id="mes-resumen">
-              <option>Octubre 2026</option>
-              <option>Septiembre 2026</option>
-              <option>Agosto 2026</option>
+              {meses.map((m) => <option value={m.clave}>{m.texto}</option>)}
             </select>
           </label>
         </div>
 
         <div class="fin-chart-layout">
-          <div class="fin-donut" role="img" aria-label="Distribución de ingresos, citas gratuitas y descuentos">
+          <div class="fin-donut" id="dona" role="img" aria-label="Distribución de citas pagadas, citas gratuitas y comisiones">
             <div class="fin-donut-center">
-              <strong>$ 220.000</strong>
-              <span>Ingresos totales</span>
+              <strong id="dona-total">$0</strong>
+              <span>Recibido en el mes</span>
             </div>
           </div>
           <div class="fin-legend">
             <div class="fin-legend-item">
               <i class="fin-dot fin-dot-paid"></i>
-              <div><span>Citas pagadas</span><strong>$ 220.000</strong></div>
-              <small>100%</small>
+              <div><span>Citas pagadas</span><strong id="leyenda-pagadas">$0</strong></div>
+              <small id="pct-pagadas">0%</small>
             </div>
             <div class="fin-legend-item">
               <i class="fin-dot fin-dot-free"></i>
-              <div><span>Citas gratuitas</span><strong>$ 0</strong></div>
-              <small>0%</small>
+              <div><span>Citas gratuitas</span><strong id="leyenda-gratuitas">$0</strong></div>
+              <small id="pct-gratuitas">0%</small>
             </div>
             <div class="fin-legend-item">
               <i class="fin-dot fin-dot-fees"></i>
-              <div><span>Comisiones / descuentos</span><strong>− $ 33.000</strong></div>
-              <small>15%</small>
+              <div><span>Comisión Psynex</span><strong id="leyenda-comision">$0</strong></div>
+              <small id="pct-comision">0%</small>
             </div>
           </div>
         </div>
 
         <div class="fin-note">
           <span aria-hidden="true">ⓘ</span>
-          <p>Las citas gratuitas son una forma de apoyo a quienes más lo necesitan. Su valor no se descuenta de tu saldo.</p>
+          <p>Las citas gratuitas son una forma de apoyo a quienes más lo necesitan. Psynex te reconoce su valor y no se descuenta de tu saldo.</p>
         </div>
       </article>
     </section>
@@ -178,15 +258,22 @@ import "./Finanzas.css";
       <article class="fin-card fin-transfer">
         <div class="fin-icon-heading">
           <span class="fin-round-icon"><i class="bi bi-bank" aria-hidden="true"></i></span>
-          <div><span class="fin-kicker">PRÓXIMA TRANSFERENCIA</span><h2>Próxima transferencia</h2></div>
+          <div><span class="fin-kicker">TRANSFERENCIAS</span><h2>Tus pagos</h2></div>
         </div>
         <div class="fin-transfer-info">
-          <div><small>Fecha estimada de pago</small><strong><i class="bi bi-calendar3" aria-hidden="true"></i> &nbsp;25 oct 2026</strong></div>
-          <div><small>Cuenta de destino</small><strong id="transfer-banco">Banco de Bogotá · Ahorros</strong><small id="transfer-cuenta">•••• 4587</small></div>
-          <div><small>Saldo disponible</small><strong>$ 187.000</strong></div>
+          <div>
+            <small>Última transferencia</small>
+            <strong><i class="bi bi-calendar3" aria-hidden="true"></i> &nbsp;{ultimaTransferencia ? fechaTexto(ultimaTransferencia) : "Aún no hay"}</strong>
+          </div>
+          <div>
+            <small>Cuenta de destino</small>
+            <strong id="transfer-banco">{principal ? `${principal.Banco} · ${principal.TipoCuenta}` : "Sin cuenta registrada"}</strong>
+            <small id="transfer-cuenta">{principal?.NumeroCuenta ?? ""}</small>
+          </div>
+          <div><small>Por transferir</small><strong>{pesos(resumen.porTransferir)}</strong></div>
         </div>
         <div class="fin-action-row">
-          <button class="fin-btn fin-btn-outline" data-open="modal-pago">Ver detalle del pago →</button>
+          <button class="fin-btn fin-btn-outline" id="ver-pendientes">Ver pagos por transferir →</button>
         </div>
       </article>
 
@@ -196,6 +283,16 @@ import "./Finanzas.css";
           <div><span class="fin-kicker">SOPORTE FINANCIERO</span><h2>Reclamos</h2></div>
         </div>
         <p>Registra una duda sobre un movimiento o pago.</p>
+        {reclamos.length > 0 && (
+          <ul class="fin-reclamos">
+            {reclamos.slice(0, 3).map((r) => (
+              <li>
+                <span>{r.Motivo}</span>
+                <span class={`fin-status ${r.Estado === "Resuelto" || r.Estado === "Cerrado" ? "" : "is-pendiente"}`}>{r.Estado}</span>
+              </li>
+            ))}
+          </ul>
+        )}
         <div class="fin-action-row">
           <button class="fin-btn fin-btn-outline" data-open="modal-reclamo">Crear reclamo</button>
         </div>
@@ -205,24 +302,28 @@ import "./Finanzas.css";
         <div class="fin-icon-heading">
           <span class="fin-round-icon"><i class="bi bi-calendar-check" aria-hidden="true"></i></span>
           <div><span class="fin-kicker">AGENDA</span><h2>Citas asignadas</h2></div>
-          <span class="fin-pending" id="citas-pendientes">1 pendiente</span>
+          <span class="fin-pending" id="citas-pendientes">{pendientes.length} {pendientes.length === 1 ? "pendiente" : "pendientes"}</span>
         </div>
 
-        <div class="fin-appointment" id="cita-pendiente">
-          <span class="fin-round-icon fin-appointment-icon"><i class="bi bi-calendar-event" aria-hidden="true"></i></span>
-          <div class="fin-appointment-details">
-            <strong>Consulta psicológica</strong>
-            <span>Paciente: Camila Rojas</span>
-            <span>18 oct 2026 · 10:00 a. m.</span>
-            <span>Modalidad: Presencial · Duración: 50 min</span>
-            <span>Remuneración: $ 160.000</span>
+        {proximaCita ? (
+          <div class="fin-appointment" id="cita-pendiente" data-cita={proximaCita.CitaId}>
+            <span class="fin-round-icon fin-appointment-icon"><i class="bi bi-calendar-event" aria-hidden="true"></i></span>
+            <div class="fin-appointment-details">
+              <strong>Consulta {modalidad(proximaCita.Modalidad)}</strong>
+              <span>Paciente: {proximaCita.PacienteNombre}</span>
+              <span>{fechaTexto(proximaCita.FechaHora)} · {hora(proximaCita.FechaHora)}</span>
+              <span>Duración: {proximaCita.DuracionMinutos ?? 50} min</span>
+              <span>Pago: {proximaCita.EstadoPago === "Completado" ? "Pagado" : "Pendiente"}</span>
+            </div>
+            <div class="fin-appointment-buttons">
+              <button class="fin-btn fin-btn-primary" data-appointment="Confirmada">Aceptar cita</button>
+              <button class="fin-btn fin-btn-outline" data-appointment="Cancelada">Rechazar</button>
+            </div>
           </div>
-          <div class="fin-appointment-buttons">
-            <button class="fin-btn fin-btn-primary" data-appointment="aceptar">Aceptar cita</button>
-            <button class="fin-btn fin-btn-outline" data-appointment="rechazar">Rechazar</button>
-          </div>
-        </div>
-        <button class="fin-link fin-all-appointments" id="ver-citas">Ver todas las citas →</button>
+        ) : (
+          <p class="fin-empty">No tienes citas esperando respuesta.</p>
+        )}
+        <a class="fin-link fin-all-appointments" href="/Psicologos/Citas">Ver todas las citas →</a>
       </article>
     </section>
   </main>
@@ -237,20 +338,21 @@ import "./Finanzas.css";
       <button class="fin-close" data-close aria-label="Cerrar">×</button>
     </header>
     <div class="fin-payment-title">
-      <strong id="pago-descripcion">Consulta psicológica</strong>
-      <span class="fin-status">Completado</span>
+      <strong id="pago-descripcion">Consulta</strong>
+      <span class="fin-status" id="pago-estado">Transferido</span>
     </div>
     <div class="fin-payment-grid">
-      <div><small>Fecha</small><strong id="pago-fecha">15 oct 2026 · 10:00 a. m.</strong></div>
-      <div><small>Cuenta de destino</small><strong id="pago-destino">Camila Rojas</strong></div>
-      <div><small>Modalidad</small><strong>Presencial</strong></div>
-      <div><small>Monto</small><strong id="pago-monto">$ 120.000</strong></div>
+      <div><small>Fecha de la cita</small><strong id="pago-fecha">—</strong></div>
+      <div><small>Paciente</small><strong id="pago-destino">—</strong></div>
+      <div><small>Modalidad</small><strong id="pago-modalidad">—</strong></div>
+      <div><small>Pagado el</small><strong id="pago-pagado">—</strong></div>
     </div>
     <hr />
     <h3>Detalle de ingresos y descuentos</h3>
-    <div class="fin-breakdown"><span>Pago de la cita</span><span id="pago-bruto">$ 120.000</span></div>
-    <div class="fin-breakdown"><span>Comisión de plataforma (8%)</span><span id="pago-comision">− $ 8.000</span></div>
-    <div class="fin-breakdown fin-breakdown-total"><strong>Total recibido</strong><strong id="pago-neto">$ 112.000</strong></div>
+    <div class="fin-breakdown"><span>Pago de la cita</span><span id="pago-bruto">$0</span></div>
+    <div class="fin-breakdown"><span id="pago-comision-texto">Comisión de Psynex</span><span id="pago-comision">− $0</span></div>
+    <div class="fin-breakdown fin-breakdown-total"><strong>Total que recibes</strong><strong id="pago-neto">$0</strong></div>
+    <p class="fin-modal-nota" id="pago-transferencia"></p>
     <footer class="fin-modal-actions">
       <button class="fin-btn fin-btn-outline" data-close>Cerrar</button>
     </footer>
@@ -277,16 +379,17 @@ import "./Finanzas.css";
         </select>
       </label>
       <label>Movimiento relacionado
-        <select name="movimiento" required>
-          <option value="">Selecciona un movimiento</option>
-          <option>Consulta psicológica · $ 120.000</option>
-          <option>Consulta de seguimiento · $ 100.000</option>
-          <option>Gastos administrativos · $ 25.000</option>
-          <option>Comisión de plataforma · $ 8.000</option>
+        <select name="pagoId">
+          <option value="">Ninguno en particular</option>
+          {movimientos.map((m) => (
+            <option value={m.PagoId}>
+              {m.FechaPago ? fechaNum(m.FechaPago) : "—"} · {m.PacienteNombre} · {pesos(Number(m.MontoNeto))}
+            </option>
+          ))}
         </select>
       </label>
       <label>Descripción
-        <textarea name="descripcion" rows="4" required maxlength="1000" placeholder="Describe aquí tu reclamo..."></textarea>
+        <textarea name="descripcion" rows="4" required minlength="10" maxlength="1000" placeholder="Describe aquí tu reclamo (mínimo 10 caracteres)..."></textarea>
       </label>
       <p class="fin-form-message" id="reclamo-mensaje" role="status"></p>
       <footer class="fin-modal-actions">
@@ -297,28 +400,35 @@ import "./Finanzas.css";
   </section>
 </div>
 
-<!-- 3. CUENTA OFICIAL -->
-<div class="fin-modal" id="modal-oficial" hidden>
+<!-- 3. NUEVA CUENTA (oficial o secundaria, el mismo formulario) -->
+<div class="fin-modal" id="modal-cuenta-form" hidden>
   <button class="fin-backdrop" data-close aria-label="Cerrar"></button>
-  <section class="fin-modal-card" role="dialog" aria-modal="true" aria-labelledby="titulo-oficial">
+  <section class="fin-modal-card" role="dialog" aria-modal="true" aria-labelledby="titulo-cuenta-form">
     <header class="fin-modal-heading">
-      <div><h2 id="titulo-oficial">Cuenta oficial</h2><p>Tu cuenta bancaria principal.</p></div>
+      <div><h2 id="titulo-cuenta-form">Cuenta oficial</h2><p id="sub-cuenta-form">Tu cuenta bancaria principal.</p></div>
       <button class="fin-close" data-close aria-label="Cerrar">×</button>
     </header>
-    <form class="fin-form" data-bank-form="official">
+    <form class="fin-form" id="form-cuenta">
       <label>Banco
         <select name="banco" required>
           <option value="">Selecciona un banco</option>
           <option>Banco de Bogotá</option><option>Bancolombia</option>
           <option>Davivienda</option><option>BBVA Colombia</option>
-          <option>Banco Caja Social</option><option>Nequi</option><option>Otro</option>
+          <option>Banco Caja Social</option><option>Banco de Occidente</option>
+          <option>Banco Popular</option><option>Nequi</option><option>Daviplata</option>
+        </select>
+      </label>
+      <label>Tipo de cuenta
+        <select name="tipo" required>
+          <option value="">Selecciona el tipo</option>
+          <option>Ahorros</option><option>Corriente</option><option>Nequi</option><option>Daviplata</option>
         </select>
       </label>
       <label>Número de cuenta
-        <input name="numero" inputmode="numeric" required minlength="4" maxlength="24" placeholder="Ingresa el número de cuenta" />
+        <input name="numero" inputmode="numeric" pattern="[0-9]{6,20}" required minlength="6" maxlength="20" placeholder="Solo números" />
       </label>
-      <label>Tipo de cuenta
-        <select name="tipo" required><option value="">Selecciona el tipo</option><option>Ahorros</option><option>Corriente</option></select>
+      <label>Titular de la cuenta
+        <input name="titular" required minlength="3" maxlength="150" placeholder="Nombre como aparece en el banco" />
       </label>
       <p class="fin-form-message" role="status"></p>
       <footer class="fin-modal-actions">
@@ -329,54 +439,44 @@ import "./Finanzas.css";
   </section>
 </div>
 
-<!-- 4. CUENTA SECUNDARIA -->
-<div class="fin-modal" id="modal-secundaria" hidden>
-  <button class="fin-backdrop" data-close aria-label="Cerrar"></button>
-  <section class="fin-modal-card" role="dialog" aria-modal="true" aria-labelledby="titulo-secundaria">
-    <header class="fin-modal-heading">
-      <div><h2 id="titulo-secundaria">Cuenta secundaria</h2><p>Agrega una cuenta bancaria adicional.</p></div>
-      <button class="fin-close" data-close aria-label="Cerrar">×</button>
-    </header>
-    <form class="fin-form" data-bank-form="secondary">
-      <label>Banco
-        <select name="banco" required>
-          <option value="">Selecciona un banco</option>
-          <option>Banco de Bogotá</option><option>Bancolombia</option>
-          <option>Davivienda</option><option>BBVA Colombia</option>
-          <option>Banco Caja Social</option><option>Nequi</option><option>Otro</option>
-        </select>
-      </label>
-      <label>Número de cuenta
-        <input name="numero" inputmode="numeric" required minlength="4" maxlength="24" placeholder="Ingresa el número de cuenta" />
-      </label>
-      <label>Tipo de cuenta
-        <select name="tipo" required><option value="">Selecciona el tipo</option><option>Ahorros</option><option>Corriente</option></select>
-      </label>
-      <p class="fin-form-message" role="status"></p>
-      <footer class="fin-modal-actions">
-        <button type="button" class="fin-btn fin-btn-outline" data-close>Cancelar</button>
-        <button type="submit" class="fin-btn fin-btn-primary">Guardar</button>
-      </footer>
-    </form>
-  </section>
-</div>
-
-<!-- 5. SELECCIONAR TIPO DE CUENTA -->
+<!-- 4. GESTIONAR CUENTAS -->
 <div class="fin-modal" id="modal-cuentas" hidden>
   <button class="fin-backdrop" data-close aria-label="Cerrar"></button>
   <section class="fin-modal-card" role="dialog" aria-modal="true" aria-labelledby="titulo-cuentas">
     <header class="fin-modal-heading">
-      <div><h2 id="titulo-cuentas">Gestionar cuenta bancaria</h2><p>Elige qué tipo de cuenta deseas administrar.</p></div>
+      <div><h2 id="titulo-cuentas">Gestionar cuenta bancaria</h2><p>Aquí te transferimos lo que ganas en Psynex.</p></div>
       <button class="fin-close" data-close aria-label="Cerrar">×</button>
     </header>
+
+    {cuentas.length > 0 && (
+      <ul class="fin-cuentas">
+        {cuentas.map((c) => (
+          <li data-cuenta={c.CuentaId}>
+            <div>
+              <strong>{c.Banco === c.TipoCuenta ? c.Banco : `${c.Banco} · ${c.TipoCuenta}`}</strong>
+              <small>{c.NumeroCuenta} · {c.TitularCuenta}</small>
+            </div>
+            <div class="fin-cuenta-acciones">
+              {Number(c.EsPrincipal) === 1
+                ? <span class="fin-status">Oficial</span>
+                : <button class="fin-mini-action" data-principal>Hacer oficial</button>}
+              {Number(c.EstaVerificada) !== 1 && <span class="fin-status is-pendiente">Sin verificar</span>}
+              <button class="fin-mini-action fin-mini-danger" data-eliminar-cuenta aria-label="Eliminar cuenta">Eliminar</button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    )}
+
+    <p class="fin-cuentas-sub">Agregar una cuenta</p>
     <div class="fin-account-options">
-      <button class="fin-account-option" data-account-open="official">
+      <button class="fin-account-option is-selected" data-account-open="official">
         <span class="fin-radio"></span>
-        <span><strong>Cuenta oficial</strong><small>Para recibir pagos principales.</small></span>
+        <span><strong>Cuenta oficial</strong><small>Para recibir tus pagos.</small></span>
       </button>
       <button class="fin-account-option" data-account-open="secondary">
         <span class="fin-radio"></span>
-        <span><strong>Cuenta secundaria</strong><small>Para respaldo o transferencias adicionales.</small></span>
+        <span><strong>Cuenta secundaria</strong><small>De respaldo, por si la oficial falla.</small></span>
       </button>
     </div>
     <footer class="fin-modal-actions">
@@ -388,32 +488,28 @@ import "./Finanzas.css";
 
 <div class="fin-toast" id="fin-toast" role="status" aria-live="polite"></div>
 
+<script type="application/json" id="fin-datos" set:html={JSON.stringify(datos).replace(/</g, "\\u003c")}></script>
 
 <script>
-  const root = document.querySelector<HTMLElement>("#finanzas");
+  import { apiEnviar, textoError, pesos } from "../../lib/api";
+
   const toast = document.querySelector<HTMLDivElement>("#fin-toast");
+  const datos = JSON.parse(document.querySelector("#fin-datos")?.textContent || "{}");
 
   let selectedAccount: string = "official";
-  let activeMovement: HTMLElement | null = null;
   let toastTimer: ReturnType<typeof window.setTimeout> | undefined;
 
-  const money = (value: number): string =>
-    new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      maximumFractionDigits: 0,
-    }).format(value);
+  const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel);
+  const texto = (sel: string, valor: string) => {
+    const el = $(sel);
+    if (el) el.textContent = valor;
+  };
 
   function notify(message: string): void {
     if (!toast) return;
-
     toast.textContent = message;
     toast.classList.add("is-visible");
-
-    if (toastTimer !== undefined) {
-      window.clearTimeout(toastTimer);
-    }
-
+    if (toastTimer !== undefined) window.clearTimeout(toastTimer);
     toastTimer = window.setTimeout(() => {
       toast.classList.remove("is-visible");
       toastTimer = undefined;
@@ -422,358 +518,272 @@ import "./Finanzas.css";
 
   function openModal(id: string | null): void {
     if (!id) return;
-
     const modal = document.getElementById(id);
+    if (!(modal instanceof HTMLElement)) return;
 
-    if (!(modal instanceof HTMLElement)) {
-      notify("No se encontró la ventana solicitada.");
-      return;
-    }
-
-    document
-      .querySelectorAll<HTMLElement>(".fin-modal:not([hidden])")
-      .forEach((item) => {
-        item.hidden = true;
-      });
-
+    document.querySelectorAll<HTMLElement>(".fin-modal:not([hidden])").forEach((item) => {
+      item.hidden = true;
+    });
+    modal.querySelectorAll<HTMLElement>(".fin-form-message").forEach((p) => (p.textContent = ""));
     modal.hidden = false;
     document.body.classList.add("fin-modal-open");
-
-    modal
-      .querySelector<HTMLElement>(
-        "input, select, textarea, button:not(.fin-backdrop)"
-      )
-      ?.focus();
+    modal.querySelector<HTMLElement>("input, select, textarea, button:not(.fin-backdrop)")?.focus();
   }
 
   function closeModal(modal: HTMLElement | null): void {
     if (!modal) return;
-
     modal.hidden = true;
-
-    const openModals = document.querySelectorAll<HTMLElement>(
-      ".fin-modal:not([hidden])"
-    );
-
-    if (openModals.length === 0) {
+    if (document.querySelectorAll(".fin-modal:not([hidden])").length === 0) {
       document.body.classList.remove("fin-modal-open");
     }
   }
 
   document.addEventListener("click", (event: MouseEvent) => {
     const target = event.target;
-
     if (!(target instanceof Element)) return;
 
     const openButton = target.closest<HTMLElement>("[data-open]");
-
     if (openButton) {
       openModal(openButton.getAttribute("data-open"));
       return;
     }
-
     const closeButton = target.closest<HTMLElement>("[data-close]");
-
-    if (closeButton) {
-      const modal = closeButton.closest<HTMLElement>(".fin-modal");
-      closeModal(modal);
-    }
+    if (closeButton) closeModal(closeButton.closest<HTMLElement>(".fin-modal"));
   });
 
   document.addEventListener("keydown", (event: KeyboardEvent) => {
     if (event.key !== "Escape") return;
-
-    document
-      .querySelectorAll<HTMLElement>(".fin-modal:not([hidden])")
-      .forEach((modal) => closeModal(modal));
+    document.querySelectorAll<HTMLElement>(".fin-modal:not([hidden])").forEach((modal) => closeModal(modal));
   });
 
-  document
-    .querySelectorAll<HTMLElement>("[data-account-open]")
-    .forEach((button) => {
-      button.addEventListener("click", () => {
-        selectedAccount =
-          button.getAttribute("data-account-open") || "official";
+  // Mientras se envía, el botón queda bloqueado
+  async function conBoton<T>(boton: HTMLButtonElement | null, tarea: () => Promise<T>): Promise<T> {
+    if (boton) boton.disabled = true;
+    try {
+      return await tarea();
+    } finally {
+      if (boton) boton.disabled = false;
+    }
+  }
 
-        document
-          .querySelectorAll<HTMLElement>("[data-account-open]")
-          .forEach((option) => {
-            option.classList.toggle("is-selected", option === button);
-          });
+  // ----------------------------- Cuentas -----------------------------
+  document.querySelectorAll<HTMLElement>("[data-account-open]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedAccount = button.getAttribute("data-account-open") || "official";
+      document.querySelectorAll<HTMLElement>("[data-account-open]").forEach((option) => {
+        option.classList.toggle("is-selected", option === button);
       });
     });
+  });
 
-  document
-    .querySelector<HTMLButtonElement>("#continuar-cuenta")
-    ?.addEventListener("click", () => {
-      closeModal(document.querySelector<HTMLElement>("#modal-cuentas"));
+  $("#continuar-cuenta")?.addEventListener("click", () => {
+    closeModal($("#modal-cuentas"));
+    const oficial = selectedAccount === "official";
+    texto("#titulo-cuenta-form", oficial ? "Cuenta oficial" : "Cuenta secundaria");
+    texto("#sub-cuenta-form", oficial ? "Aquí recibirás tus pagos." : "Una cuenta de respaldo.");
+    $<HTMLFormElement>("#form-cuenta")?.reset();
+    openModal("modal-cuenta-form");
+  });
 
-      openModal(
-        selectedAccount === "official"
-          ? "modal-oficial"
-          : "modal-secundaria"
-      );
+  const formCuenta = $<HTMLFormElement>("#form-cuenta");
+  formCuenta?.addEventListener("submit", async (event: SubmitEvent) => {
+    event.preventDefault();
+    if (!formCuenta.reportValidity()) return;
+    const data = new FormData(formCuenta);
+    const mensaje = formCuenta.querySelector<HTMLElement>(".fin-form-message");
+    const r = await conBoton(formCuenta.querySelector("button[type=submit]"), () =>
+      apiEnviar("POST", "/api/psicologo/finanzas/cuentas", {
+        banco: String(data.get("banco") || ""),
+        tipoCuenta: String(data.get("tipo") || ""),
+        numeroCuenta: String(data.get("numero") || "").replace(/\D/g, ""),
+        titularCuenta: String(data.get("titular") || "").trim(),
+        esPrincipal: selectedAccount === "official",
+      }));
+    if (!r.ok) {
+      if (mensaje) mensaje.textContent = textoError(r.data, "No se pudo guardar la cuenta");
+      return;
+    }
+    notify("Cuenta guardada.");
+    window.setTimeout(() => location.reload(), 700);
+  });
+
+  // Hacer oficial / eliminar una cuenta de la lista
+  document.querySelectorAll<HTMLElement>("[data-cuenta]").forEach((fila) => {
+    const id = fila.dataset.cuenta;
+    fila.querySelector<HTMLButtonElement>("[data-principal]")?.addEventListener("click", async (e) => {
+      const r = await conBoton(e.currentTarget as HTMLButtonElement, () =>
+        apiEnviar("PATCH", `/api/psicologo/finanzas/cuentas/${id}`, { esPrincipal: true }));
+      if (!r.ok) return notify(textoError(r.data, "No se pudo cambiar la cuenta oficial"));
+      notify("Cuenta oficial actualizada.");
+      window.setTimeout(() => location.reload(), 700);
     });
 
-  document
-    .querySelectorAll<HTMLFormElement>("[data-bank-form]")
-    .forEach((form) => {
-      form.addEventListener("submit", (event: SubmitEvent) => {
-        event.preventDefault();
-
-        if (!form.reportValidity()) return;
-
-        const data = new FormData(form);
-        const bank = String(data.get("banco") || "");
-        const accountNumber = String(data.get("numero") || "");
-        const type = String(data.get("tipo") || "");
-        const suffix = accountNumber.slice(-4);
-
-        const message =
-          form.querySelector<HTMLElement>(".fin-form-message");
-
-        if (form.getAttribute("data-bank-form") === "official") {
-          const bankSummary =
-            document.querySelector<HTMLElement>("#banco-resumen");
-
-          const accountSummary =
-            document.querySelector<HTMLElement>("#cuenta-resumen");
-
-          const transferBank =
-            document.querySelector<HTMLElement>("#transfer-banco");
-
-          const transferNumber =
-            document.querySelector<HTMLElement>("#transfer-cuenta");
-
-          if (bankSummary) bankSummary.textContent = bank;
-
-          if (accountSummary) {
-            accountSummary.textContent = `•••• ${suffix}`;
-          }
-
-          if (transferBank) {
-            transferBank.textContent = `${bank} · ${type}`;
-          }
-
-          if (transferNumber) {
-            transferNumber.textContent = `•••• ${suffix}`;
-          }
-        }
-
-        if (message) {
-          message.textContent =
-            "Cuenta guardada en esta vista de demostración.";
-        }
-
-        notify("Cuenta guardada en la vista de demostración.");
-
+    const borrar = fila.querySelector<HTMLButtonElement>("[data-eliminar-cuenta]");
+    borrar?.addEventListener("click", async () => {
+      // Primer clic pide confirmación, el segundo elimina
+      if (borrar.dataset.confirmar !== "1") {
+        borrar.dataset.confirmar = "1";
+        borrar.textContent = "¿Seguro?";
         window.setTimeout(() => {
-          const modal = form.closest<HTMLElement>(".fin-modal");
-
-          if (modal) closeModal(modal);
-
-          form.reset();
-
-          if (message) message.textContent = "";
-        }, 900);
-      });
-    });
-
-  document
-    .querySelectorAll<HTMLElement>("[data-movement]")
-    .forEach((row) => {
-      const paymentButton =
-        row.querySelector<HTMLButtonElement>("[data-payment]");
-
-      paymentButton?.addEventListener("click", () => {
-        activeMovement = row;
-
-        const description = row.dataset.description || "Movimiento";
-        const date = row.dataset.date || "—";
-        const amount = Number(row.dataset.amount || 0);
-        const type = row.dataset.type || "Ingreso";
-        const destination = row.dataset.destination || "—";
-
-        const commission =
-          type === "Ingreso" ? Math.round(amount * 0.08) : 0;
-
-        const descriptionEl =
-          document.querySelector<HTMLElement>("#pago-descripcion");
-
-        const dateEl =
-          document.querySelector<HTMLElement>("#pago-fecha");
-
-        const destinationEl =
-          document.querySelector<HTMLElement>("#pago-destino");
-
-        const amountEl =
-          document.querySelector<HTMLElement>("#pago-monto");
-
-        const grossEl =
-          document.querySelector<HTMLElement>("#pago-bruto");
-
-        const commissionEl =
-          document.querySelector<HTMLElement>("#pago-comision");
-
-        const netEl =
-          document.querySelector<HTMLElement>("#pago-neto");
-
-        if (descriptionEl) descriptionEl.textContent = description;
-        if (dateEl) dateEl.textContent = date;
-        if (destinationEl) destinationEl.textContent = destination;
-        if (amountEl) amountEl.textContent = money(amount);
-        if (grossEl) grossEl.textContent = money(amount);
-
-        if (commissionEl) {
-          commissionEl.textContent = `− ${money(commission)}`;
-        }
-
-        if (netEl) {
-          netEl.textContent = money(amount - commission);
-        }
-
-        openModal("modal-pago");
-      });
-    });
-
-  document
-    .querySelector<HTMLFormElement>("#form-reclamo")
-    ?.addEventListener("submit", (event: SubmitEvent) => {
-      event.preventDefault();
-
-      const form = event.currentTarget;
-
-      if (!(form instanceof HTMLFormElement)) return;
-      if (!form.reportValidity()) return;
-
-      const message =
-        document.querySelector<HTMLElement>("#reclamo-mensaje");
-
-      if (message) {
-        message.textContent =
-          "Reclamo registrado en esta vista de demostración.";
+          borrar.dataset.confirmar = "";
+          borrar.textContent = "Eliminar";
+        }, 3000);
+        return;
       }
-
-      notify("Reclamo enviado en la vista de demostración.");
-
-      window.setTimeout(() => {
-        closeModal(
-          document.querySelector<HTMLElement>("#modal-reclamo")
-        );
-
-        form.reset();
-
-        if (message) message.textContent = "";
-      }, 1200);
+      const r = await conBoton(borrar, () => apiEnviar("DELETE", `/api/psicologo/finanzas/cuentas/${id}`));
+      if (!r.ok) return notify(textoError(r.data, "No se pudo eliminar la cuenta"));
+      notify("Cuenta eliminada.");
+      window.setTimeout(() => location.reload(), 700);
     });
+  });
 
-  const periodFilter =
-    document.querySelector<HTMLSelectElement>("#filtro-periodo");
-
-  const movementRows = Array.from(
-    document.querySelectorAll<HTMLElement>("[data-movement]")
-  );
-
-  const count =
-    document.querySelector<HTMLElement>("#total-movimientos");
-
-  const empty =
-    document.querySelector<HTMLElement>("#sin-movimientos");
-
-  const showAllButton =
-    document.querySelector<HTMLButtonElement>("#ver-todos");
-
-  function filterMovements(showAll: boolean = false): void {
-    let visibleCount = 0;
-
-    const showEveryMovement =
-      showAll || periodFilter?.value === "todos";
-
-    movementRows.forEach((row) => {
-      const show = Boolean(showEveryMovement) || visibleCount < 4;
-
-      row.hidden = !show;
-
-      if (show) visibleCount++;
+  // ------------------------- Detalle del pago -------------------------
+  document.querySelectorAll<HTMLElement>("[data-movement]").forEach((row) => {
+    row.querySelector<HTMLButtonElement>("[data-payment]")?.addEventListener("click", () => {
+      const d = row.dataset;
+      const transferido = d.transferencia === "Transferido";
+      texto("#pago-descripcion", d.description || "Consulta");
+      texto("#pago-fecha", d.date || "—");
+      texto("#pago-destino", d.paciente || "—");
+      texto("#pago-modalidad", d.modalidad || "—");
+      texto("#pago-pagado", d.pagado || "—");
+      texto("#pago-bruto", pesos(Number(d.total || 0)));
+      texto("#pago-comision-texto", `Comisión de Psynex (${Number(d.porcentaje || 0)}%)`);
+      texto("#pago-comision", `− ${pesos(Number(d.comision || 0))}`);
+      texto("#pago-neto", pesos(Number(d.neto || 0)));
+      texto("#pago-transferencia", transferido
+        ? `Psynex te lo transfirió el ${d.transferido}.`
+        : "Psynex aún no te lo ha transferido.");
+      const estado = $("#pago-estado");
+      if (estado) {
+        estado.textContent = transferido ? "Transferido" : "Por transferir";
+        estado.classList.toggle("is-pendiente", !transferido);
+      }
+      if (d.tipo === "Gratuita") texto("#pago-descripcion", `${d.description} (gratuita)`);
+      openModal("modal-pago");
     });
+  });
 
-    if (count) {
-      count.textContent = `${visibleCount} movimiento${
-        visibleCount === 1 ? "" : "s"
-      }`;
+  // ------------------------------ Reclamo ------------------------------
+  const formReclamo = $<HTMLFormElement>("#form-reclamo");
+  formReclamo?.addEventListener("submit", async (event: SubmitEvent) => {
+    event.preventDefault();
+    if (!formReclamo.reportValidity()) return;
+    const data = new FormData(formReclamo);
+    const mensaje = $("#reclamo-mensaje");
+    const pagoId = String(data.get("pagoId") || "");
+    const r = await conBoton(formReclamo.querySelector("button[type=submit]"), () =>
+      apiEnviar("POST", "/api/psicologo/finanzas/reclamos", {
+        motivo: String(data.get("motivo") || ""),
+        descripcion: String(data.get("descripcion") || "").trim(),
+        pagoId: pagoId || null,
+      }));
+    if (!r.ok) {
+      if (mensaje) mensaje.textContent = textoError(r.data, "No se pudo enviar el reclamo");
+      return;
     }
+    notify("Reclamo enviado. Te responderemos pronto.");
+    window.setTimeout(() => location.reload(), 900);
+  });
 
-    if (empty) {
-      empty.hidden = visibleCount !== 0;
-    }
+  // ---------------------------- Movimientos ----------------------------
+  const periodFilter = $<HTMLSelectElement>("#filtro-periodo");
+  const movementRows = Array.from(document.querySelectorAll<HTMLElement>("[data-movement]"));
+  const count = $("#total-movimientos");
+  const empty = $("#sin-movimientos");
+  const showAllButton = $<HTMLButtonElement>("#ver-todos");
+  const LIMITE = 6;
+  let verTodos = false;
 
+  function filterMovements(): void {
+    const periodo = periodFilter?.value ?? "actual";
+    const coinciden = movementRows.filter((row) =>
+      periodo === "todos" ? true
+        : periodo === "pendientes" ? row.dataset.transferencia !== "Transferido"
+        : row.dataset.mes === datos.mesActual);
+
+    movementRows.forEach((row) => (row.hidden = true));
+    coinciden.forEach((row, i) => (row.hidden = !verTodos && i >= LIMITE));
+
+    if (count) count.textContent = `${coinciden.length} movimiento${coinciden.length === 1 ? "" : "s"}`;
+    if (empty) empty.hidden = coinciden.length !== 0;
     if (showAllButton) {
-      showAllButton.textContent = showAll
-        ? "Mostrar menos ↑"
-        : "Ver todos →";
+      showAllButton.hidden = coinciden.length <= LIMITE;
+      showAllButton.textContent = verTodos ? "Mostrar menos ↑" : "Ver todos →";
     }
   }
 
   periodFilter?.addEventListener("change", () => {
-    filterMovements(periodFilter.value === "todos");
+    verTodos = false;
+    filterMovements();
   });
-
   showAllButton?.addEventListener("click", () => {
-    const isShowingAll =
-      showAllButton.textContent?.includes("Mostrar menos") ?? false;
-
-    filterMovements(!isShowingAll);
+    verTodos = !verTodos;
+    filterMovements();
   });
+  $("#ver-pendientes")?.addEventListener("click", () => {
+    if (periodFilter) periodFilter.value = "pendientes";
+    verTodos = false;
+    filterMovements();
+    $("#lista-movimientos")?.closest(".fin-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  filterMovements();
 
-  document
-    .querySelectorAll<HTMLButtonElement>("[data-appointment]")
-    .forEach((button) => {
-      button.addEventListener("click", () => {
-        const action = button.getAttribute("data-appointment");
+  // ------------------------- Resumen del mes -------------------------
+  const mesResumen = $<HTMLSelectElement>("#mes-resumen");
 
-        const appointment =
-          document.querySelector<HTMLElement>("#cita-pendiente");
+  function pintarResumen(): void {
+    const mes = mesResumen?.value ?? datos.mesActual;
+    const delMes = (datos.movimientos ?? []).filter((m: any) => m.mes === mes);
+    const pagadas = delMes.filter((m: any) => m.origen !== "Recompensa").reduce((s: number, m: any) => s + m.neto, 0);
+    const gratuitas = delMes.filter((m: any) => m.origen === "Recompensa").reduce((s: number, m: any) => s + m.neto, 0);
+    const comision = delMes.reduce((s: number, m: any) => s + m.comision, 0);
+    const base = pagadas + gratuitas + comision;
+    const pct = (v: number) => (base ? Math.round((v / base) * 100) : 0);
 
-        if (!appointment) return;
+    texto("#dona-total", pesos(pagadas + gratuitas));
+    texto("#leyenda-pagadas", pesos(pagadas));
+    texto("#leyenda-gratuitas", pesos(gratuitas));
+    texto("#leyenda-comision", `− ${pesos(comision)}`);
+    texto("#pct-pagadas", `${pct(pagadas)}%`);
+    texto("#pct-gratuitas", `${pct(gratuitas)}%`);
+    texto("#pct-comision", `${pct(comision)}%`);
 
-        const status = document.createElement("span");
+    const dona = $("#dona");
+    if (dona) {
+      const a = base ? (pagadas / base) * 100 : 0;
+      const b = base ? ((pagadas + gratuitas) / base) * 100 : 0;
+      dona.style.setProperty("--a", `${a}%`);
+      dona.style.setProperty("--b", `${b}%`);
+      dona.classList.toggle("is-vacia", !base);
+    }
+  }
+  mesResumen?.addEventListener("change", pintarResumen);
+  pintarResumen();
 
-        status.className = "fin-appointment-result";
-        status.textContent =
-          action === "aceptar" ? "Cita aceptada" : "Cita rechazada";
+  // ------------------------ Citas por responder ------------------------
+  document.querySelectorAll<HTMLButtonElement>("[data-appointment]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const estado = button.getAttribute("data-appointment");
+      const tarjeta = $("#cita-pendiente");
+      const citaId = tarjeta?.dataset.cita;
+      if (!tarjeta || !citaId) return;
 
-        appointment
-          .querySelector(".fin-appointment-result")
-          ?.remove();
+      const botones = tarjeta.querySelectorAll<HTMLButtonElement>("button");
+      botones.forEach((b) => (b.disabled = true));
+      const r = await apiEnviar("PATCH", `/api/psicologo/citas/${citaId}/estado`, { estado });
+      if (!r.ok) {
+        botones.forEach((b) => (b.disabled = false));
+        return notify(textoError(r.data, "No se pudo actualizar la cita"));
+      }
 
-        appointment.append(status);
-
-        appointment
-          .querySelectorAll<HTMLButtonElement>("button")
-          .forEach((item) => {
-            item.disabled = true;
-          });
-
-        const pending =
-          document.querySelector<HTMLElement>("#citas-pendientes");
-
-        if (pending) pending.textContent = "0 pendientes";
-
-        notify(
-          action === "aceptar"
-            ? "Cita aceptada en la vista de demostración."
-            : "Cita rechazada en la vista de demostración."
-        );
-      });
+      tarjeta.querySelector(".fin-appointment-result")?.remove();
+      const resultado = document.createElement("span");
+      resultado.className = "fin-appointment-result";
+      resultado.textContent = estado === "Confirmada" ? "Cita aceptada" : "Cita rechazada";
+      tarjeta.append(resultado);
+      notify(estado === "Confirmada" ? "Cita aceptada. Le avisamos al paciente." : "Cita rechazada.");
+      window.setTimeout(() => location.reload(), 1500);
     });
-
-  document
-    .querySelector<HTMLButtonElement>("#ver-citas")
-    ?.addEventListener("click", () => {
-      notify("La agenda completa debe conectarse con el módulo de Citas.");
-    });
-
-  // Los datos iniciales son ilustrativos.
-  // No representan operaciones bancarias reales.
+  });
 </script>
-

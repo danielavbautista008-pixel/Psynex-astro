@@ -12,6 +12,7 @@ const RUTAS_POR_ROL: Record<string, string[]> = {
   "/administrador": ["Admin"],
   "/psicologos": ["Psicologo"],
   "/empresa": ["Empresa"],
+  "/paciente": ["Paciente"], // cambio: panel del paciente (así las páginas reciben Astro.locals.usuario)
 };
 
 // Página de inicio de cada rol. Se usa cuando alguien entra a una
@@ -20,7 +21,7 @@ const INICIO_POR_ROL: Record<string, string> = {
   Admin: "/Administrador/inicio",
   Psicologo: "/Psicologos/Inicio",
   Empresa: "/Empresa/Inicio",
-  Paciente: "/",
+  Paciente: "/Paciente/Inicio", // cambio: antes "/", ahora existe el panel del paciente
 };
 
 const RUTA_LOGIN = "/Inicio/login";
@@ -33,13 +34,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
     (p) => ruta === p || ruta.startsWith(p + "/"),
   );
 
-  if (esProtegida) {
-    const usuario = await obtenerUsuario(context.request.headers.get("cookie") ?? undefined);
-    console.log("Usuario en middleware:", usuario);
-    if (!usuario) {
-      return context.redirect("/login");
-    }
-    context.locals.usuario = usuario; // disponible en la página
+  // cambio: aquí había un bloque "if (esProtegida) {" sin cerrar (y esProtegida no
+  // existía) que rompía todo Astro. Lo que hacía ya lo hacen los pasos 2 a 5 de abajo.
   // Si no está en la lista, es pública: se muestra sin revisar nada.
   if (!prefijo) return next();
 

@@ -19,7 +19,7 @@ const menuExplorar = [
 // Si el backend no responde, la página igual se muestra con las secciones vacías.
 const datos = await apiGet<{
   tests: { id: string; sigla: string; categoria: string; descripcion: string; preguntas: number; minutos: number }[];
-  psicologos: { id: string; nombre: string; titulo: string; especialidades: string[]; modalidadTexto: string; tieneFoto: boolean }[];
+  psicologos: { id: string; nombre: string; titulo: string; especialidades: string[]; modalidadTexto: string; tieneFoto: boolean; fotoVersion?: string }[];
   ofertas: { id: string; cargo: string; empresa: string; empresaId: string; ubicacion: string; salario: number | null; tieneLogo: boolean }[];
 }>(Astro.request.headers.get("cookie"), "/api/explorar/inicio");
 
@@ -37,7 +37,7 @@ const psicologos = (datos?.psicologos ?? []).map((p) => ({
   especialidad: p.titulo,
   tags: p.especialidades.slice(0, 2),
   modalidad: p.modalidadTexto,
-  foto: p.tieneFoto ? urlFotoPsicologo(p.id) : fotoIniciales(p.nombre),
+  foto: p.tieneFoto ? urlFotoPsicologo(p.id, p.fotoVersion) : fotoIniciales(p.nombre), // cambio: con versión de la foto
 }));
 // Se duplica la lista para que el carrusel haga un loop continuo sin
 // salto visible (ver explorar.css, sección del carrusel).

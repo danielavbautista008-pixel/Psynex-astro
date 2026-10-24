@@ -1,0 +1,280 @@
+---
+// =====================================================================
+// Menú VERTICAL del paciente (solo en "Mi perfil").
+// Al entrar a su perfil el menú de arriba se cambia por esta barra
+// lateral de vidrio, con las mismas opciones, sin íconos.
+// =====================================================================
+import { API_URL } from "../../lib/api";
+import { menuPaciente } from "./menu";
+import "./paciente.css";
+
+const nombre = Astro.locals.usuario?.NombreCompleto ?? "Paciente";
+const correo = Astro.locals.usuario?.Email ?? "";
+const inicial = nombre.trim().charAt(0).toUpperCase() || "P";
+const ruta = Astro.url.pathname.toLowerCase();
+---
+
+<aside class="pv-barra" id="pvBarra" data-api={API_URL}>
+  <a href="/Paciente/Inicio" class="pv-marca">
+    <img src="/Imagenes/logo.png" alt="PSYNEX" />
+    <span>PSYNEX</span>
+  </a>
+
+  <div class="pv-usuario">
+    <span class="pv-letra">{inicial}</span>
+    <div>
+      <strong>{nombre}</strong>
+      <small>{correo || "Paciente"}</small>
+    </div>
+  </div>
+
+  <nav class="pv-nav">
+    <span class="pv-seccion">Mi espacio</span>
+    {menuPaciente.map((item) => (
+      <a href={item.href} class:list={["pv-link", { activo: ruta === item.href.toLowerCase() }]}>{item.label}</a>
+    ))}
+
+    <span class="pv-seccion">Mi perfil</span>
+    <a href="#datos" class="pv-link activo">Datos personales</a>
+    <a href="#beneficio" class="pv-link">Beneficio de mi empresa</a>
+    <a href="#privacidad" class="pv-link">Privacidad</a>
+    <a href="#seguridad" class="pv-link">Seguridad</a>
+  </nav>
+
+  <button type="button" class="pv-salir" id="pvSalir">Cerrar sesión</button>
+</aside>
+
+<!-- En celular: barra de arriba con botón para abrir el menú -->
+<header class="pv-movil">
+  <a href="/Paciente/Inicio" class="pv-marca">
+    <img src="/Imagenes/logo.png" alt="PSYNEX" />
+    <span>PSYNEX</span>
+  </a>
+  <button type="button" class="pv-abrir" id="pvAbrir" aria-label="Abrir menú" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<style>
+  .pv-barra {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    bottom: 14px;
+    z-index: 1000;
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 22px 16px;
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius: 22px;
+    background: color-mix(in srgb, var(--surface) 70%, transparent);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.06);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .pv-barra::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pv-marca {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text);
+  }
+
+  .pv-marca img {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--primary);
+    padding: 2px;
+    object-fit: cover;
+  }
+
+  .pv-marca span {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .pv-usuario {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 14px;
+    background: var(--primary-soft);
+  }
+
+  .pv-letra {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--primary);
+    color: var(--on-primary);
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .pv-usuario div {
+    min-width: 0;
+  }
+
+  .pv-usuario strong {
+    display: block;
+    font-size: 13px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pv-usuario small {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pv-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .pv-seccion {
+    margin: 10px 10px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--primary);
+    opacity: 0.8;
+  }
+
+  .pv-link {
+    padding: 9px 12px;
+    border-radius: 10px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .pv-link:hover {
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+    color: var(--primary);
+  }
+
+  .pv-link.activo {
+    background: var(--primary);
+    color: var(--on-primary);
+  }
+
+  .pv-salir {
+    height: 36px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+
+  .pv-salir:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .pv-movil {
+    display: none;
+  }
+
+  @media (max-width: 900px) {
+    .pv-barra {
+      top: 70px;
+      transform: translateX(-120%);
+      transition: transform 0.3s ease;
+    }
+
+    .pv-barra.abierta {
+      transform: none;
+    }
+
+    .pv-movil {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1001;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: color-mix(in srgb, var(--surface) 80%, transparent);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pv-abrir {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      cursor: pointer;
+    }
+
+    .pv-abrir span {
+      height: 2px;
+      border-radius: 2px;
+      background: var(--text);
+    }
+  }
+</style>
+
+<script>
+  const barra = document.getElementById("pvBarra");
+  const API = barra?.dataset.api || "http://localhost:8001";
+
+  // Cerrar sesión: borra la cookie en el backend y va al login
+  document.getElementById("pvSalir")?.addEventListener("click", async () => {
+    try {
+      await fetch(`${API}/api/auth/logout`, { method: "POST", credentials: "include" });
+    } catch { /* aunque falle la red, se va al login */ }
+    window.location.href = "/Inicio/login";
+  });
+
+  // Celular: abrir / cerrar la barra
+  const abrir = document.getElementById("pvAbrir");
+  abrir?.addEventListener("click", () => {
+    const abierta = barra?.classList.toggle("abierta");
+    abrir.setAttribute("aria-expanded", String(Boolean(abierta)));
+  });
+
+  // cambio: ahora cada sección del perfil se muestra sola (lo hace perfil.astro),
+  // así que aquí ya no se vigila el scroll; solo se cierra la barra en celular.
+  const enlaces = Array.from(document.querySelectorAll<HTMLAnchorElement>('.pv-link[href^="#"]'));
+  enlaces.forEach((a) => a.addEventListener("click", () => barra?.classList.remove("abierta")));
+</script>

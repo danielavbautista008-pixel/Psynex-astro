@@ -109,7 +109,10 @@ export const haceCuanto = (f: string | Date | null | undefined) => {
 
 // Las fotos y logos se guardan en la base de datos; el backend las entrega
 // como imagen en estas rutas (así la página no carga textos gigantes).
-export const urlFotoPsicologo = (id: string) => `${API_URL}/api/explorar/psicologos/${id}/foto`;
+// cambio: "version" va en la URL; cuando el psicólogo cambia la foto, la URL
+// cambia y el navegador baja la nueva en vez de mostrar la vieja de su caché.
+export const urlFotoPsicologo = (id: string, version?: string | number | null) =>
+  `${API_URL}/api/explorar/psicologos/${id}/foto${version ? `?v=${encodeURIComponent(String(version))}` : ""}`;
 export const urlLogoEmpresa = (id: string) => `${API_URL}/api/explorar/empresas/${id}/logo`;
 
 // Minutos de lectura aproximados a partir de la cantidad de caracteres

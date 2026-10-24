@@ -1,0 +1,312 @@
+/* cambio: vista NUEVA — Chat del paciente (lo común está en paciente.css) */
+
+.cht-caja {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  height: max(480px, calc(100vh - 290px));
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ---------------- Lista ---------------- */
+.cht-lista {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--border);
+}
+
+.cht-buscar {
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cht-buscar input {
+  width: 100%;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.cht-buscar input:focus {
+  border-color: var(--primary);
+}
+
+.cht-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.cht-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cht-item[hidden] {
+  display: none;
+}
+
+.cht-item:hover {
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+}
+
+.cht-item.activo {
+  background: var(--primary-soft);
+}
+
+.cht-item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cht-item-top,
+.cht-item-ultimo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cht-item-top strong {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cht-item-top small {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.cht-item-ultimo span {
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cht-sin-leer {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 10px;
+}
+
+.cht-nada {
+  padding: 16px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Foto redonda: la inicial queda debajo por si no hay foto */
+.cht-foto {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.cht-foto img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 25%;
+}
+
+/* ---------------- Conversación ---------------- */
+.cht-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.cht-panel[hidden] {
+  display: none;
+}
+
+.cht-panel-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cht-panel-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cht-panel-info strong {
+  font-size: 14px;
+}
+
+.cht-panel-info small {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.cht-volver {
+  display: none;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cht-mensajes {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  background: var(--bg);
+}
+
+.cht-dia {
+  align-self: center;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 10.5px;
+}
+
+.cht-msj {
+  max-width: min(70%, 460px);
+  align-self: flex-start;
+  padding: 9px 12px 6px;
+  border: 1px solid var(--border);
+  border-radius: 14px 14px 14px 4px;
+  background: var(--surface);
+}
+
+.cht-msj.yo {
+  align-self: flex-end;
+  border-color: transparent;
+  border-radius: 14px 14px 4px 14px;
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.cht-msj p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cht-msj small {
+  display: block;
+  margin-top: 3px;
+  font-size: 10px;
+  text-align: right;
+  opacity: 0.7;
+}
+
+.cht-escribir {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.cht-escribir textarea {
+  flex: 1;
+  min-height: 38px;
+  max-height: 120px;
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  resize: none;
+  outline: none;
+}
+
+.cht-escribir textarea:focus {
+  border-color: var(--primary);
+}
+
+/* ---------------- Celular: lista o conversación ---------------- */
+@media (max-width: 760px) {
+  .cht-caja {
+    grid-template-columns: 1fr;
+    height: calc(100vh - 230px);
+  }
+
+  .cht-lista {
+    border-right: 0;
+  }
+
+  .cht-caja .cht-panel {
+    display: none;
+  }
+
+  .cht-caja.con-chat .cht-lista {
+    display: none;
+  }
+
+  .cht-caja.con-chat .cht-panel:not([hidden]) {
+    display: flex;
+  }
+
+  .cht-volver {
+    display: grid;
+    place-items: center;
+  }
+
+  .cht-msj {
+    max-width: 85%;
+  }
+}

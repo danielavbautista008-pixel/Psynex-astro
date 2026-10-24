@@ -1538,3 +1538,34 @@ body {
 .ofertas-page {
   width: min(1180px, calc(100% - 10vw));
 }
+
+
+/* =====================================================
+   VENTANAS FAVORITOS / POSTULACIONES: más discretas
+===================================================== */
+
+.modal-empleo .modal-contenido {
+  width: min(100%, 520px);
+  padding: 18px 20px;
+  border-radius: 16px;
+}
+
+.modal-empleo .modal-header h2 {
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.modal-empleo .modal-etiqueta {
+  font-size: 9.5px;
+}
+
+.modal-empleo .modal-cerrar {
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+}
+
+.modal-empleo .lista-modal,
+.modal-empleo .lista-modal p {
+  font-size: 12.5px;
+}

@@ -1,36 +1,255 @@
 ---
-import "./citas.css";
+// =====================================================================
+// Mis citas del paciente: próximas e historial.
+// DATOS DE PRUEBA: las citas son de ejemplo (todavía sin backend).
+// Cuando se conecte, se reemplaza el arreglo "citas" por la API.
+// =====================================================================
 import Menu from "./menuPac.astro";
+import { apiGet, urlFotoPsicologo } from "../../lib/api";
+import "./citas.css";
 
+// cambio: las citas de prueba usan los psicólogos REALES de Explorar
+// (ruta pública que ya existe) para mostrar su nombre y su foto.
+const datosPs = await apiGet<{ psicologos: { id: string; nombre: string; titulo: string; tieneFoto: boolean; fotoVersion?: string }[] }>(
+  Astro.request.headers.get("cookie"), "/api/explorar/psicologos");
+const reales = datosPs?.psicologos ?? [];
+
+type Cita = {
+  id: string;
+  psicologoId?: string; // cambio: para la foto y el enlace al perfil
+  foto?: string | null; // cambio: foto del psicólogo
+  psicologo: string;
+  especialidad: string;
+  fecha: string;
+  hora: string;
+  modalidad: "Virtual" | "Presencial";
+  formato: "Individual" | "Pareja" | "Familiar";
+  estado: "Confirmada" | "Pendiente" | "Completada" | "Cancelada";
+  pago: "Pagada" | "Cubierta por tu empresa" | "Pendiente";
+  calificada?: boolean;
+};
+
+const citasPrueba: Cita[] = [
+  { id: "c1", psicologo: "Andrea Gómez Ruiz", especialidad: "Psicóloga clínica", fecha: "Jueves 29 de octubre", hora: "10:00 a. m.", modalidad: "Virtual", formato: "Individual", estado: "Confirmada", pago: "Pagada" },
+  { id: "c2", psicologo: "Víctor Santiago", especialidad: "Psicólogo", fecha: "Martes 3 de noviembre", hora: "4:00 p. m.", modalidad: "Virtual", formato: "Pareja", estado: "Pendiente", pago: "Cubierta por tu empresa" },
+  { id: "c3", psicologo: "Camila Barrera", especialidad: "Psicología clínica", fecha: "Lunes 12 de octubre", hora: "9:00 a. m.", modalidad: "Presencial", formato: "Individual", estado: "Completada", pago: "Pagada" },
+  { id: "c4", psicologo: "Andrea Gómez Ruiz", especialidad: "Psicóloga clínica", fecha: "Viernes 25 de septiembre", hora: "11:00 a. m.", modalidad: "Virtual", formato: "Individual", estado: "Completada", pago: "Pagada", calificada: true },
+  { id: "c5", psicologo: "Víctor Santiago", especialidad: "Psicólogo", fecha: "Jueves 10 de septiembre", hora: "3:00 p. m.", modalidad: "Virtual", formato: "Individual", estado: "Cancelada", pago: "Pendiente" },
+];
+
+// cambio: a cada cita de prueba se le pone un psicólogo real (con su foto)
+const citas: Cita[] = citasPrueba.map((c, i) => {
+  const p = reales.length ? reales[i % Math.min(reales.length, 3)] : null;
+  return p
+    ? { ...c, psicologo: p.nombre, especialidad: p.titulo || c.especialidad, psicologoId: p.id, foto: p.tieneFoto ? urlFotoPsicologo(p.id, p.fotoVersion) : null }
+    : c;
+});
+
+const claseEstado: Record<Cita["estado"], string> = {
+  Confirmada: "ok",
+  Pendiente: "espera",
+  Completada: "neutro",
+  Cancelada: "mal",
+};
+
+const proximas = citas.filter((c) => c.estado === "Confirmada" || c.estado === "Pendiente");
+const historial = citas.filter((c) => c.estado === "Completada" || c.estado === "Cancelada");
 ---
-<div class="page-layout">
-    <!-- 1. Menú arriba ocupando todo el ancho -->
-    <Menu />
 
+<Menu />
 
-    <!-- 2. Contenido dividido en 2 columnas abajo -->
-    <main class="dashboard-container">
-         <div class="empty-state-container">
-        <div class="empty-card">
-            <!-- Icono superior -->
-            <div class="icon-wrapper">
-                <i class="fa-regular fa-calendar-days"></i>
+<main class="pac-page">
+  <div class="pac-contenido">
+
+    <header class="pac-header">
+      <div>
+        <span class="pac-etiqueta">Agenda</span>
+        <h1>Mis citas</h1>
+        <p>Aquí ves tus próximas sesiones, entras a la videollamada y calificas las que ya tuviste.</p>
+      </div>
+      <a href="/Paciente/Especialistas" class="pac-btn">Agendar nueva cita</a>
+    </header>
+
+    <div class="pac-tabs" role="tablist">
+      <button type="button" class="pac-tab activo" data-tab="proximas">Próximas ({proximas.length})</button>
+      <button type="button" class="pac-tab" data-tab="historial">Historial ({historial.length})</button>
+    </div>
+
+    {[{ id: "proximas", lista: proximas }, { id: "historial", lista: historial }].map(({ id, lista }) => (
+      <section class="cit-lista" data-panel={id} hidden={id !== "proximas"}>
+        {lista.length === 0 && (
+          <div class="pac-card pac-vacio">
+            <span class="pac-icono"><i class="bi bi-calendar"></i></span>
+            <h3>{id === "proximas" ? "No tienes citas próximas" : "Todavía no tienes historial"}</h3>
+            <p>Agendar es el primer paso para priorizar tu bienestar emocional.</p>
+            <a href="/Paciente/Especialistas" class="pac-btn">Buscar especialista</a>
+          </div>
+        )}
+
+        {lista.map((c) => (
+          <article class="pac-card cit-item" data-cita={c.id}>
+            {/* cambio: foto del psicólogo (si no tiene, queda la inicial) */}
+            <a
+              class="cit-foto"
+              href={c.psicologoId ? `/Explorar/${c.psicologoId}?desde=paciente&volver=/Paciente/Citas` : undefined}
+              title={`Ver perfil de ${c.psicologo}`}
+            >
+              {c.psicologo.charAt(0)}
+              {c.foto && <img src={c.foto} alt={c.psicologo} loading="lazy" onerror="this.style.display='none'" />}
+            </a>
+
+            <div class="cit-info">
+              <div class="cit-nombre">
+                <strong>{c.psicologo}</strong>
+                <span class={`pac-chip ${claseEstado[c.estado]}`}>{c.estado}</span>
+              </div>
+              <span class="cit-esp">{c.especialidad}</span>
+              <span class="cit-cuando"><i class="bi bi-calendar3"></i> {c.fecha} · {c.hora}</span>
+              <span class="cit-tags">
+                <span class="pac-chip neutro">{c.modalidad}</span>
+                <span class="pac-chip neutro">{c.formato === "Individual" ? "Individual" : c.formato === "Pareja" ? "Terapia de pareja" : "Terapia familiar"}</span>
+                <span class="pac-chip neutro">{c.pago}</span>
+              </span>
             </div>
 
-            <!-- Título -->
-            <h2 class="empty-title">No has agendado tu primera sesión</h2>
+            <div class="cit-acciones">
+              {c.estado === "Confirmada" && c.modalidad === "Virtual" && (
+                <button type="button" class="pac-btn pequeno" disabled title="Se habilita 10 minutos antes de la cita">Entrar a la sala</button>
+              )}
+              {(c.estado === "Confirmada" || c.estado === "Pendiente") && (
+                <button type="button" class="pac-btn pequeno peligro" data-cancelar={c.id} data-nombre={c.psicologo}>Cancelar</button>
+              )}
+              {c.estado === "Completada" && !c.calificada && (
+                <button type="button" class="pac-btn pequeno" data-calificar={c.id} data-nombre={c.psicologo}>Calificar</button>
+              )}
+              {c.estado === "Completada" && c.calificada && (
+                <span class="pac-chip ok"><i class="bi bi-star-fill"></i> Calificada</span>
+              )}
+              {c.estado === "Cancelada" && (
+                <a href="/Paciente/Especialistas" class="pac-btn pequeno borde">Agendar de nuevo</a>
+              )}
+            </div>
+          </article>
+        ))}
+      </section>
+    ))}
 
-            <!-- Descripción -->
-            <p class="empty-description">
-                Aún no tienes citas agendadas, pero este puede ser el primer paso para priorizar tu bienestar emocional
-            </p>
+    <span class="pac-prueba"><i class="bi bi-info-circle"></i> Citas de prueba: todavía no se conectan con el backend</span>
+  </div>
+</main>
 
-            <!-- Botón de acción -->
-            <button class="btn-primary">
-                Agenda tu primera sesión
-            </button>
-        </div>
+<!-- Cancelar cita -->
+<div class="pac-modal" id="modalCancelar" hidden>
+  <button type="button" class="pac-modal-fondo" data-cerrar-modal aria-label="Cerrar"></button>
+  <div class="pac-modal-caja" role="dialog" aria-modal="true" aria-labelledby="cancelarTitulo">
+    <h3 id="cancelarTitulo">Cancelar cita</h3>
+    <p id="cancelarTexto">¿Seguro que quieres cancelar esta cita?</p>
+    <label class="pac-campo">
+      Motivo (opcional)
+      <textarea rows="2" maxlength="300" placeholder="Cuéntale al psicólogo por qué cancelas"></textarea>
+    </label>
+    <div class="pac-modal-acciones">
+      <button type="button" class="pac-btn borde pequeno" data-cerrar-modal>Volver</button>
+      <button type="button" class="pac-btn peligro pequeno" id="confirmarCancelar">Sí, cancelar</button>
     </div>
-    </main>
-</div>  
+  </div>
+</div>
 
+<!-- Calificar cita -->
+<div class="pac-modal" id="modalCalificar" hidden>
+  <button type="button" class="pac-modal-fondo" data-cerrar-modal aria-label="Cerrar"></button>
+  <div class="pac-modal-caja" role="dialog" aria-modal="true" aria-labelledby="calificarTitulo">
+    <h3 id="calificarTitulo">¿Cómo te fue en tu sesión?</h3>
+    <p id="calificarTexto">Tu reseña ayuda a otros pacientes.</p>
+    <div class="cit-estrellas" id="estrellas">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button type="button" data-estrella={n} aria-label={`${n} estrellas`}>★</button>
+      ))}
+    </div>
+    <label class="pac-campo">
+      Comentario (opcional)
+      <textarea id="calificarComentario" rows="3" maxlength="500" placeholder="¿Qué te gustó de la sesión?"></textarea>
+    </label>
+    <div class="pac-modal-acciones">
+      <button type="button" class="pac-btn borde pequeno" data-cerrar-modal>Ahora no</button>
+      <button type="button" class="pac-btn pequeno" id="confirmarCalificar" disabled>Enviar reseña</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { abrirModal, avisar, prepararModales } from "./utilidades";
+
+  prepararModales();
+
+  // Pestañas
+  document.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((tab) =>
+    tab.addEventListener("click", () => {
+      document.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((t) => t.classList.toggle("activo", t === tab));
+      document.querySelectorAll<HTMLElement>("[data-panel]").forEach((p) => (p.hidden = p.dataset.panel !== tab.dataset.tab));
+    })
+  );
+
+  // Cancelar (prueba: solo cambia en pantalla)
+  let citaActual = "";
+  document.querySelectorAll<HTMLButtonElement>("[data-cancelar]").forEach((b) =>
+    b.addEventListener("click", () => {
+      citaActual = b.dataset.cancelar || "";
+      const t = document.getElementById("cancelarTexto");
+      if (t) t.textContent = `¿Seguro que quieres cancelar tu cita con ${b.dataset.nombre}?`;
+      abrirModal("modalCancelar");
+    })
+  );
+
+  document.getElementById("confirmarCancelar")?.addEventListener("click", () => {
+    const item = document.querySelector<HTMLElement>(`[data-cita="${citaActual}"]`);
+    const chip = item?.querySelector(".cit-nombre .pac-chip");
+    if (chip) {
+      chip.textContent = "Cancelada";
+      chip.className = "pac-chip mal";
+    }
+    item?.querySelectorAll(".cit-acciones button").forEach((b) => b.remove());
+    (document.getElementById("modalCancelar") as HTMLElement).hidden = true;
+    avisar("Cita cancelada (prueba).");
+  });
+
+  // Calificar
+  let puntaje = 0;
+  const estrellas = document.querySelectorAll<HTMLButtonElement>("[data-estrella]");
+  const enviar = document.getElementById("confirmarCalificar") as HTMLButtonElement | null;
+
+  const pintarEstrellas = (n: number) =>
+    estrellas.forEach((e) => e.classList.toggle("activa", Number(e.dataset.estrella) <= n));
+
+  estrellas.forEach((e) =>
+    e.addEventListener("click", () => {
+      puntaje = Number(e.dataset.estrella);
+      pintarEstrellas(puntaje);
+      if (enviar) enviar.disabled = false;
+    })
+  );
+
+  document.querySelectorAll<HTMLButtonElement>("[data-calificar]").forEach((b) =>
+    b.addEventListener("click", () => {
+      citaActual = b.dataset.calificar || "";
+      puntaje = 0;
+      pintarEstrellas(0);
+      if (enviar) enviar.disabled = true;
+      const t = document.getElementById("calificarTexto");
+      if (t) t.textContent = `Califica tu sesión con ${b.dataset.nombre}.`;
+      abrirModal("modalCalificar");
+    })
+  );
+
+  enviar?.addEventListener("click", () => {
+    const boton = document.querySelector<HTMLElement>(`[data-calificar="${citaActual}"]`);
+    if (boton) {
+      const chip = document.createElement("span");
+      chip.className = "pac-chip ok";
+      chip.innerHTML = '<i class="bi bi-star-fill"></i> Calificada';
+      boton.replaceWith(chip);
+    }
+    (document.getElementById("modalCalificar") as HTMLElement).hidden = true;
+    avisar("¡Gracias por tu reseña!");
+  });
+</script>

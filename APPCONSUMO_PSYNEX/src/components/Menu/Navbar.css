@@ -1,16 +1,3 @@
-/* =========================================================================
-   navbar.css
-   Estilos exclusivos del componente Navbar.astro.
-
-   IMPORTANTE: este archivo NO define colores propios (nada de #hex fijos
-   para fondos o textos). Todo se apoya en las variables que ya vienen de
-   colores-globales.css (--primary, --bg, --surface, --text, --border,
-   --primary-hover, etc). Así, cuando el usuario cambia de tema con el
-   ThemePicker (data-theme="blue", "verde-blanco", etc.), el navbar
-   cambia de color solo, sin tocar este archivo.
-   ========================================================================= */
-
-
 /* -------------------------------------------------------------------------
    1. CONTENEDOR PRINCIPAL DEL MENÚ
    ------------------------------------------------------------------------- */

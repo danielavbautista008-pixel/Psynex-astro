@@ -1,8 +1,17 @@
+body {
+  background: var(--bg);
+  overflow-x: hidden;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--bs-body-font-family); /* cambio de fuente: la misma de las vistas de psicólogo */
 }
 
 .landing-container {
@@ -11,13 +20,10 @@
     background: var(--bg);
 }
 
-body {
-    background: var(--bg);
-    overflow-x: hidden;
-}
+
 
 .Bienvenida-Em {
-    font-family: "Roboto", sans-serif;
+    font-family: var(--bs-body-font-family); /* cambio de fuente: la misma de las vistas de psicólogo */
     max-width: 1200px;
     margin: 30px auto;
     padding: 0 200px;
@@ -49,15 +55,15 @@ body {
 }
 
 .alerta-exito {
-    background-color: #e8f7ee;
-    color: #28a745;
-    border: 1px solid #c3e6cb;
+    background-color: var(--success-bg); /* colores del tema */
+    color: var(--success-fg);
+    border: 1px solid color-mix(in srgb, var(--success-fg) 25%, transparent);
 }
 
 .alerta-error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background-color: var(--danger-bg); /* colores del tema */
+    color: var(--danger-fg);
+    border: 1px solid color-mix(in srgb, var(--danger-fg) 25%, transparent);
 }
 
 /* Structure */
@@ -80,24 +86,24 @@ body {
 .header-perfil h1 {
     font-size: 26px;
     font-weight: 700;
-    color: var(--primary);
+    color: var(--primary); /* colores del tema */
 }
 
 .header-perfil p {
-    color: var(--text);
+    color: var(--text-muted); /* colores del tema */
     font-size: 15px;
     margin-top: 5px;
 }
 
 /* Left Avatar Card */
 .perfil-avatar-card {
-    background: var(--bg);
+    background: var(--surface); /* colores del tema */
     border-radius: 16px;
     padding: 40px 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-shadow: 0 4px 20px rgba(75, 52, 37, 0.03);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
     border: 1px solid var(--border);
 }
 
@@ -113,14 +119,14 @@ body {
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
-    background-color:var(--bg);
+    background-color: var(--bg); /* colores del tema */
 }
 
 .btn-cambiar-foto {
     position: absolute;
     bottom: 5px;
     right: 5px;
-    background: var(--bg);
+    background: var(--surface); /* colores del tema */
     width: 38px;
     height: 38px;
     border-radius: 50%;
@@ -135,15 +141,15 @@ body {
 }
 
 .btn-cambiar-foto:hover {
-    background: var(--bg);
-    color: var(--text);
+    background: var(--primary);
+    color: var(--on-primary); /* colores del tema */
     transform: scale(1.05);
 }
 
 .empresa-nombre-title {
     font-size: 20px;
     font-weight: 700;
-    color: var(--primary);
+    color: var(--primary); /* colores del tema */
     margin-bottom: 15px;
     text-align: center;
 }
@@ -152,8 +158,8 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background-color: var(--bg);
-    color: var(--text);
+    background-color: var(--success-bg); /* colores del tema */
+    color: var(--success-fg);
     padding: 6px 16px;
     border-radius: 20px;
     font-size: 13px;
@@ -162,11 +168,11 @@ body {
 
 /* Form Card */
 .perfil-form-card {
-    background: var(--bg);
+    background: var(--surface); /* colores del tema */
     border-radius: 16px;
     padding: 40px;
-    box-shadow: 0 4px 20px rgba(75, 52, 37, 0.03);
-    border: 1px solid var(--border) ;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--border);
 }
 
 .form-group-custom {
@@ -185,7 +191,7 @@ body {
 .form-group-custom label {
     font-size: 13px;
     font-weight: 600;
-    color: var(--primary);
+    color: var(--text); /* colores del tema */
 }
 
 .form-group-custom input,
@@ -193,7 +199,7 @@ body {
 .select-custom {
     width: 100%;
     padding: 12px 16px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border); /* colores del tema */
     border-radius: 10px;
     background-color: var(--bg);
     font-size: 14px;
@@ -205,16 +211,20 @@ body {
 .form-group-custom input:focus,
 .form-group-custom textarea:focus,
 .select-custom:focus {
-    border-color: var(--border-focus);
-    background-color: var(--bg) ;
-    box-shadow: 0 0 0 3px rgba(198, 154, 99, 0.1);
+    border-color: var(--primary);
+    background-color: var(--surface); /* colores del tema */
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
 .select-custom {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%234b3425' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+    /* colores del tema: la flechita se dibuja con el color del texto */
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+        linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+    background-size: 5px 5px, 5px 5px;
     background-repeat: no-repeat;
-    background-position: right 16px center;
+    background-position: right 21px center, right 16px center;
     padding-right: 40px;
 }
 
@@ -226,8 +236,8 @@ body {
 
 .btn-guardar-cambios {
     background: var(--primary);
-    border: var(--border focus);
-    color: var(--text);
+    border: none;
+    color: var(--on-primary); /* colores del tema */
     padding: 14px 35px;
     border-radius: 10px;
     font-weight: 600;
@@ -237,7 +247,7 @@ body {
 }
 
 .btn-guardar-cambios:hover {
-    background: var(--bg);
+    background: color-mix(in srgb, var(--primary) 85%, black); /* colores del tema */
     transform: translateY(-2px);
 }
 

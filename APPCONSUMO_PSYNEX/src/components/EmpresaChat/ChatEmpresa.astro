@@ -1,0 +1,1180 @@
+---
+import MenuE from "../empresa/menuE.astro";
+import { API_URL } from "../../lib/api";
+import "../Psicologos/Mensajes.css";
+import "./chatEmpresa.css";
+
+// ---------------------------------------------------------------
+// Chat de la empresa con los psicólogos que se postularon a sus ofertas.
+// Usa el mismo chat (y los mismos estilos) que el psicólogo:
+//   GET  /api/chat/empresa/postulados          -> pestaña "Postulados"
+//   POST /api/chat/empresa/postulados/:id      -> abre/crea el chat con uno
+//   GET  /api/chat/conversaciones              -> chats ya iniciados
+//   GET  /api/chat/conversaciones              -> lista de la izquierda
+//   GET  /api/chat/conversaciones/:id/mensajes -> mensajes de la derecha
+//   WS   /api/chat/ws                          -> mensajes en tiempo real
+// El script de abajo hace todo desde el navegador.
+// ---------------------------------------------------------------
+const yoId = String(Astro.locals.usuario?.UsuarioId ?? "");
+---
+
+<MenuE />
+
+<main class="chat-page chat-empresa" id="chatPagina" data-yo={yoId} data-api={API_URL}>
+
+  <!-- ENCABEZADO -->
+  <header class="chat-header">
+    <div>
+      <span class="chat-eyebrow">COMUNICACIÓN</span>
+      <h1>Chats</h1>
+      <p>Escríbele a los psicólogos que se postularon a tus ofertas.</p>
+    </div>
+  </header>
+
+
+  <!-- PANEL DEL CHAT -->
+  <section class="chat-panel" id="chatPanel">
+
+    <!-- =========================================
+         COLUMNA IZQUIERDA: CONVERSACIONES
+    ========================================== -->
+    <aside class="chat-sidebar">
+
+      <label class="chat-search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <span class="chat-sr-only">Buscar psicólogo</span>
+        <input id="chatBuscar" type="search" placeholder="Buscar psicólogo..." autocomplete="off" />
+      </label>
+
+      <div class="chat-tabs" role="tablist">
+        <button type="button" class="chat-tab activo" data-filtro="todas" role="tab">Todas</button>
+        <button type="button" class="chat-tab" data-filtro="noleidas" role="tab">No leídas</button>
+        <button type="button" class="chat-tab" data-filtro="postulados" role="tab">Postulados</button>
+      </div>
+
+      <div class="chat-list" id="chatLista"></div>
+
+      <div class="chat-list-empty" id="chatListaVacia" hidden>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M20.5 3.5C13.2 3.8 7.4 6.1 5 10.2c-1.8 3.1-.5 6.4 2.2 7.6 2.8 1.3 6.1-.1 7.9-2.8 2.1-3.1 2.6-7.1 5.4-11.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 20c2.8-4.4 6.2-7.1 11.5-9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <p>Todavía no tienes conversaciones. Ve a "Postulados" para escribirle a alguien.</p>
+      </div>
+
+    </aside>
+
+
+    <!-- =========================================
+         COLUMNA DERECHA: CONVERSACIÓN
+    ========================================== -->
+    <section class="chat-main">
+
+      <!-- Sin conversación elegida -->
+      <div class="chat-placeholder" id="chatSinSeleccion">
+        <span class="chat-placeholder-icon">
+          <svg class="icono-chat-hoja grande" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 3.2c-5 0-9 3.4-9 7.6 0 2.3 1.2 4.4 3.2 5.8l-.8 3.6 3.8-2.1c.9.2 1.8.3 2.8.3 5 0 9-3.4 9-7.6s-4-7.6-9-7.6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M15.6 7.4c-3.1.1-5.5 1.1-6.5 2.8-.8 1.3-.2 2.7.9 3.2 1.2.5 2.6 0 3.3-1.2.9-1.3 1.1-3 2.3-4.8Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M8.4 14.4c1.2-1.9 2.6-3 4.9-4.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <h2>Tus conversaciones</h2>
+        <p>Selecciona una conversación o un postulado para empezar.</p>
+      </div>
+
+      <!-- Conversación abierta -->
+      <div class="chat-conversation" id="chatConversacion" hidden>
+
+        <header class="chat-conv-header">
+          <button type="button" class="chat-back" id="chatVolver" aria-label="Volver a la lista">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+          </button>
+
+          <span class="chat-avatar" id="chatAvatar"></span>
+
+          <div class="chat-conv-info">
+            <strong id="chatNombre">Psicólogo</strong>
+            <small id="chatEstado">Postulado</small>
+          </div>
+
+          <div class="chat-menu">
+            <button type="button" class="chat-menu-button" id="chatMenuBoton" aria-label="Más opciones" aria-expanded="false">
+              <i class="bi bi-three-dots-vertical" aria-hidden="true"></i>
+            </button>
+            <div class="chat-menu-list" id="chatMenu" hidden>
+              <button type="button" id="chatCerrarConv">
+                <i class="bi bi-x-circle" aria-hidden="true"></i>
+                Cerrar conversación
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <!-- Se muestra solo si se pierde la conexión -->
+        <div class="chat-offline" id="chatSinConexion" hidden>
+          <i class="bi bi-wifi-off" aria-hidden="true"></i>
+          Sin conexión. Reconectando...
+        </div>
+
+        <div class="chat-messages" id="chatMensajes" aria-live="polite"></div>
+
+        <!-- "escribiendo..." con tres hojitas -->
+        <div class="chat-typing" id="chatEscribiendo" hidden>
+          <span class="typing-leaves" aria-hidden="true">
+            <i></i><i></i><i></i>
+          </span>
+          <span id="chatEscribiendoTexto">escribiendo...</span>
+        </div>
+
+        <!-- Conversación cerrada -->
+        <div class="chat-closed" id="chatCerrada" hidden>
+          <i class="bi bi-lock" aria-hidden="true"></i>
+          Cerraste esta conversación.
+          <button type="button" id="chatReabrir">Reabrir</button>
+        </div>
+
+        <!-- BARRA DE ESCRIBIR -->
+        <form class="chat-composer" id="chatFormulario">
+
+          <div class="chat-attachment" id="chatAdjunto" hidden>
+            <span class="chat-attachment-thumb" id="chatAdjuntoMiniatura"></span>
+            <span class="chat-attachment-info">
+              <strong id="chatAdjuntoNombre">archivo.pdf</strong>
+              <small id="chatAdjuntoTamano">0 KB</small>
+            </span>
+            <button type="button" class="chat-attachment-remove" id="chatAdjuntoQuitar" aria-label="Quitar archivo">
+              <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <div class="chat-composer-row">
+            <button type="button" class="chat-icon-button" id="chatAdjuntar" aria-label="Adjuntar archivo" title="Adjuntar archivo">
+              <i class="bi bi-paperclip" aria-hidden="true"></i>
+            </button>
+
+            <input
+              type="file"
+              id="chatArchivo"
+              accept="image/jpeg,image/png,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              hidden
+            />
+
+            <textarea
+              id="chatTexto"
+              rows="1"
+              maxlength="1000"
+              placeholder="Escribe un mensaje..."
+            ></textarea>
+
+            <button type="submit" class="chat-send" id="chatEnviar" aria-label="Enviar" disabled>
+              <i class="bi bi-send" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <small class="chat-composer-hint">Imágenes, PDF o Word · Máx. 5 MB</small>
+        </form>
+
+      </div>
+
+    </section>
+
+  </section>
+
+</main>
+
+
+<!-- =========================================
+     VENTANAS EMERGENTES
+========================================== -->
+
+<!-- 1. Ver imagen -->
+<div class="chat-modal chat-modal-image" id="modalImagen" hidden>
+  <button type="button" class="chat-modal-backdrop" data-cerrar-modal aria-label="Cerrar"></button>
+  <figure class="chat-image-viewer">
+    <img id="modalImagenImg" src="" alt="" />
+    <figcaption>
+      <span id="modalImagenNombre">imagen.jpg</span>
+      <span class="chat-image-actions">
+        <a id="modalImagenDescargar" href="#" download>
+          <i class="bi bi-download" aria-hidden="true"></i>
+          Descargar
+        </a>
+        <button type="button" data-cerrar-modal aria-label="Cerrar">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </span>
+    </figcaption>
+  </figure>
+</div>
+
+<!-- 2. Cerrar conversación -->
+<div class="chat-modal" id="modalCerrar" hidden>
+  <button type="button" class="chat-modal-backdrop" data-cerrar-modal aria-label="Cerrar"></button>
+  <section class="chat-modal-box" role="dialog" aria-modal="true" aria-labelledby="modalCerrarTitulo">
+    <h3 id="modalCerrarTitulo">Cerrar conversación</h3>
+    <p>El psicólogo ya no podrá enviarte mensajes. Podrás reabrirla cuando quieras.</p>
+    <div class="chat-modal-actions">
+      <button type="button" class="chat-btn secundario" data-cerrar-modal>Cancelar</button>
+      <button type="button" class="chat-btn principal" id="modalCerrarConfirmar">Cerrar conversación</button>
+    </div>
+  </section>
+</div>
+
+<!-- 3. Archivo no permitido -->
+<div class="chat-modal" id="modalArchivo" hidden>
+  <button type="button" class="chat-modal-backdrop" data-cerrar-modal aria-label="Cerrar"></button>
+  <section class="chat-modal-box" role="dialog" aria-modal="true" aria-labelledby="modalArchivoTitulo">
+    <h3 id="modalArchivoTitulo">Archivo no permitido</h3>
+    <p>Solo puedes enviar imágenes (JPG o PNG), PDF o Word de máximo 5 MB.</p>
+    <div class="chat-modal-actions">
+      <button type="button" class="chat-btn principal" data-cerrar-modal>Entendido</button>
+    </div>
+  </section>
+</div>
+
+
+
+
+<script>
+  /* =====================================================
+     CHAT EN TIEMPO REAL
+     - La lista y los mensajes se piden con fetch (como siempre).
+     - Los mensajes nuevos, "escribiendo..." y "visto" llegan por
+       el WebSocket sin recargar la página.
+     - Si se cae la conexión, se reconecta sola.
+  ===================================================== */
+
+  interface ArchivoMsj { nombre: string; mime: string; bytes: number }
+
+  interface Mensaje {
+    id: string;
+    conversacionId: string;
+    emisorId: string;
+    tipo: "texto" | "imagen" | "documento";
+    texto: string;
+    archivo: ArchivoMsj | null;
+    leido: boolean;
+    fecha: string;
+    enviando?: boolean;     // solo en pantalla, mientras se envía
+    urlLocal?: string;      // vista previa local de la imagen mientras sube
+  }
+
+  interface Conversacion {
+    id: string;
+    otroId: string;
+    nombre: string;
+    tieneFoto: boolean;
+    fotoVersion?: string;
+    enLinea: boolean;
+    cerrada: boolean;
+    noLeidos: number;
+    proximaCita: string | null;
+    detalle?: string | null;
+    ultimoMensaje: Mensaje | null;
+    mensajes?: Mensaje[];
+    hayMas?: boolean;
+  }
+
+  const pagina = document.getElementById("chatPagina");
+  const YO = pagina?.dataset.yo || "";
+  const API = pagina?.dataset.api || "http://localhost:8001";
+
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T | null;
+
+  const panel = $("chatPanel");
+  const lista = $("chatLista");
+  const listaVacia = $("chatListaVacia");
+  const buscar = $<HTMLInputElement>("chatBuscar");
+  const sinSeleccion = $("chatSinSeleccion");
+  const conversacionBox = $("chatConversacion");
+  const mensajesBox = $("chatMensajes");
+  const formulario = $<HTMLFormElement>("chatFormulario");
+  const texto = $<HTMLTextAreaElement>("chatTexto");
+  const enviar = $<HTMLButtonElement>("chatEnviar");
+  const archivoInput = $<HTMLInputElement>("chatArchivo");
+  const adjuntoBox = $("chatAdjunto");
+  const cerradaBox = $("chatCerrada");
+  const escribiendoBox = $("chatEscribiendo");
+  const sinConexion = $("chatSinConexion");
+
+  // Psicólogos que se postularon a las ofertas de la empresa
+  interface Postulado {
+    usuarioId: string;
+    nombre: string;
+    tieneFoto: boolean;
+    fotoVersion?: string;
+    enLinea: boolean;
+    conversacionId: string | null;
+    ofertas: { titulo: string; estado: string }[];
+  }
+  let postulados: Postulado[] = [];
+
+  let conversaciones: Conversacion[] = [];
+  let filtro = "todas";
+  let actual: Conversacion | null = null;
+  let archivoElegido: File | null = null;
+
+
+  /* =====================================================
+     PETICIONES
+  ===================================================== */
+  async function pedir(ruta: string, opciones: RequestInit = {}) {
+    const res = await fetch(API + ruta, { credentials: "include", ...opciones });
+    if (res.status === 401) {
+      window.location.href = "/Inicio/login";
+      throw new Error("Sesión vencida");
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const error = Array.isArray(data.error) ? data.error.join(". ") : (data.error || "Ocurrió un error");
+      throw new Error(error);
+    }
+    return data;
+  }
+
+  const urlArchivo = (m: Mensaje) => m.urlLocal || `${API}/api/chat/mensajes/${encodeURIComponent(m.id)}/archivo`;
+  // cambio: ?v= cambia cuando la persona cambia su foto (así no sale la foto vieja)
+  const urlFoto = (c: Conversacion) =>
+    `${API}/api/chat/usuarios/${encodeURIComponent(c.otroId)}/foto?v=${encodeURIComponent(c.fotoVersion ?? "")}`;
+
+
+  /* =====================================================
+     UTILIDADES
+  ===================================================== */
+  const ZONA = "America/Bogota";
+
+  const iniciales = (nombre: string) =>
+    nombre.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join("");
+
+  const hora = (f: string) =>
+    new Date(f).toLocaleTimeString("es-CO", { hour: "numeric", minute: "2-digit", timeZone: ZONA });
+
+  const diaClave = (f: string) => new Date(f).toLocaleDateString("en-CA", { timeZone: ZONA });
+
+  const etiquetaDia = (f: string) => {
+    const hoy = new Date();
+    const ayer = new Date(Date.now() - 86_400_000);
+    if (diaClave(f) === diaClave(hoy.toISOString())) return "Hoy";
+    if (diaClave(f) === diaClave(ayer.toISOString())) return "Ayer";
+    return new Date(f).toLocaleDateString("es-CO", { day: "numeric", month: "short", timeZone: ZONA }).replace(".", "");
+  };
+
+  const cuandoLista = (f: string) => (etiquetaDia(f) === "Hoy" ? hora(f) : etiquetaDia(f));
+
+  const pesoLegible = (bytes: number) =>
+    bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1).replace(".", ",")} MB`;
+
+  const extensionDe = (nombre: string) => (nombre.split(".").pop() || "").toLowerCase();
+
+  const textoProximaCita = (c: Conversacion) => (c.detalle ? `Postulado a: ${c.detalle}` : "Postulado");
+
+  // Hojita de Psynex (la misma de la Agenda)
+  const HOJA = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.5 3.5C13.2 3.8 7.4 6.1 5 10.2c-1.8 3.1-.5 6.4 2.2 7.6 2.8 1.3 6.1-.1 7.9-2.8 2.1-3.1 2.6-7.1 5.4-11.5Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20c2.8-4.4 6.2-7.1 11.5-9.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`;
+
+  // Una hojita = enviado · dos hojitas = visto · hojita que "respira" = enviando
+  const estadoEnvio = (m: Mensaje) => {
+    const span = document.createElement("span");
+    if (m.enviando) {
+      span.className = "chat-receipt enviando";
+      span.title = "Enviando";
+      span.innerHTML = HOJA;
+    } else if (m.leido) {
+      span.className = "chat-receipt visto";
+      span.title = "Visto";
+      span.innerHTML = HOJA + HOJA;
+    } else {
+      span.className = "chat-receipt";
+      span.title = "Enviado";
+      span.innerHTML = HOJA;
+    }
+    return span;
+  };
+
+  // Foto de la persona (si no tiene o no carga, quedan sus iniciales)
+  function pintarAvatar(el: HTMLElement, c: Conversacion) {
+    el.replaceChildren();
+    el.classList.toggle("en-linea", c.enLinea);
+    const letras = document.createElement("span");
+    letras.className = "chat-avatar-iniciales";
+    letras.textContent = iniciales(c.nombre);
+    el.append(letras);
+    if (c.tieneFoto) {
+      const img = document.createElement("img");
+      img.src = urlFoto(c);
+      img.alt = "";
+      img.loading = "lazy";
+      img.addEventListener("error", () => img.remove());
+      el.append(img);
+    }
+  }
+
+
+  /* =====================================================
+     LISTA DE CONVERSACIONES
+  ===================================================== */
+  const ultimoTexto = (c: Conversacion) => {
+    const m = c.ultimoMensaje;
+    if (!m) return "Sin mensajes todavía";
+    const prefijo = m.emisorId === YO ? "Tú: " : "";
+    if (m.tipo === "imagen") return `${prefijo}Imagen`;
+    if (m.tipo === "documento") return `${prefijo}📎 ${m.archivo?.nombre ?? "Documento"}`;
+    return prefijo + m.texto;
+  };
+
+  const fechaOrden = (c: Conversacion) => (c.ultimoMensaje ? new Date(c.ultimoMensaje.fecha).getTime() : 0);
+
+  // Pestaña "Postulados": cada psicólogo con sus ofertas y un botón para escribirle
+  function pintarPostulados() {
+    if (!lista) return;
+    const q = (buscar?.value || "").trim().toLowerCase();
+    const visibles = postulados.filter((p) => p.nombre.toLowerCase().includes(q));
+    lista.replaceChildren();
+    if (listaVacia) {
+      listaVacia.hidden = visibles.length > 0;
+      const p = listaVacia.querySelector("p");
+      if (p) {
+        p.textContent = postulados.length
+          ? "No hay postulados con ese nombre."
+          : "Todavía nadie se ha postulado a tus ofertas.";
+      }
+    }
+    visibles.forEach((p) => {
+      const fila = document.createElement("div");
+      fila.className = "chat-item chat-postulado";
+
+      const avatar = document.createElement("span");
+      avatar.className = "chat-avatar";
+      pintarAvatar(avatar, { otroId: p.usuarioId, nombre: p.nombre, tieneFoto: p.tieneFoto, fotoVersion: p.fotoVersion, enLinea: Boolean(p.enLinea) } as Conversacion);
+
+      const info = document.createElement("span");
+      info.className = "chat-item-info";
+      const nombre = document.createElement("strong");
+      nombre.textContent = p.nombre;
+      const ofertas = document.createElement("span");
+      ofertas.textContent = p.ofertas.map((o) => o.titulo).join(" · ");
+      info.append(nombre, ofertas);
+
+      const boton = document.createElement("button");
+      boton.type = "button";
+      boton.className = "chat-escribir";
+      boton.textContent = p.conversacionId ? "Abrir chat" : "Escribir";
+      boton.addEventListener("click", () => escribirA(p, boton));
+
+      fila.append(avatar, info, boton);
+      lista.append(fila);
+    });
+  }
+
+  async function cargarPostulados() {
+    try {
+      const data = await pedir("/api/chat/empresa/postulados");
+      postulados = data.postulados || [];
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // Abre el chat con el postulado (si no existe, el servidor lo crea)
+  async function escribirA(p: Postulado, boton: HTMLButtonElement) {
+    boton.disabled = true;
+    try {
+      const data = await pedir(`/api/chat/empresa/postulados/${encodeURIComponent(p.usuarioId)}`, { method: "POST" });
+      p.conversacionId = data.conversacionId;
+      await cargarConversaciones();
+      // Vuelve a la pestaña "Todas" con el chat abierto
+      filtro = "todas";
+      document.querySelectorAll<HTMLElement>(".chat-tab").forEach((t) => t.classList.toggle("activo", t.dataset.filtro === "todas"));
+      await abrirConversacion(data.conversacionId);
+    } catch (e) {
+      mostrarAviso("No se pudo abrir el chat", (e as Error).message);
+    } finally {
+      boton.disabled = false;
+    }
+  }
+
+  function pintarLista() {
+    if (!lista) return;
+    if (filtro === "postulados") return pintarPostulados();
+    const q = (buscar?.value || "").trim().toLowerCase();
+    const visibles = conversaciones
+      .filter((c) => c.nombre.toLowerCase().includes(q))
+      .filter((c) => filtro === "todas" || c.noLeidos > 0)
+      .sort((a, b) => fechaOrden(b) - fechaOrden(a));
+
+    lista.replaceChildren();
+    if (listaVacia) {
+      listaVacia.hidden = visibles.length > 0;
+      const p = listaVacia.querySelector("p");
+      if (p) {
+        p.textContent = conversaciones.length
+          ? "No hay conversaciones con ese filtro."
+          : "Todavía no tienes conversaciones. Ve a \"Postulados\" para escribirle a alguien.";
+      }
+    }
+
+    visibles.forEach((c) => {
+      const fila = document.createElement("button");
+      fila.type = "button";
+      fila.className = "chat-item" + (actual?.id === c.id ? " activo" : "") + (c.noLeidos ? " no-leida" : "");
+
+      const avatar = document.createElement("span");
+      avatar.className = "chat-avatar";
+      pintarAvatar(avatar, c);
+
+      const info = document.createElement("span");
+      info.className = "chat-item-info";
+      const nombre = document.createElement("strong");
+      nombre.textContent = c.nombre;
+      const ultimo = document.createElement("span");
+      ultimo.textContent = ultimoTexto(c);
+      info.append(nombre, ultimo);
+
+      const meta = document.createElement("span");
+      meta.className = "chat-item-meta";
+      const cuando = document.createElement("small");
+      cuando.textContent = c.ultimoMensaje ? cuandoLista(c.ultimoMensaje.fecha) : "";
+      meta.append(cuando);
+      if (c.noLeidos) {
+        const burbuja = document.createElement("span");
+        burbuja.className = "chat-unread";
+        burbuja.textContent = c.noLeidos > 9 ? "9+" : String(c.noLeidos);
+        meta.append(burbuja);
+      }
+
+      fila.append(avatar, info, meta);
+      fila.addEventListener("click", () => abrirConversacion(c.id));
+      lista.append(fila);
+    });
+  }
+
+  buscar?.addEventListener("input", pintarLista);
+
+  document.querySelectorAll<HTMLButtonElement>(".chat-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      filtro = tab.dataset.filtro || "todas";
+      document.querySelectorAll(".chat-tab").forEach((t) => t.classList.toggle("activo", t === tab));
+      pintarLista();
+    });
+  });
+
+  async function cargarConversaciones() {
+    try {
+      const data = await pedir("/api/chat/conversaciones");
+      const anteriores = new Map(conversaciones.map((c) => [c.id, c]));
+      conversaciones = (data.conversaciones || []).map((c: Conversacion) => ({
+        ...c,
+        // Se conservan los mensajes que ya estaban cargados
+        mensajes: anteriores.get(c.id)?.mensajes,
+        hayMas: anteriores.get(c.id)?.hayMas,
+      }));
+      if (actual) actual = conversaciones.find((c) => c.id === actual!.id) || null;
+      pintarLista();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+
+  /* =====================================================
+     MENSAJES
+  ===================================================== */
+  function burbuja(m: Mensaje) {
+    const mio = m.emisorId === YO;
+    const fila = document.createElement("div");
+    fila.className = "chat-row " + (mio ? "mio" : "suyo");
+    fila.dataset.id = m.id;
+
+    const caja = document.createElement("div");
+    caja.className = "chat-bubble tipo-" + m.tipo;
+
+    if (m.tipo === "imagen") {
+      const boton = document.createElement("button");
+      boton.type = "button";
+      boton.className = "chat-image";
+      const img = document.createElement("img");
+      img.src = urlArchivo(m);
+      img.alt = m.archivo?.nombre || "Imagen";
+      img.loading = "lazy";
+      img.addEventListener("load", () => {
+        // Al cargar la imagen se baja hasta el final si ya estaba abajo
+        if (mensajesBox && mensajesBox.scrollHeight - mensajesBox.scrollTop - mensajesBox.clientHeight < 300) {
+          mensajesBox.scrollTop = mensajesBox.scrollHeight;
+        }
+      });
+      boton.append(img);
+      boton.addEventListener("click", () => verImagen(m));
+      caja.append(boton);
+    }
+
+    if (m.tipo === "documento") {
+      const nombreArchivo = m.archivo?.nombre || "Documento";
+      const ext = extensionDe(nombreArchivo);
+      const doc = document.createElement("a");
+      doc.className = "chat-doc";
+      doc.href = urlArchivo(m);
+      doc.target = "_blank";
+      doc.rel = "noopener";
+      const icono = document.createElement("span");
+      icono.className = "chat-doc-icon " + (ext === "pdf" ? "pdf" : "word");
+      icono.innerHTML = `<i class="bi ${ext === "pdf" ? "bi-file-earmark-pdf" : "bi-file-earmark-word"}" aria-hidden="true"></i>`;
+      const info = document.createElement("span");
+      info.className = "chat-doc-info";
+      const nombre = document.createElement("strong");
+      nombre.textContent = nombreArchivo;
+      const peso = document.createElement("small");
+      peso.textContent = `${ext.toUpperCase()} · ${pesoLegible(m.archivo?.bytes || 0)}`;
+      info.append(nombre, peso);
+      const bajar = document.createElement("span");
+      bajar.className = "chat-doc-download";
+      bajar.innerHTML = '<i class="bi bi-download" aria-hidden="true"></i>';
+      doc.append(icono, info, bajar);
+      caja.append(doc);
+    }
+
+    // Texto (o el comentario que acompaña un archivo)
+    if (m.texto) {
+      const p = document.createElement("p");
+      p.textContent = m.texto;
+      if (m.tipo !== "texto") p.className = "chat-caption";
+      caja.append(p);
+    }
+
+    const pie = document.createElement("span");
+    pie.className = "chat-meta";
+    const h = document.createElement("time");
+    h.textContent = hora(m.fecha);
+    pie.append(h);
+    if (mio) pie.append(estadoEnvio(m));
+    caja.append(pie);
+
+    fila.append(caja);
+    return fila;
+  }
+
+  function pintarMensajes(mantenerPosicion = false) {
+    if (!mensajesBox || !actual) return;
+    const alturaAntes = mensajesBox.scrollHeight;
+    const arriba = mensajesBox.scrollTop;
+    mensajesBox.replaceChildren();
+
+    if (actual.hayMas) {
+      const mas = document.createElement("button");
+      mas.type = "button";
+      mas.className = "chat-load-more";
+      mas.textContent = "Ver mensajes anteriores";
+      mas.addEventListener("click", cargarAnteriores);
+      mensajesBox.append(mas);
+    }
+
+    const mensajes = actual.mensajes || [];
+    if (!mensajes.length) {
+      const vacio = document.createElement("p");
+      vacio.className = "chat-empty-conv";
+      vacio.textContent = actual.cerrada
+        ? "Esta conversación está cerrada."
+        : `Escríbele a ${actual.nombre.split(" ")[0]} para empezar la conversación.`;
+      mensajesBox.append(vacio);
+    }
+
+    let diaAnterior = "";
+    mensajes.forEach((m) => {
+      const dia = etiquetaDia(m.fecha);
+      if (dia !== diaAnterior) {
+        const sep = document.createElement("div");
+        sep.className = "chat-day";
+        const span = document.createElement("span");
+        span.textContent = dia;
+        sep.append(span);
+        mensajesBox.append(sep);
+        diaAnterior = dia;
+      }
+      mensajesBox.append(burbuja(m));
+    });
+
+    mensajesBox.scrollTop = mantenerPosicion
+      ? mensajesBox.scrollHeight - alturaAntes + arriba
+      : mensajesBox.scrollHeight;
+  }
+
+  async function cargarMensajes(c: Conversacion) {
+    const data = await pedir(`/api/chat/conversaciones/${encodeURIComponent(c.id)}/mensajes?limite=50`);
+    c.mensajes = data.mensajes || [];
+    c.hayMas = (c.mensajes?.length || 0) >= 50;
+    c.cerrada = Boolean(data.conversacion?.cerrada);
+  }
+
+  async function cargarAnteriores() {
+    if (!actual?.mensajes?.length) return;
+    const antes = new Date(actual.mensajes[0]!.fecha).toISOString();
+    try {
+      const data = await pedir(
+        `/api/chat/conversaciones/${encodeURIComponent(actual.id)}/mensajes?limite=50&antes=${encodeURIComponent(antes)}`,
+      );
+      const viejos: Mensaje[] = data.mensajes || [];
+      actual.mensajes = [...viejos, ...actual.mensajes];
+      actual.hayMas = viejos.length >= 50;
+      pintarMensajes(true);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // Marca como leídos (la otra persona verá las dos hojitas)
+  function marcarLeidos(c: Conversacion) {
+    if (!c.noLeidos && !(c.mensajes || []).some((m) => m.emisorId !== YO && !m.leido)) return;
+    c.noLeidos = 0;
+    (c.mensajes || []).forEach((m) => {
+      if (m.emisorId !== YO) m.leido = true;
+    });
+    if (!enviarSocket({ tipo: "leidos", conversacionId: c.id })) {
+      pedir(`/api/chat/conversaciones/${encodeURIComponent(c.id)}/leidos`, { method: "PATCH" }).catch(() => {});
+    }
+    pintarLista();
+    actualizarBotonFlotante();
+  }
+
+  async function abrirConversacion(id: string) {
+    actual = conversaciones.find((c) => c.id === id) || null;
+    if (!actual) return;
+
+    if (sinSeleccion) sinSeleccion.hidden = true;
+    if (conversacionBox) conversacionBox.hidden = false;
+    if (escribiendoBox) escribiendoBox.hidden = true;
+    panel?.classList.add("con-conversacion");
+
+    const avatar = $("chatAvatar");
+    if (avatar) pintarAvatar(avatar, actual);
+    const nombre = $("chatNombre");
+    if (nombre) nombre.textContent = actual.nombre;
+    pintarEstadoCabecera();
+
+    pintarLista();
+
+    if (!actual.mensajes) {
+      if (mensajesBox) mensajesBox.innerHTML = '<p class="chat-empty-conv">Cargando mensajes...</p>';
+      try {
+        await cargarMensajes(actual);
+      } catch (e) {
+        if (mensajesBox) mensajesBox.innerHTML = '<p class="chat-empty-conv">No se pudieron cargar los mensajes.</p>';
+        return;
+      }
+    }
+    actualizarCerrada();
+    pintarMensajes();
+    marcarLeidos(actual);
+    texto?.focus();
+  }
+
+  function pintarEstadoCabecera() {
+    const estado = $("chatEstado");
+    if (!estado || !actual) return;
+    estado.textContent = actual.enLinea ? "En línea" : textoProximaCita(actual);
+    estado.classList.toggle("en-linea", actual.enLinea);
+  }
+
+  $("chatVolver")?.addEventListener("click", () => {
+    panel?.classList.remove("con-conversacion");
+  });
+
+  // Agrega un mensaje (sin repetirlo si ya estaba)
+  function agregarMensaje(m: Mensaje) {
+    const c = conversaciones.find((x) => x.id === m.conversacionId);
+    if (!c) {
+      // Conversación nueva (por ejemplo, la primera cita): se recarga la lista
+      cargarConversaciones();
+      return;
+    }
+    if (c.mensajes && !c.mensajes.some((x) => x.id === m.id)) c.mensajes.push(m);
+    c.ultimoMensaje = m;
+
+    const estaAbierta = actual?.id === c.id && !document.hidden;
+    if (m.emisorId !== YO) {
+      if (estaAbierta) marcarLeidos(c);
+      else c.noLeidos += 1;
+    }
+    if (actual?.id === c.id) {
+      if (escribiendoBox && m.emisorId !== YO) escribiendoBox.hidden = true;
+      pintarMensajes();
+    }
+    pintarLista();
+    actualizarBotonFlotante();
+  }
+
+
+  /* =====================================================
+     ESCRIBIR Y ENVIAR
+  ===================================================== */
+  const actualizarBoton = () => {
+    if (enviar) enviar.disabled = !(texto?.value.trim() || archivoElegido);
+  };
+
+  let ultimoAvisoEscribiendo = 0;
+
+  texto?.addEventListener("input", () => {
+    texto.style.height = "auto";
+    texto.style.height = Math.min(texto.scrollHeight, 96) + "px";
+    actualizarBoton();
+    // Avisa que está escribiendo (como máximo cada 2,5 segundos)
+    if (actual && Date.now() - ultimoAvisoEscribiendo > 2500) {
+      ultimoAvisoEscribiendo = Date.now();
+      enviarSocket({ tipo: "escribiendo", conversacionId: actual.id });
+    }
+  });
+
+  // Enter envía, Shift + Enter hace salto de línea
+  texto?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      formulario?.requestSubmit();
+    }
+  });
+
+  formulario?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!actual || actual.cerrada) return;
+    const c = actual;
+    const t = texto?.value.trim() || "";
+    const archivo = archivoElegido;
+    if (!t && !archivo) return;
+
+    // Mensaje temporal mientras se envía (con la hojita que "respira")
+    const temporal: Mensaje = {
+      id: "tmp-" + crypto.randomUUID(),
+      conversacionId: c.id,
+      emisorId: YO,
+      tipo: archivo ? (archivo.type.startsWith("image/") ? "imagen" : "documento") : "texto",
+      texto: t,
+      archivo: archivo ? { nombre: archivo.name, mime: archivo.type, bytes: archivo.size } : null,
+      leido: false,
+      fecha: new Date().toISOString(),
+      enviando: true,
+      urlLocal: archivo && archivo.type.startsWith("image/") ? URL.createObjectURL(archivo) : undefined,
+    };
+    c.mensajes = [...(c.mensajes || []), temporal];
+    pintarMensajes();
+
+    if (texto) {
+      texto.value = "";
+      texto.style.height = "auto";
+    }
+    quitarAdjunto();
+    actualizarBoton();
+
+    try {
+      let data;
+      if (archivo) {
+        const form = new FormData();
+        form.append("archivo", archivo);
+        if (t) form.append("texto", t);
+        data = await pedir(`/api/chat/conversaciones/${encodeURIComponent(c.id)}/archivo`, { method: "POST", body: form });
+      } else {
+        data = await pedir(`/api/chat/conversaciones/${encodeURIComponent(c.id)}/mensajes`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ texto: t }),
+        });
+      }
+      // Se cambia el temporal por el real (si el WebSocket no lo trajo antes)
+      c.mensajes = (c.mensajes || []).filter((m) => m.id !== temporal.id);
+      agregarMensaje(data.mensaje);
+    } catch (error) {
+      c.mensajes = (c.mensajes || []).filter((m) => m.id !== temporal.id);
+      if (actual?.id === c.id) pintarMensajes();
+      mostrarAviso("No se pudo enviar", (error as Error).message);
+      if (texto && t) texto.value = t;
+      actualizarBoton();
+    }
+  });
+
+
+  /* =====================================================
+     ADJUNTOS: imágenes (JPG/PNG), PDF y Word de máx. 5 MB
+  ===================================================== */
+  const PERMITIDOS = ["jpg", "jpeg", "png", "pdf", "doc", "docx"];
+
+  $("chatAdjuntar")?.addEventListener("click", () => archivoInput?.click());
+
+  function quitarAdjunto() {
+    archivoElegido = null;
+    if (adjuntoBox) adjuntoBox.hidden = true;
+    const mini = $("chatAdjuntoMiniatura");
+    if (mini) mini.replaceChildren();
+    actualizarBoton();
+  }
+
+  $("chatAdjuntoQuitar")?.addEventListener("click", quitarAdjunto);
+
+  archivoInput?.addEventListener("change", () => {
+    const archivo = archivoInput.files?.[0];
+    archivoInput.value = "";
+    if (!archivo) return;
+
+    const ext = extensionDe(archivo.name);
+    if (!PERMITIDOS.includes(ext) || archivo.size > 5 * 1024 * 1024) {
+      abrirModal("modalArchivo");
+      return;
+    }
+
+    archivoElegido = archivo;
+    const mini = $("chatAdjuntoMiniatura");
+    if (mini) {
+      mini.replaceChildren();
+      mini.className = "chat-attachment-thumb";
+      if (archivo.type.startsWith("image/")) {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(archivo);
+        img.alt = "";
+        mini.append(img);
+      } else {
+        mini.classList.add(ext === "pdf" ? "pdf" : "word");
+        mini.innerHTML = `<i class="bi ${ext === "pdf" ? "bi-file-earmark-pdf" : "bi-file-earmark-word"}" aria-hidden="true"></i>`;
+      }
+    }
+    const nombre = $("chatAdjuntoNombre");
+    if (nombre) nombre.textContent = archivo.name;
+    const peso = $("chatAdjuntoTamano");
+    if (peso) peso.textContent = pesoLegible(archivo.size);
+    if (adjuntoBox) adjuntoBox.hidden = false;
+    actualizarBoton();
+    texto?.focus();
+  });
+
+
+  /* =====================================================
+     MENÚ ⋮ Y CERRAR / REABRIR CONVERSACIÓN
+  ===================================================== */
+  const menuBoton = $("chatMenuBoton");
+  const menu = $("chatMenu");
+
+  menuBoton?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!menu) return;
+    menu.hidden = !menu.hidden;
+    menuBoton.setAttribute("aria-expanded", String(!menu.hidden));
+  });
+
+  document.addEventListener("click", () => {
+    if (menu) menu.hidden = true;
+    menuBoton?.setAttribute("aria-expanded", "false");
+  });
+
+  function actualizarCerrada() {
+    const cerrada = Boolean(actual?.cerrada);
+    if (cerradaBox) cerradaBox.hidden = !cerrada;
+    if (formulario) formulario.hidden = cerrada;
+    const opcion = $("chatCerrarConv");
+    if (opcion) opcion.hidden = cerrada;
+  }
+
+  async function cambiarEstado(cerrada: boolean) {
+    if (!actual) return;
+    try {
+      await pedir(`/api/chat/conversaciones/${encodeURIComponent(actual.id)}/estado`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cerrada }),
+      });
+      actual.cerrada = cerrada;
+      actualizarCerrada();
+      pintarMensajes();
+    } catch (e) {
+      mostrarAviso("No se pudo cambiar", (e as Error).message);
+    }
+  }
+
+  $("chatCerrarConv")?.addEventListener("click", () => abrirModal("modalCerrar"));
+
+  $("modalCerrarConfirmar")?.addEventListener("click", () => {
+    cerrarModales();
+    cambiarEstado(true);
+  });
+
+  $("chatReabrir")?.addEventListener("click", () => cambiarEstado(false));
+
+
+  /* =====================================================
+     VENTANAS EMERGENTES
+  ===================================================== */
+  function abrirModal(id: string) {
+    const modal = $(id);
+    if (!modal) return;
+    modal.hidden = false;
+    document.body.classList.add("chat-modal-abierto");
+  }
+
+  function cerrarModales() {
+    document.querySelectorAll<HTMLElement>(".chat-modal").forEach((m) => (m.hidden = true));
+    document.body.classList.remove("chat-modal-abierto");
+  }
+
+  document.querySelectorAll("[data-cerrar-modal]").forEach((b) => b.addEventListener("click", cerrarModales));
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") cerrarModales();
+  });
+
+  // Reutiliza la ventana "Archivo no permitido" para cualquier aviso
+  function mostrarAviso(titulo: string, mensaje: string) {
+    const t = $("modalArchivoTitulo");
+    const p = document.querySelector("#modalArchivo p");
+    const tituloOriginal = t?.textContent ?? "";
+    const mensajeOriginal = p?.textContent ?? "";
+    if (t) t.textContent = titulo;
+    if (p) p.textContent = mensaje;
+    abrirModal("modalArchivo");
+    const restaurar = () => {
+      if (t) t.textContent = tituloOriginal;
+      if (p) p.textContent = mensajeOriginal;
+    };
+    document.querySelectorAll("#modalArchivo [data-cerrar-modal]").forEach((b) =>
+      b.addEventListener("click", restaurar, { once: true })
+    );
+  }
+
+  function verImagen(m: Mensaje) {
+    const img = $<HTMLImageElement>("modalImagenImg");
+    if (img) {
+      img.src = urlArchivo(m);
+      img.alt = m.archivo?.nombre || "Imagen";
+    }
+    const nombre = $("modalImagenNombre");
+    if (nombre) nombre.textContent = m.archivo?.nombre || "Imagen";
+    const bajar = $<HTMLAnchorElement>("modalImagenDescargar");
+    if (bajar) {
+      bajar.href = urlArchivo(m);
+      bajar.download = m.archivo?.nombre || "imagen";
+      bajar.target = "_blank";
+    }
+    abrirModal("modalImagen");
+  }
+
+
+  /* =====================================================
+     BOTÓN FLOTANTE / CAMPANA: total de mensajes sin leer
+  ===================================================== */
+  function actualizarBotonFlotante() {
+    const total = conversaciones.reduce((s, c) => s + (c.noLeidos || 0), 0);
+    document.dispatchEvent(new CustomEvent("psynex:chat-no-leidos", { detail: total }));
+  }
+
+
+  /* =====================================================
+     WEBSOCKET (tiempo real) con reconexión automática
+  ===================================================== */
+  let socket: WebSocket | null = null;
+  let espera = 1000;
+  let temporizadorAviso: ReturnType<typeof setTimeout> | undefined;
+  let temporizadorEscribiendo: ReturnType<typeof setTimeout> | undefined;
+
+  function enviarSocket(evento: Record<string, unknown>): boolean {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(evento));
+      return true;
+    }
+    return false;
+  }
+
+  function conectar() {
+    socket = new WebSocket(API.replace(/^http/, "ws") + "/api/chat/ws");
+
+    socket.addEventListener("open", () => {
+      espera = 1000;
+      clearTimeout(temporizadorAviso);
+      if (sinConexion) sinConexion.hidden = true;
+    });
+
+    socket.addEventListener("message", (e) => {
+      let ev: Record<string, unknown>;
+      try {
+        ev = JSON.parse(String(e.data));
+      } catch {
+        return;
+      }
+
+      if (ev.tipo === "mensaje") agregarMensaje(ev.mensaje as Mensaje);
+
+      if (ev.tipo === "escribiendo" && actual?.id === ev.conversacionId && escribiendoBox) {
+        escribiendoBox.hidden = false;
+        clearTimeout(temporizadorEscribiendo);
+        temporizadorEscribiendo = setTimeout(() => (escribiendoBox.hidden = true), 3500);
+      }
+
+      if (ev.tipo === "leidos") {
+        const c = conversaciones.find((x) => x.id === ev.conversacionId);
+        (c?.mensajes || []).forEach((m) => {
+          if (m.emisorId === YO) m.leido = true;
+        });
+        if (c && actual?.id === c.id) pintarMensajes();
+      }
+
+      if (ev.tipo === "estado") {
+        conversaciones
+          .filter((c) => c.otroId === ev.usuarioId)
+          .forEach((c) => (c.enLinea = Boolean(ev.enLinea)));
+        pintarLista();
+        pintarEstadoCabecera();
+      }
+
+      if (ev.tipo === "conversacion") {
+        const c = conversaciones.find((x) => x.id === ev.conversacionId);
+        if (c) c.cerrada = Boolean(ev.cerrada);
+        if (c && actual?.id === c.id) {
+          actualizarCerrada();
+          pintarMensajes();
+        }
+      }
+    });
+
+    socket.addEventListener("close", () => {
+      socket = null;
+      // El aviso "Sin conexión" solo sale si tarda en reconectar
+      clearTimeout(temporizadorAviso);
+      temporizadorAviso = setTimeout(() => {
+        if (sinConexion) sinConexion.hidden = false;
+      }, 2500);
+      setTimeout(async () => {
+        await cargarConversaciones();
+        // Se piden los mensajes que pudieron llegar mientras no había conexión
+        if (actual) {
+          try {
+            await cargarMensajes(actual);
+            pintarMensajes();
+            marcarLeidos(actual);
+          } catch { /* se intenta en la próxima reconexión */ }
+        }
+        conectar();
+      }, espera);
+      espera = Math.min(espera * 2, 15000);
+    });
+  }
+
+  // Al volver a la pestaña se marcan como leídos los de la conversación abierta
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && actual) marcarLeidos(actual);
+  });
+
+  // Mantiene viva la conexión
+  setInterval(() => enviarSocket({ tipo: "ping" }), 25000);
+
+
+  /* =====================================================
+     INICIO
+  ===================================================== */
+  (async () => {
+    await Promise.all([cargarConversaciones(), cargarPostulados()]);
+    // Si aún no hay chats, se muestra directamente la lista de postulados
+    if (!conversaciones.length && postulados.length) {
+      filtro = "postulados";
+      document.querySelectorAll<HTMLElement>(".chat-tab").forEach((t) => t.classList.toggle("activo", t.dataset.filtro === "postulados"));
+      pintarLista();
+    }
+    actualizarBotonFlotante();
+    conectar();
+    // En computador se abre la conversación más reciente
+    if (window.matchMedia("(min-width: 900px)").matches && conversaciones.length) {
+      const primera = [...conversaciones].sort((a, b) => fechaOrden(b) - fechaOrden(a))[0];
+      if (primera) abrirConversacion(primera.id);
+    }
+  })();
+</script>

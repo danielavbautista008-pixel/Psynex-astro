@@ -1,0 +1,578 @@
+---
+// =====================================================================
+// cambio: vista NUEVA — Registro emocional diario del paciente.
+// Cada día marca cómo se siente, qué emociones tuvo, la CAUSA (familia,
+// estudio, trabajo...), cuánto durmió y su energía; puede compartirlo
+// con su psicólogo. Versión compacta y animada, íconos con el color
+// del tema (Bootstrap Icons).
+// DATOS DE PRUEBA: se guarda solo en este navegador (localStorage) y trae
+// unos días de ejemplo. Todavía no se conecta con el backend.
+// =====================================================================
+import Menu from "./menuPac.astro";
+import { apiGet, imagenCuestionario } from "../../lib/api";
+import "./registro.css";
+
+// cambio: CUESTIONARIOS ASIGNADOS POR EL PSICÓLOGO (pueden ser varios
+// psicólogos, por eso se agrupan por quién los asignó).
+// Los cuestionarios son los reales (ruta pública de Explorar) y al dar
+// "Responder" se abre su vista pública. Las asignaciones son DE PRUEBA
+// (todavía no hay ruta del backend para que el paciente vea las suyas).
+const rTests = await apiGet<{ cuestionarios: { id: string; sigla: string; descripcion: string; categoria: string; preguntas: number; minutos: number; tieneImagen: boolean }[] }>(
+  Astro.request.headers.get("cookie"), "/api/explorar/cuestionarios");
+const ejemplosAsignacion = [
+  { psicologo: "Víctor Santiago", asignado: "20 oct", limite: "25 oct", estado: "Pendiente", nota: "Respóndelo antes de nuestra próxima sesión." },
+  { psicologo: "Víctor Santiago", asignado: "18 oct", limite: "24 oct", estado: "Pendiente", nota: "" },
+  { psicologo: "Andrea Gómez Ruiz", asignado: "5 oct", limite: "10 oct", estado: "Completado", nota: "" },
+  { psicologo: "Andrea Gómez Ruiz", asignado: "21 oct", limite: "28 oct", estado: "Pendiente", nota: "Nos sirve para la sesión de pareja." },
+];
+const asignados = (rTests?.cuestionarios ?? []).slice(0, ejemplosAsignacion.length).map((c, i) => ({
+  ...ejemplosAsignacion[i],
+  id: c.id,
+  titulo: c.sigla,
+  descripcion: c.descripcion,
+  pie: `${c.preguntas} preguntas · ${c.minutos} min`,
+  imagen: imagenCuestionario(c),
+}));
+const pendientes = asignados.filter((a) => a.estado === "Pendiente").length;
+
+// cambio: agrupados por el psicólogo que los asignó
+const porPsicologo = [...new Set(asignados.map((a) => a.psicologo))].map((nombre) => {
+  const lista = asignados.filter((a) => a.psicologo === nombre);
+  return { nombre, lista, pendientes: lista.filter((a) => a.estado === "Pendiente").length };
+});
+
+const estados = [
+  { valor: 1, icono: "bi-emoji-angry", texto: "Muy mal" },
+  { valor: 2, icono: "bi-emoji-frown", texto: "Mal" },
+  { valor: 3, icono: "bi-emoji-neutral", texto: "Normal" },
+  { valor: 4, icono: "bi-emoji-smile", texto: "Bien" },
+  { valor: 5, icono: "bi-emoji-laughing", texto: "Muy bien" },
+];
+
+const emociones = ["Calma", "Alegría", "Gratitud", "Motivación", "Ansiedad", "Tristeza", "Estrés", "Cansancio", "Enojo", "Soledad"];
+
+// cambio: causas de las emociones
+const causas = [
+  { texto: "Familia", icono: "bi-house-heart" },
+  { texto: "Estudio", icono: "bi-book" },
+  { texto: "Trabajo", icono: "bi-briefcase" },
+  { texto: "Pareja", icono: "bi-heart" },
+  { texto: "Amigos", icono: "bi-people" },
+  { texto: "Salud", icono: "bi-heart-pulse" },
+  { texto: "Dinero", icono: "bi-cash-coin" },
+  { texto: "Yo mismo/a", icono: "bi-person" },
+  { texto: "Otro", icono: "bi-three-dots" },
+];
+
+const energias = [
+  { texto: "Baja", icono: "bi-battery" },
+  { texto: "Media", icono: "bi-battery-half" },
+  { texto: "Alta", icono: "bi-battery-full" },
+];
+---
+
+<Menu />
+
+<main class="pac-page reg-page">
+  <div class="pac-contenido reg-contenido">
+
+    <header class="pac-header">
+      <div>
+        <span class="pac-etiqueta">Bienestar</span>
+        <h1>Registro emocional diario</h1>
+        <p>Un minuto al día para ver cómo te sientes.</p>
+      </div>
+      <!-- cambio: botón de cuestionarios asignados por el psicólogo -->
+      <button type="button" class="pac-btn borde pequeno reg-btn-asignados" id="regAbrirAsignados">
+        <i class="bi bi-clipboard-check"></i>
+        Cuestionarios asignados
+        {pendientes > 0 && <b class="reg-badge">{pendientes}</b>}
+      </button>
+    </header>
+
+    <div class="reg-grid">
+      <!-- Columna izquierda: el registro de hoy + historial -->
+      <div class="pac-col">
+        <section class="pac-card reg-hoy">
+          <div class="pac-card-top">
+            <h2>¿Cómo te sientes hoy?</h2>
+            <small id="regHoyFecha"></small>
+          </div>
+
+          <form id="regForm" class="reg-form">
+            <div class="reg-estados" role="radiogroup" aria-label="Estado de ánimo">
+              {estados.map((e) => (
+                <label class="reg-estado" data-estado={e.valor}>
+                  <input type="radio" name="estado" value={e.valor} required />
+                  <i class={`bi ${e.icono}`} data-icono={e.icono}></i>
+                  <span>{e.texto}</span>
+                </label>
+              ))}
+            </div>
+
+            <p class="reg-mensaje" id="regMensaje">Elige una carita para empezar.</p>
+
+            <!-- Lo demás se abre al elegir cómo te sientes -->
+            <div class="reg-mas" id="regMas">
+              <div class="reg-mas-dentro">
+                <div class="reg-bloque">
+                  <span class="reg-titulo"><i class="bi bi-chat-heart"></i> ¿Qué emociones sentiste?</span>
+                  <div class="reg-chips">
+                    {emociones.map((e) => (
+                      <label class="reg-chip">
+                        <input type="checkbox" name="emociones" value={e} />
+                        <span>{e}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div class="reg-bloque">
+                  <span class="reg-titulo"><i class="bi bi-signpost-split"></i> Causa de tus emociones</span>
+                  <div class="reg-chips">
+                    {causas.map((c) => (
+                      <label class="reg-chip con-icono">
+                        <input type="checkbox" name="causas" value={c.texto} />
+                        <span><i class={`bi ${c.icono}`}></i>{c.texto}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div class="reg-fila">
+                  <div class="reg-bloque">
+                    <span class="reg-titulo"><i class="bi bi-moon-stars"></i> Horas de sueño <b id="regSuenoValor">7 h</b></span>
+                    <input type="range" class="reg-rango" name="sueno" min="0" max="12" step="0.5" value="7" />
+                  </div>
+
+                  <div class="reg-bloque">
+                    <span class="reg-titulo"><i class="bi bi-lightning-charge"></i> Energía</span>
+                    <div class="reg-energia">
+                      {energias.map((e) => (
+                        <label>
+                          <input type="radio" name="energia" value={e.texto} />
+                          <span><i class={`bi ${e.icono}`}></i>{e.texto}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <label class="reg-nota">
+                  <textarea name="nota" rows="2" maxlength="600" placeholder="Nota del día (opcional): ¿qué pasó hoy?"></textarea>
+                </label>
+
+                <div class="reg-acciones">
+                  <label class="reg-compartir">
+                    <input type="checkbox" name="compartir" checked />
+                    <i></i>
+                    <span>Compartir con mi psicólogo</span>
+                  </label>
+                  <button type="submit" class="pac-btn pequeno" id="regGuardar">Guardar registro</button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section class="pac-card">
+          <div class="pac-card-top">
+            <h2>Historial</h2>
+            <small id="regTotal"></small>
+          </div>
+          <div class="reg-historial" id="regHistorial"></div>
+          <button type="button" class="pac-btn pequeno borde reg-ver-mas" id="regVerMas" hidden>Ver más</button>
+        </section>
+      </div>
+
+      <!-- Columna derecha: racha, semana y gráficas -->
+      <div class="pac-col">
+        <section class="pac-card reg-racha">
+          <div class="reg-racha-top">
+            <i class="bi bi-fire"></i>
+            <div>
+              <strong id="regRacha">0 días</strong>
+              <small class="pac-muted">de racha</small>
+            </div>
+          </div>
+          <div class="reg-semana" id="regSemana"></div>
+        </section>
+
+        <section class="pac-card">
+          <div class="pac-card-top">
+            <h2>Últimos 14 días</h2>
+          </div>
+          <div class="reg-grafica" id="regGrafica" aria-label="Estado de ánimo de los últimos 14 días"></div>
+        </section>
+
+        <section class="pac-card">
+          <div class="pac-card-top">
+            <h2>Lo que más sentiste</h2>
+          </div>
+          <div class="reg-top" id="regTopEmociones"></div>
+        </section>
+
+        <section class="pac-card">
+          <div class="pac-card-top">
+            <h2>Lo que más te afecta</h2>
+          </div>
+          <div class="reg-top" id="regTopCausas"></div>
+        </section>
+      </div>
+    </div>
+
+    <span class="pac-prueba"><i class="bi bi-info-circle"></i> Registro de prueba: se guarda solo en este navegador, todavía no en la base de datos</span>
+  </div>
+</main>
+
+<!-- cambio: ventana con los cuestionarios asignados por el psicólogo -->
+<div class="pac-modal" id="modalAsignados" hidden>
+  <button type="button" class="pac-modal-fondo" data-cerrar-modal aria-label="Cerrar"></button>
+  <div class="pac-modal-caja reg-modal" role="dialog" aria-modal="true" aria-labelledby="asignadosTitulo">
+    <h3 id="asignadosTitulo">Cuestionarios asignados</h3>
+    <p class="pac-muted">Tus psicólogos te los asignaron para conocerte mejor. Al responder, quien te lo asignó podrá ver tus resultados.</p>
+
+    <div class="reg-asignados">
+      {asignados.length === 0 && <p class="pac-muted">Todavía no te han asignado cuestionarios.</p>}
+      {porPsicologo.map((g) => (
+        <section class="reg-grupo">
+          <header class="reg-grupo-top">
+            <span class="reg-grupo-letra">{g.nombre.charAt(0)}</span>
+            <div>
+              <strong>Asignados por {g.nombre}</strong>
+              <small>{g.pendientes > 0 ? `${g.pendientes} pendiente${g.pendientes === 1 ? "" : "s"}` : "Todo al día"} · {g.lista.length} en total</small>
+            </div>
+          </header>
+      {g.lista.map((a) => (
+        <article class:list={["reg-asignado", { hecho: a.estado === "Completado" }]}>
+          <span class="reg-asignado-img" style={`background-image:url('${a.imagen}')`}></span>
+          <div class="reg-asignado-info">
+            <strong>{a.titulo} <span class={`pac-chip ${a.estado === "Pendiente" ? "espera" : "ok"}`}>{a.estado}</span></strong>
+            <small>{a.descripcion}</small>
+            <small><i class="bi bi-calendar3"></i> {a.estado === "Pendiente" ? `Antes del ${a.limite}` : `Asignado el ${a.asignado}`} · {a.pie}</small>
+            {a.nota && <em>"{a.nota}"</em>}
+          </div>
+          {a.estado === "Pendiente" ? (
+            <a href={`/Explorar/cuestionarios/${a.id}?volver=/Paciente/Registro`} class="pac-btn pequeno">Responder</a>
+          ) : (
+            <a href={`/Explorar/cuestionarios/${a.id}?volver=/Paciente/Registro`} class="pac-btn pequeno borde">Ver</a>
+          )}
+        </article>
+      ))}
+        </section>
+      ))}
+    </div>
+
+    <span class="pac-prueba"><i class="bi bi-info-circle"></i> Asignaciones de prueba: los cuestionarios sí son los reales</span>
+    <div class="pac-modal-acciones">
+      <button type="button" class="pac-btn pequeno borde" data-cerrar-modal>Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { abrirModal, avisar, prepararModales } from "./utilidades";
+
+  // cambio: abrir la ventana de cuestionarios asignados
+  prepararModales();
+  document.getElementById("regAbrirAsignados")?.addEventListener("click", () => abrirModal("modalAsignados"));
+
+  type Registro = {
+    fecha: string; // AAAA-MM-DD
+    estado: number;
+    emociones: string[];
+    causas: string[];
+    sueno: string;
+    energia: string;
+    nota: string;
+    compartir: boolean;
+  };
+
+  const CLAVE = "psynex:registro-emocional";
+  const ICONO = ["", "bi-emoji-angry", "bi-emoji-frown", "bi-emoji-neutral", "bi-emoji-smile", "bi-emoji-laughing"];
+  const TEXTO = ["", "Muy mal", "Mal", "Normal", "Bien", "Muy bien"];
+  const MENSAJE = [
+    "Elige una carita para empezar.",
+    "Lamentamos que hoy sea un día difícil. Cuéntanos qué pasó.",
+    "Está bien no estar bien. Escribirlo ayuda.",
+    "Un día tranquilo también cuenta.",
+    "¡Qué bueno! ¿Qué te hizo sentir así?",
+    "¡Excelente! Guarda lo que hizo especial tu día.",
+  ];
+  const ICONO_CAUSA: Record<string, string> = {
+    Familia: "bi-house-heart", Estudio: "bi-book", Trabajo: "bi-briefcase", Pareja: "bi-heart", Amigos: "bi-people",
+    Salud: "bi-heart-pulse", Dinero: "bi-cash-coin", "Yo mismo/a": "bi-person", Otro: "bi-three-dots",
+  };
+
+  const claveDia = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const haceDias = (n: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return d;
+  };
+  const deClave = (c: string) => {
+    const [a, m, d] = c.split("-").map(Number);
+    return new Date(a, m - 1, d);
+  };
+  const hoy = claveDia(new Date());
+
+  // Días de ejemplo (solo la primera vez)
+  const ejemplo = (): Registro[] =>
+    ([
+      [1, 4, ["Calma", "Gratitud"], ["Familia"], "7.5", "Media", "Salí a caminar y me sentí bien."],
+      [2, 3, ["Cansancio"], ["Estudio"], "6", "Baja", ""],
+      [3, 2, ["Ansiedad", "Estrés"], ["Trabajo", "Dinero"], "5", "Baja", "Mucho trabajo, me costó dormir."],
+      [4, 3, ["Estrés", "Motivación"], ["Estudio"], "6.5", "Media", ""],
+      [6, 4, ["Alegría"], ["Amigos"], "8", "Alta", "Vi a mis amigos."],
+      [7, 5, ["Alegría", "Gratitud", "Calma"], ["Pareja", "Familia"], "8", "Alta", ""],
+      [9, 3, ["Cansancio", "Ansiedad"], ["Trabajo"], "6", "Media", ""],
+      [11, 2, ["Tristeza"], ["Familia"], "5.5", "Baja", ""],
+    ] as [number, number, string[], string[], string, string, string][]).map(([n, estado, emociones, causas, sueno, energia, nota]) => ({
+      fecha: claveDia(haceDias(n)), estado, emociones, causas, sueno, energia, nota, compartir: true,
+    }));
+
+  const guardar = (lista: Registro[]) => {
+    try {
+      localStorage.setItem(CLAVE, JSON.stringify(lista));
+    } catch { /* si no se puede guardar, queda en memoria */ }
+  };
+
+  const leer = (): Registro[] => {
+    try {
+      const guardado = localStorage.getItem(CLAVE);
+      if (guardado) {
+        // los registros viejos no traían "causas"
+        return (JSON.parse(guardado) as Registro[]).map((r) => ({ ...r, causas: r.causas ?? [] }));
+      }
+    } catch { /* sin almacenamiento: se usan los de ejemplo */ }
+    const lista = ejemplo();
+    guardar(lista);
+    return lista;
+  };
+
+  let registros = leer();
+  let mostrar = 4; // cuántos se ven en el historial
+
+  const fechaLarga = (c: string) =>
+    deClave(c).toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
+
+  const form = document.getElementById("regForm") as HTMLFormElement;
+  const mas = document.getElementById("regMas");
+  const mensaje = document.getElementById("regMensaje");
+  const fechaHoy = document.getElementById("regHoyFecha");
+  if (fechaHoy) fechaHoy.textContent = fechaLarga(hoy);
+
+  // Al elegir carita: ícono relleno, mensaje y se abre el resto
+  const marcarEstado = (valor: number) => {
+    document.querySelectorAll<HTMLElement>(".reg-estado").forEach((l) => {
+      const icono = l.querySelector<HTMLElement>("i");
+      const activo = Number(l.dataset.estado) === valor;
+      if (icono) icono.className = `bi ${icono.dataset.icono}${activo ? "-fill" : ""}`;
+    });
+    if (mensaje && valor) {
+      mensaje.textContent = MENSAJE[valor];
+      mensaje.classList.remove("cambio");
+      void mensaje.offsetWidth;
+      mensaje.classList.add("cambio");
+    }
+    if (valor) mas?.classList.add("abierto");
+  };
+
+  form.querySelectorAll<HTMLInputElement>('input[name="estado"]').forEach((i) =>
+    i.addEventListener("change", () => marcarEstado(Number(i.value)))
+  );
+
+  // Horas de sueño: muestra el valor
+  const rango = form.elements.namedItem("sueno") as HTMLInputElement;
+  const valorSueno = document.getElementById("regSuenoValor");
+  const pintarRango = () => {
+    if (valorSueno) valorSueno.textContent = `${rango.value} h`;
+    rango.style.setProperty("--relleno", `${(Number(rango.value) / 12) * 100}%`);
+  };
+  rango.addEventListener("input", pintarRango);
+  pintarRango();
+
+  // Si ya registró hoy, se llena el formulario para editarlo
+  const llenarHoy = () => {
+    const r = registros.find((x) => x.fecha === hoy);
+    const boton = document.getElementById("regGuardar");
+    if (boton) boton.textContent = r ? "Actualizar registro" : "Guardar registro";
+    if (!r) return;
+    form.querySelectorAll<HTMLInputElement>('input[name="estado"]').forEach((i) => (i.checked = Number(i.value) === r.estado));
+    form.querySelectorAll<HTMLInputElement>('input[name="emociones"]').forEach((i) => (i.checked = r.emociones.includes(i.value)));
+    form.querySelectorAll<HTMLInputElement>('input[name="causas"]').forEach((i) => (i.checked = r.causas.includes(i.value)));
+    form.querySelectorAll<HTMLInputElement>('input[name="energia"]').forEach((i) => (i.checked = i.value === r.energia));
+    if (r.sueno) rango.value = r.sueno;
+    pintarRango();
+    (form.elements.namedItem("nota") as HTMLTextAreaElement).value = r.nota;
+    (form.elements.namedItem("compartir") as HTMLInputElement).checked = r.compartir;
+    marcarEstado(r.estado);
+  };
+
+  const icono = (clase: string) => {
+    const i = document.createElement("i");
+    i.className = `bi ${clase}`;
+    return i;
+  };
+
+  // Barras horizontales de "lo que más..."
+  const pintarTop = (id: string, valores: string[], conIcono = false) => {
+    const conteo = new Map<string, number>();
+    valores.forEach((v) => conteo.set(v, (conteo.get(v) ?? 0) + 1));
+    const top = [...conteo.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);
+    const maximo = top[0]?.[1] ?? 1;
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = "";
+    if (!top.length) el.innerHTML = '<p class="pac-muted">Todavía no hay datos.</p>';
+    top.forEach(([nombre, veces], k) => {
+      const fila = document.createElement("div");
+      fila.className = "reg-top-fila";
+      const t = document.createElement("span");
+      if (conIcono) t.append(icono(ICONO_CAUSA[nombre] ?? "bi-dot"));
+      t.append(nombre);
+      const barra = document.createElement("i");
+      const relleno = document.createElement("b");
+      relleno.style.setProperty("--ancho", `${(veces / maximo) * 100}%`);
+      relleno.style.animationDelay = `${k * 80}ms`;
+      barra.append(relleno);
+      const n = document.createElement("small");
+      n.textContent = String(veces);
+      fila.append(t, barra, n);
+      el.append(fila);
+    });
+  };
+
+  const pintar = () => {
+    const porFecha = new Map(registros.map((r) => [r.fecha, r]));
+
+    // Racha: días seguidos con registro (contando desde hoy o desde ayer)
+    let racha = 0;
+    const inicio = porFecha.has(hoy) ? 0 : 1;
+    while (porFecha.has(claveDia(haceDias(inicio + racha)))) racha++;
+    const rachaEl = document.getElementById("regRacha");
+    if (rachaEl) rachaEl.textContent = `${racha} ${racha === 1 ? "día" : "días"}`;
+
+    // Semana: últimos 7 días
+    const semana = document.getElementById("regSemana");
+    if (semana) {
+      semana.innerHTML = "";
+      for (let n = 6; n >= 0; n--) {
+        const d = haceDias(n);
+        const r = porFecha.get(claveDia(d));
+        const dia = document.createElement("span");
+        dia.className = `reg-dia${r ? " lleno" : ""}${n === 0 ? " hoy" : ""}`;
+        dia.title = r ? TEXTO[r.estado] : "Sin registro";
+        dia.style.animationDelay = `${(6 - n) * 50}ms`;
+        const letra = document.createElement("small");
+        letra.textContent = d.toLocaleDateString("es-CO", { weekday: "narrow" }).toUpperCase();
+        dia.append(letra, icono(r ? `${ICONO[r.estado]}-fill` : "bi-circle"));
+        semana.append(dia);
+      }
+    }
+
+    // Gráfica de 14 días: las barras crecen
+    const grafica = document.getElementById("regGrafica");
+    if (grafica) {
+      grafica.innerHTML = "";
+      for (let n = 13; n >= 0; n--) {
+        const d = haceDias(n);
+        const r = porFecha.get(claveDia(d));
+        const col = document.createElement("span");
+        col.className = "reg-barra";
+        col.title = `${d.toLocaleDateString("es-CO", { day: "numeric", month: "short" })}: ${r ? TEXTO[r.estado] : "sin registro"}`;
+        const barra = document.createElement("i");
+        barra.style.setProperty("--alto", r ? `${r.estado * 20}%` : "5%");
+        barra.style.animationDelay = `${(13 - n) * 35}ms`;
+        if (!r) barra.classList.add("vacia");
+        const dia = document.createElement("small");
+        dia.textContent = String(d.getDate());
+        col.append(barra, dia);
+        grafica.append(col);
+      }
+    }
+
+    pintarTop("regTopEmociones", registros.flatMap((r) => r.emociones));
+    pintarTop("regTopCausas", registros.flatMap((r) => r.causas), true);
+
+    // Historial (más reciente primero)
+    const historial = document.getElementById("regHistorial");
+    const ordenados = [...registros].sort((a, b) => b.fecha.localeCompare(a.fecha));
+    const total = document.getElementById("regTotal");
+    if (total) total.textContent = `${ordenados.length} ${ordenados.length === 1 ? "registro" : "registros"}`;
+    const verMas = document.getElementById("regVerMas");
+    if (verMas) verMas.hidden = ordenados.length <= mostrar;
+    if (historial) {
+      historial.innerHTML = "";
+      if (!ordenados.length) historial.innerHTML = '<p class="pac-muted">Aún no tienes registros.</p>';
+      ordenados.slice(0, mostrar).forEach((r, k) => {
+        const item = document.createElement("article");
+        item.className = "reg-item";
+        item.style.animationDelay = `${Math.min(k, 8) * 50}ms`;
+        const cara = document.createElement("span");
+        cara.className = "reg-item-icono";
+        cara.append(icono(`${ICONO[r.estado]}-fill`));
+        const info = document.createElement("div");
+        const titulo = document.createElement("strong");
+        titulo.textContent = `${TEXTO[r.estado]} · ${fechaLarga(r.fecha)}`;
+        const detalle = document.createElement("small");
+        const partes = [r.emociones.join(", "), r.sueno ? `${r.sueno} h de sueño` : "", r.energia ? `energía ${r.energia.toLowerCase()}` : ""].filter(Boolean);
+        detalle.textContent = partes.join(" · ") || "Sin detalles";
+        info.append(titulo, detalle);
+        if (r.causas.length) {
+          const etiquetas = document.createElement("div");
+          etiquetas.className = "reg-item-causas";
+          r.causas.forEach((c) => {
+            const e = document.createElement("span");
+            e.append(icono(ICONO_CAUSA[c] ?? "bi-dot"), c);
+            etiquetas.append(e);
+          });
+          info.append(etiquetas);
+        }
+        if (r.nota) {
+          const nota = document.createElement("p");
+          nota.textContent = r.nota;
+          info.append(nota);
+        }
+        const chip = document.createElement("span");
+        chip.className = `pac-chip ${r.compartir ? "ok" : "neutro"}`;
+        chip.title = r.compartir ? "Tu psicólogo puede verlo" : "Solo tú lo ves";
+        chip.append(icono(r.compartir ? "bi-share" : "bi-lock"));
+        item.append(cara, info, chip);
+        historial.append(item);
+      });
+    }
+  };
+
+  document.getElementById("regVerMas")?.addEventListener("click", () => {
+    mostrar += 5;
+    pintar();
+  });
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!form.reportValidity()) return;
+    const datos = new FormData(form);
+    const nuevo: Registro = {
+      fecha: hoy,
+      estado: Number(datos.get("estado")),
+      emociones: datos.getAll("emociones").map(String),
+      causas: datos.getAll("causas").map(String),
+      sueno: String(datos.get("sueno") ?? ""),
+      energia: String(datos.get("energia") ?? ""),
+      nota: String(datos.get("nota") ?? "").trim(),
+      compartir: datos.get("compartir") === "on",
+    };
+    registros = [...registros.filter((r) => r.fecha !== hoy), nuevo];
+    guardar(registros);
+    pintar();
+    llenarHoy();
+    document.querySelector(".reg-hoy")?.classList.add("guardado");
+    setTimeout(() => document.querySelector(".reg-hoy")?.classList.remove("guardado"), 900);
+    avisar("Registro de hoy guardado (prueba).");
+  });
+
+  llenarHoy();
+  pintar();
+</script>

@@ -18,12 +18,34 @@ const citas: any[] = respuesta?.citas ?? [];
 
 const ahora = new Date();
 
+// Botón "Entrar a la sesión" (sala de videollamada de Psynex)
+const salaDe = (c: any) => {
+  if (c.Estado !== "Confirmada" || String(c.Modalidad).toLowerCase() !== "virtual") return null;
+  const inicio = new Date(c.FechaHora).getTime();
+  const abre = inicio - 10 * 60_000;
+  const cierra = inicio + ((Number(c.DuracionMinutos) || 50) + 30) * 60_000;
+  if (ahora.getTime() > cierra) return null;
+  return {
+    href: `/Sala/${encodeURIComponent(c.CitaId)}`,
+    abierta: ahora.getTime() >= abre,
+    abreA: hora(new Date(abre)),
+  };
+};
+
 // Convierte una cita del backend a la misma forma que usa el diseño.
 const aTarjeta = (c: any) => ({
   id: c.CitaId,
   nombre: c.PacienteNombre,
   edad: edad(c.PacienteFechaNacimiento),
-  tipo: c.TipoCita === "Individual" ? "Terapia individual" : `Plan ${String(c.TipoCita).toLowerCase()}`,
+  // Formato (lo elige el paciente): individual, de pareja o familiar.
+  // Si viene con acompañantes se muestran sus nombres.
+  tipo: c.Formato === "Pareja"
+    ? `Terapia de pareja · con ${c.Acompanantes || "su pareja"}`
+    : c.Formato === "Familiar"
+    ? `Terapia familiar · con ${c.Acompanantes || "su familia"}`
+    : c.TipoCita === "Individual" || !c.TipoCita
+    ? "Terapia individual"
+    : `Plan ${String(c.TipoCita).toLowerCase()}`,
   fecha: fechaLarga(c.FechaHora),
   hora: hora(c.FechaHora),
   duracion: c.DuracionMinutos,
@@ -31,6 +53,9 @@ const aTarjeta = (c: any) => ({
   cita: c.Estado === "Completada" ? "Realizada" : c.Estado,
   pago: c.EstadoPago === "Completado" ? "Pagado" : "Pendiente",
   foto: fotoIniciales(c.PacienteNombre ?? "Paciente"),
+  // Sala de videollamada: citas virtuales confirmadas, desde 10 min antes
+  // hasta 30 min después de terminar
+  sala: salaDe(c),
 });
 
 const porFecha = (a: any, b: any) =>
@@ -283,13 +308,26 @@ const citasAnteriores = citas
           </div>
 
 
-          <a
-            href="/Psicologos/Pacientes"
-            class="view-link"
-          >
-            Ver cita
-            <span>→</span>
-          </a>
+          <div class="card-links">
+            {cita.sala && (
+              <a
+                href={cita.sala.href}
+                class:list={["session-link", { "is-waiting": !cita.sala.abierta }]}
+                title={cita.sala.abierta ? "Entrar a la sala de videollamada" : `La sala abre a las ${cita.sala.abreA}`}
+              >
+                <i class="bi bi-camera-video" aria-hidden="true"></i>
+                {cita.sala.abierta ? "Entrar a la sesión" : `Sala · ${cita.sala.abreA}`}
+              </a>
+            )}
+
+            <a
+              href="/Psicologos/Pacientes"
+              class="view-link"
+            >
+              Ver cita
+              <span>→</span>
+            </a>
+          </div>
 
         </article>
 
@@ -377,13 +415,26 @@ const citasAnteriores = citas
           </div>
 
 
-          <a
-            href="/Psicologos/Pacientes"
-            class="view-link"
-          >
-            Ver cita
-            <span>→</span>
-          </a>
+          <div class="card-links">
+            {cita.sala && (
+              <a
+                href={cita.sala.href}
+                class:list={["session-link", { "is-waiting": !cita.sala.abierta }]}
+                title={cita.sala.abierta ? "Entrar a la sala de videollamada" : `La sala abre a las ${cita.sala.abreA}`}
+              >
+                <i class="bi bi-camera-video" aria-hidden="true"></i>
+                {cita.sala.abierta ? "Entrar a la sesión" : `Sala · ${cita.sala.abreA}`}
+              </a>
+            )}
+
+            <a
+              href="/Psicologos/Pacientes"
+              class="view-link"
+            >
+              Ver cita
+              <span>→</span>
+            </a>
+          </div>
 
         </article>
 

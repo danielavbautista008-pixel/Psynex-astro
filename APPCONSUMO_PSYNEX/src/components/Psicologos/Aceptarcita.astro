@@ -126,72 +126,21 @@ import "./Aceptarcita.css";
       </div>
 
 
-      <!-- SELECTOR -->
-      <div class="location-options">
-
-        <button
-          type="button"
-          class="location-option is-active"
-          data-location-type="link"
-          id="opcionEnlace"
-        >
-          <span class="option-mark">
-            ↗
-          </span>
-
-          <span>
-            <strong>Enlace de reunión</strong>
-            <small>
-              Comparte un enlace para la sesión.
-            </small>
-          </span>
-
-        </button>
-
-
-        <button
-          type="button"
-          class="location-option"
-          data-location-type="address"
-          id="opcionDireccion"
-        >
-          <span class="option-mark">
-            +
-          </span>
-
-          <span>
-            <strong>Dirección</strong>
-            <small>
-              Indica dónde se realizará la consulta.
-            </small>
-          </span>
-
-        </button>
-
-      </div>
-
-
-      <!-- CAMPO ENLACE -->
+      <!-- CITA VIRTUAL: siempre en la sala de Psynex (no hay que pegar enlaces) -->
       <div
-        id="campoEnlace"
-        class="location-field"
+        id="campoSala"
+        class="location-field sala-psynex"
       >
-
-        <label for="ubicacionCita">
-          Enlace de reunión
-        </label>
-
-        <input
-          id="ubicacionCita"
-          type="url"
-          placeholder="https://meet.google.com/..."
-        />
-
-        <small>
-          Puedes utilizar Google Meet u otra plataforma
-          de videollamada.
-        </small>
-
+        <span class="sala-psynex-icono" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2.5"/><path d="m16 10 5-3v10l-5-3"/></svg>
+        </span>
+        <div>
+          <strong>Sala de videollamada de Psynex</strong>
+          <small>
+            La sesión será en la sala privada de Psynex. Al confirmar, el paciente
+            recibe el enlace por correo. Los dos podrán entrar 10 minutos antes.
+          </small>
+        </div>
       </div>
 
 
@@ -334,29 +283,14 @@ import "./Aceptarcita.css";
       "#confirmarAceptarCita"
     );
 
-  const opcionEnlace =
-    document.querySelector<HTMLButtonElement>(
-      "#opcionEnlace"
-    );
-
-  const opcionDireccion =
-    document.querySelector<HTMLButtonElement>(
-      "#opcionDireccion"
-    );
-
-  const campoEnlace =
+  const campoSala =
     document.querySelector<HTMLElement>(
-      "#campoEnlace"
+      "#campoSala"
     );
 
   const campoDireccion =
     document.querySelector<HTMLElement>(
       "#campoDireccion"
-    );
-
-  const ubicacionInput =
-    document.querySelector<HTMLInputElement>(
-      "#ubicacionCita"
     );
 
   const direccionInput =
@@ -375,38 +309,16 @@ import "./Aceptarcita.css";
     );
 
 
-  let tipoUbicacion = "link";
+  // "sala" = cita virtual (sala de Psynex) · "address" = presencial
+  let tipoUbicacion: "sala" | "address" = "sala";
 
 
   function seleccionarTipo(
-    tipo: "link" | "address"
+    tipo: "sala" | "address"
   ) {
-
     tipoUbicacion = tipo;
-
-    const esEnlace =
-      tipo === "link";
-
-
-    opcionEnlace?.classList.toggle(
-      "is-active",
-      esEnlace
-    );
-
-    opcionDireccion?.classList.toggle(
-      "is-active",
-      !esEnlace
-    );
-
-
-    if (campoEnlace) {
-      campoEnlace.hidden = !esEnlace;
-    }
-
-    if (campoDireccion) {
-      campoDireccion.hidden = esEnlace;
-    }
-
+    if (campoSala) campoSala.hidden = tipo !== "sala";
+    if (campoDireccion) campoDireccion.hidden = tipo !== "address";
   }
 
 
@@ -462,7 +374,6 @@ import "./Aceptarcita.css";
     if (imagen && datos.foto) imagen.src = datos.foto;
 
     // Limpiar lo que se escribió la vez anterior
-    if (ubicacionInput) ubicacionInput.value = "";
     if (direccionInput) direccionInput.value = "";
     if (mapaInput) mapaInput.value = "";
     if (observacionesInput) observacionesInput.value = "";
@@ -485,7 +396,7 @@ import "./Aceptarcita.css";
       comenzamos mostrando dirección.
 
       Si es virtual,
-      comenzamos mostrando enlace.
+      la sesión es en la sala de Psynex.
     */
 
     if (
@@ -498,7 +409,7 @@ import "./Aceptarcita.css";
 
     } else {
 
-      seleccionarTipo("link");
+      seleccionarTipo("sala");
 
     }
 
@@ -517,22 +428,6 @@ import "./Aceptarcita.css";
     );
 
   }
-
-
-  opcionEnlace?.addEventListener(
-    "click",
-    () => {
-      seleccionarTipo("link");
-    }
-  );
-
-
-  opcionDireccion?.addEventListener(
-    "click",
-    () => {
-      seleccionarTipo("address");
-    }
-  );
 
 
   window.addEventListener(
@@ -582,9 +477,9 @@ import "./Aceptarcita.css";
 
         tipoUbicacion,
 
+        // Cita virtual: el enlace es la sala de Psynex de esta cita
         enlace:
-          ubicacionInput?.value.trim() ||
-          "",
+          `${location.origin}/Sala/${encodeURIComponent(citaIdActual)}`,
 
         direccion:
           direccionInput?.value.trim() ||
@@ -601,15 +496,6 @@ import "./Aceptarcita.css";
       };
 
 
-      // Si es virtual, el enlace es obligatorio y debe ser una URL válida.
-      // Usamos la validación nativa del navegador (no cambia el diseño).
-      if (tipoUbicacion === "link" && ubicacionInput) {
-        ubicacionInput.setCustomValidity(
-          datos.enlace ? "" : "Escribe el enlace de la reunión"
-        );
-        if (!ubicacionInput.reportValidity()) return;
-      }
-
       if (!citaIdActual || !confirmar) return;
       confirmar.disabled = true;
 
@@ -624,7 +510,7 @@ import "./Aceptarcita.css";
             credentials: "include", // envía la cookie de sesión
             body: JSON.stringify({
               estado: "Confirmada",
-              ...(tipoUbicacion === "link" && datos.enlace
+              ...(tipoUbicacion === "sala" && citaIdActual
                 ? { linkVideollamada: datos.enlace }
                 : {}),
             }),
@@ -648,11 +534,6 @@ import "./Aceptarcita.css";
 
     }
   );
-
-  // Al escribir en el enlace se quita el aviso de "obligatorio"
-  ubicacionInput?.addEventListener("input", () => {
-    ubicacionInput.setCustomValidity("");
-  });
 
 
   document.addEventListener(

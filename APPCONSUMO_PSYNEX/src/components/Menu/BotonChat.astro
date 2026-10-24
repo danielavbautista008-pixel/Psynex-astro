@@ -8,12 +8,18 @@
 // =====================================================================
 import { API_URL } from "../../lib/api";
 
+// cambio: también lo usa el paciente; "href" dice a qué vista de chat lleva
+interface Props {
+  href?: string;
+}
+const { href = "/Psicologos/Mensajes" } = Astro.props;
+
 const ruta = Astro.url.pathname.toLowerCase();
-const enMensajes = ruta.startsWith("/psicologos/mensajes");
+const enMensajes = ruta.startsWith(href.toLowerCase());
 ---
 
 {!enMensajes && (
-  <a href="/Psicologos/Mensajes" class="boton-chat" id="botonChat" data-api={API_URL} aria-label="Ir a mensajes" title="Mensajes">
+  <a href={href} class="boton-chat" id="botonChat" data-api={API_URL} aria-label="Ir a mensajes" title="Mensajes">
     <!-- Globo de chat con tres puntos y una hojita pequeña arriba -->
     <svg class="icono-chat-hoja" viewBox="0 0 32 32" fill="none" aria-hidden="true">
       <g transform="translate(-0.5 2.2) scale(0.9)">

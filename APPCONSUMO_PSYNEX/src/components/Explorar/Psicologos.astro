@@ -1,6 +1,14 @@
 ---
 import MenuExplorar from "../Menu/Navbar.astro";
+import MenuPaciente from "../Paciente/menuPac.astro";
 import "./Psicologos.css";
+
+// cambio: esta misma vista se usa en el panel del paciente ("Especialistas").
+// Con paciente = true sale el menú del paciente y el corazón de favoritos.
+interface Props {
+  paciente?: boolean;
+}
+const { paciente = false } = Astro.props;
 
 import { apiGet, fotoIniciales, pesos, urlFotoPsicologo } from "../../lib/api";
 
@@ -10,7 +18,7 @@ const datos = await apiGet<{
   psicologos: {
     id: string; nombre: string; titulo: string; biografia: string; especialidades: string[];
     modalidadTexto: string; experienciaTexto: string; disponibilidad: string; disponibilidadTexto: string;
-    calificacion: number | null; totalResenas: number; precio: number; voluntario: boolean; tieneFoto: boolean;
+    calificacion: number | null; totalResenas: number; precio: number; voluntario: boolean; tieneFoto: boolean; fotoVersion?: string;
   }[];
   especialidades: string[];
 }>(Astro.request.headers.get("cookie"), "/api/explorar/psicologos");
@@ -36,13 +44,13 @@ const psicologos = (datos?.psicologos ?? []).map((p) => ({
   resenas: p.totalResenas === 1 ? "1 reseña" : p.totalResenas > 0 ? `${p.totalResenas} reseñas` : "Sin reseñas aún",
   precio: p.voluntario && !p.precio ? "Sin costo" : p.precio > 0 ? pesos(p.precio) : "Por confirmar",
   precioNumero: p.precio,
-  imagen: p.tieneFoto ? urlFotoPsicologo(p.id) : fotoIniciales(p.nombre),
+  imagen: p.tieneFoto ? urlFotoPsicologo(p.id, p.fotoVersion) : fotoIniciales(p.nombre),
 }));
 
 const especialidadesFiltro = datos?.especialidades ?? [];
 ---
 
-<MenuExplorar
+{paciente ? <MenuPaciente /> : <MenuExplorar
   menuItems={[
     { label: "Inicio", href: "/" },
     { label: "Explorar", href: "/Explorar/explorar" },
@@ -51,9 +59,9 @@ const especialidadesFiltro = datos?.especialidades ?? [];
     { label: "Tests", href: "/Explorar/cuestionarios" },
     { label: "Blog", href: "/Explorar/Articulos" },
   ]}
-/>
+/>}
 
-<main class="psicologos-page">
+<main class:list={["psicologos-page", { "en-panel-paciente": paciente }]}>
 
   <!-- BANNER -->
   <section class="hero-psicologos">
@@ -108,6 +116,14 @@ const especialidadesFiltro = datos?.especialidades ?? [];
         </button>
 
       </div>
+
+      {/* cambio: ver solo los psicólogos marcados con el corazón */}
+      {paciente && (
+        <button id="btnSoloFavoritos" class="btn-filtros btn-solo-favoritos" type="button" aria-pressed="false">
+          <i class="bi bi-heart"></i>
+          <span>Favoritos</span>
+        </button>
+      )}
 
       <button
         id="btnFiltros"
@@ -365,6 +381,7 @@ const especialidadesFiltro = datos?.especialidades ?? [];
             psicologos.map((psicologo) => (
               <article
                 class="psicologo-row"
+                data-id={psicologo.id}
                 data-nombre={psicologo.nombre}
                 data-especialidades={psicologo.todasEspecialidades.join("|")}
                 data-modalidad={psicologo.modalidad}
@@ -499,8 +516,22 @@ const especialidadesFiltro = datos?.especialidades ?? [];
                   </div>
 
 
+                  {/* cambio: corazón de favoritos (solo en el panel del paciente) */}
+                  {paciente && (
+                    <button
+                      type="button"
+                      class="btn-favorito"
+                      data-favorito={psicologo.id}
+                      aria-pressed="false"
+                      aria-label={`Guardar a ${psicologo.nombre} en favoritos`}
+                      title="Agregar a favoritos"
+                    >
+                      <i class="bi bi-heart"></i>
+                    </button>
+                  )}
+
                   <a
-                    href={`/Explorar/${psicologo.id}`}
+                    href={paciente ? `/Explorar/${psicologo.id}?desde=paciente` : `/Explorar/${psicologo.id}`}
                     class="btn-perfil"
                   >
 
@@ -565,6 +596,54 @@ const especialidadesFiltro = datos?.especialidades ?? [];
 
 
 <script>
+  /* =====================================================
+     FAVORITOS (cambio: solo en el panel del paciente)
+     Por ahora se guardan en este navegador (localStorage), como
+     prueba; cuando exista la tabla de favoritos del paciente en el
+     backend, aquí se cambia por la llamada a la API.
+  ====================================================== */
+  const CLAVE_FAVORITOS = "psynex:favoritos-paciente";
+  const favoritos = new Set<string>();
+  let soloFavoritos = false;
+  try {
+    (JSON.parse(localStorage.getItem(CLAVE_FAVORITOS) || "[]") as string[]).forEach((id) => favoritos.add(id));
+  } catch { /* sin almacenamiento: empieza vacío */ }
+
+  const guardarFavoritos = () => {
+    try { localStorage.setItem(CLAVE_FAVORITOS, JSON.stringify([...favoritos])); } catch { /* nada */ }
+  };
+
+  const pintarCorazon = (boton: HTMLButtonElement) => {
+    const activo = favoritos.has(boton.dataset.favorito || "");
+    boton.classList.toggle("activo", activo);
+    boton.setAttribute("aria-pressed", String(activo));
+    boton.title = activo ? "Quitar de favoritos" : "Agregar a favoritos";
+    const icono = boton.querySelector("i");
+    if (icono) icono.className = activo ? "bi bi-heart-fill" : "bi bi-heart";
+  };
+
+  document.querySelectorAll<HTMLButtonElement>("[data-favorito]").forEach((boton) => {
+    pintarCorazon(boton);
+    boton.addEventListener("click", () => {
+      const id = boton.dataset.favorito || "";
+      if (favoritos.has(id)) favoritos.delete(id);
+      else favoritos.add(id);
+      guardarFavoritos();
+      pintarCorazon(boton);
+      if (soloFavoritos) aplicarFiltros();
+    });
+  });
+
+  document.querySelector<HTMLButtonElement>("#btnSoloFavoritos")?.addEventListener("click", (e) => {
+    const boton = e.currentTarget as HTMLButtonElement;
+    soloFavoritos = !soloFavoritos;
+    boton.classList.toggle("activo", soloFavoritos);
+    boton.setAttribute("aria-pressed", String(soloFavoritos));
+    const icono = boton.querySelector("i");
+    if (icono) icono.className = soloFavoritos ? "bi bi-heart-fill" : "bi bi-heart";
+    aplicarFiltros();
+  });
+
   /* =====================================================
      ELEMENTOS
   ====================================================== */
@@ -883,7 +962,12 @@ const especialidadesFiltro = datos?.especialidades ?? [];
 
         /* RESULTADO */
 
+        // cambio: con "Favoritos" activo solo se ven los que tienen corazón
+        const coincideFavorito =
+          !soloFavoritos || favoritos.has(fila.dataset.id || "");
+
         const mostrar =
+          coincideFavorito &&
           coincideBusqueda &&
           coincideEspecialidad &&
           coincideModalidad &&

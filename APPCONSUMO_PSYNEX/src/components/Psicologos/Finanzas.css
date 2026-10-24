@@ -1409,3 +1409,93 @@ body {
   padding: 6px 13px;
   font-size: 11px;
 }
+
+/* =========================================================
+   Datos reales (backend): estados, cuentas, reclamos y dona
+   ========================================================= */
+.fin-aviso {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--danger-bg);
+  color: var(--danger-fg);
+  font-size: 12.5px;
+}
+
+/* "Por transferir" / "Sin verificar" / reclamo abierto */
+.fin-status.is-pendiente {
+  color: var(--warning-fg);
+  background: var(--warning-bg);
+}
+
+/* La dona se arma con los porcentajes que calcula el script (--a y --b) */
+.fin-donut {
+  background: conic-gradient(
+    var(--fin-primary) 0 var(--a, 0%),
+    color-mix(in srgb, var(--fin-primary) 55%, var(--fin-surface)) var(--a, 0%) var(--b, 0%),
+    color-mix(in srgb, var(--fin-primary) 22%, var(--fin-surface)) var(--b, 0%) 100%
+  );
+}
+.fin-donut.is-vacia { background: var(--fin-border); }
+.fin-dot-paid { background: var(--fin-primary); }
+.fin-dot-free { background: color-mix(in srgb, var(--fin-primary) 55%, var(--fin-surface)); }
+.fin-dot-fees { background: color-mix(in srgb, var(--fin-primary) 22%, var(--fin-surface)); }
+
+.fin-reclamos {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.fin-reclamos li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--fin-text);
+}
+
+.fin-modal-nota {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--fin-muted);
+}
+
+/* Lista de cuentas dentro de "Gestionar cuenta" */
+.fin-cuentas {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.fin-cuentas li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--fin-border);
+  border-radius: 12px;
+  background: var(--fin-surface);
+}
+.fin-cuentas strong { display: block; font-size: 13px; color: var(--fin-text); }
+.fin-cuentas small { font-size: 11.5px; color: var(--fin-muted); }
+.fin-cuenta-acciones { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.fin-mini-danger { color: var(--danger-fg) !important; }
+.fin-cuentas-sub {
+  margin: 4px 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fin-muted);
+}
+
+.fin-modal button[disabled],
+.finanzas-shell button[disabled] { opacity: .6; cursor: wait; }
+
+a.fin-link { text-decoration: none; }
+.fin-cuentas .fin-mini-action,
+.fin-cuentas .fin-status { font-size: 10.5px; padding: 3px 8px; }
+.fin-cuentas small { white-space: nowrap; }

@@ -43,7 +43,7 @@
 }
 
 .nav-logo-text {
-  font-family: "Gravitas One", serif, system-ui;
+   font-family:"Fraunces", Georgia, serif;
   font-size: 15px;
   color: var(--text);
   letter-spacing: 0.5px;
@@ -54,7 +54,7 @@
    LINKS DEL MENÚ (Ícono Arriba, Texto Abajo)
    ------------------------------------------------------------------------- */
 .nav-menu {
-  font-family: "Roboto", sans-serif;
+  font-family: var(--bs-body-font-family); /* cambio de fuente: la misma de las vistas de psicólogo */
   display: flex;
   align-items: center;
   gap: 32px;
@@ -145,12 +145,12 @@
   z-index: 1010;
   display: flex;
   flex-direction: column;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--bs-body-font-family); /* cambio de fuente: la misma de las vistas de psicólogo */
 }
 
 .dropdown-perfil.hidden {
   display: none;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--bs-body-font-family); /* cambio de fuente: la misma de las vistas de psicólogo */
 }
 
 .dropdown-item {
@@ -202,5 +202,284 @@
 @media (max-width: 768px) {
   .nav-spacer {
     height: 56px;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   cambio de fuente: el menú se ve igual en todas las páginas de Empresa
+   (antes cambiaba según la página porque cada CSS ponía su propia letra).
+   Usa la misma letra de las vistas de psicólogo. PSYNEX sigue con Fraunces.
+   ------------------------------------------------------------------------- */
+.sticky-nav .nav-menu,
+.sticky-nav .nav-menu a,
+.sticky-nav .nav-menu span,
+.sticky-nav .nav-btn-perfil,
+.sticky-nav .nav-btn-perfil span,
+.sticky-nav .dropdown-perfil,
+.sticky-nav .dropdown-item,
+.sticky-nav .dropdown-item span {
+  font-family: var(--bs-body-font-family); /* cambio de fuente: la misma de las vistas de psicólogo */
+}
+
+/* -------------------------------------------------------------------------
+   Efecto de vidrio en el menú (igual que el menú del psicólogo).
+   Se mezcla el color del tema con transparencia para que se vea
+   lo que pasa por detrás, difuminado.
+   ------------------------------------------------------------------------- */
+.sticky-nav {
+  background: color-mix(in srgb, var(--surface) 68%, transparent);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  box-shadow:
+    0 10px 35px rgba(0, 0, 0, 0.055),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.nav-btn-perfil {
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+}
+
+.nav-btn-perfil:hover {
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+}
+
+.dropdown-perfil {
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* -------------------------------------------------------------------------
+   Lista de "Mi Perfil": se ve igual en todas las páginas de Empresa
+   (cada página tiene su propio CSS y antes le cambiaba el tamaño o la letra).
+   "Cerrar sesión" va del mismo color que "Mi Perfil" (antes era rojo).
+   ------------------------------------------------------------------------- */
+.sticky-nav .dropdown-perfil .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--bs-body-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: left;
+  text-decoration: none;
+}
+
+.sticky-nav .dropdown-perfil .dropdown-item i {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.sticky-nav .dropdown-perfil .dropdown-item:hover,
+.sticky-nav .dropdown-perfil .dropdown-item:hover i {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  color: var(--primary);
+}
+
+/* Cerrar sesión: sin rojo, igual que las demás opciones */
+.sticky-nav .dropdown-perfil .btn-logout,
+.sticky-nav .dropdown-perfil .btn-logout i {
+  color: var(--text);
+}
+
+/* -------------------------------------------------------------------------
+   Campanita de notificaciones (al lado de "Mi Perfil").
+   Usa los colores del tema.
+   ------------------------------------------------------------------------- */
+.nav-acciones {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notif-container {
+  position: relative;
+}
+
+.notif-boton {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  color: var(--text);
+  font-size: 17px;
+  cursor: pointer;
+  transition: border-color 0.25s ease, color 0.25s ease;
+}
+
+.notif-boton:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.notif-contador {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.notif-contador[hidden],
+.notif-panel[hidden],
+.notif-leer-todas[hidden] {
+  display: none;
+}
+
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 1010;
+  width: 320px;
+  max-height: 420px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  font-family: var(--bs-body-font-family);
+}
+
+.notif-panel-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.notif-panel-top strong {
+  display: block;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.notif-panel-top small {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.notif-leer-todas {
+  border: none;
+  background: transparent;
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.notif-lista {
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.notif-vacio {
+  margin: 0;
+  padding: 18px 10px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.notif-item {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.notif-item:hover {
+  background: color-mix(in srgb, var(--primary) 7%, transparent);
+}
+
+.notif-item.no-leida {
+  background: color-mix(in srgb, var(--primary) 5%, transparent);
+}
+
+.notif-item-icono {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 13px;
+}
+
+.notif-item-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.notif-item-texto strong {
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.notif-item.no-leida .notif-item-texto strong::after {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  vertical-align: middle;
+}
+
+.notif-item-texto span {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.notif-item-texto small {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+@media (max-width: 480px) {
+  .notif-panel {
+    position: fixed;
+    top: 64px;
+    left: 12px;
+    right: 12px;
+    width: auto;
   }
 }

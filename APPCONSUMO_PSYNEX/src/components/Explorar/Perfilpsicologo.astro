@@ -47,10 +47,13 @@ export interface PsicologoPublico {
   voluntario: boolean;
   duracionMinutos: number;
   tieneFoto: boolean;
+  fotoVersion?: string;
   direccion: string;
   estudios: Estudio[];
   experiencia: Experiencia[];
   resenas: Resena[];
+  // Horario semanal de atención (de su agenda)
+  horarios?: { dia: string; desde: string; hasta: string }[];
 }
 
 interface Props {
@@ -71,7 +74,7 @@ const psicologo = {
   calificacion: p.calificacion === null ? "Nuevo" : p.calificacion.toFixed(1),
   totalResenas: p.totalResenas,
   precio: p.voluntario && !p.precio ? "Sin costo" : p.precio > 0 ? pesos(p.precio) : "Por confirmar",
-  imagen: p.tieneFoto ? urlFotoPsicologo(p.id) : fotoIniciales(p.nombre),
+  imagen: p.tieneFoto ? urlFotoPsicologo(p.id, p.fotoVersion) : fotoIniciales(p.nombre),
 };
 
 // "Hace 2 semanas" a partir de la fecha de la reseña
@@ -92,6 +95,40 @@ const resenas = p.resenas.map((r) => ({
   comentario: r.comentario,
 }));
 
+// Horario semanal agrupado por día: "Lunes" -> ["8:00 a. m. – 12:00 p. m.", ...]
+const NOMBRE_DIA: Record<string, string> = {
+  Lunes: "Lunes", Martes: "Martes", Miercoles: "Miércoles", Jueves: "Jueves",
+  Viernes: "Viernes", Sabado: "Sábado", Domingo: "Domingo",
+};
+const hora12 = (h: string) => {
+  const [hh, mm] = h.split(":").map(Number);
+  return `${((hh + 11) % 12) + 1}:${String(mm).padStart(2, "0")} ${hh >= 12 ? "p. m." : "a. m."}`;
+};
+const horarioSemana: { dia: string; rangos: string[] }[] = [];
+for (const h of p.horarios ?? []) {
+  const dia = NOMBRE_DIA[h.dia] ?? h.dia;
+  let fila = horarioSemana.find((x) => x.dia === dia);
+  if (!fila) {
+    fila = { dia, rangos: [] };
+    horarioSemana.push(fila);
+  }
+  fila.rangos.push(`${hora12(h.desde)} – ${hora12(h.hasta)}`);
+}
+
+// cambio: si el psicólogo está viendo su propio perfil (viene de "Ver mi perfil
+// público"), el botón de arriba lo devuelve a Mi perfil y no a la lista.
+const esPropio = rol === "Psicologo" && Astro.url.searchParams.get("propio") === "1";
+// cambio: si el paciente llegó desde su panel (Especialistas), vuelve allá
+// (también si quien lo ve es un paciente, aunque haya entrado por otro lado)
+const desdePanelPaciente = Astro.url.searchParams.get("desde") === "paciente" || rol === "Paciente";
+// cambio: "?volver=/Paciente/..." dice a qué vista del panel regresar
+const volverParam = Astro.url.searchParams.get("volver") ?? "";
+const volverPanel = /^\/Paciente\/[A-Za-z]+$/.test(volverParam) ? volverParam : "/Paciente/Especialistas";
+const textoVolverPanel =
+  volverPanel === "/Paciente/Citas" ? "Volver a mis citas"
+  : volverPanel === "/Paciente/Especialistas" ? "Volver a especialistas"
+  : "Volver a mi panel";
+
 const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
   `${desde ?? ""}${desde ? " — " : ""}${actual ? "Actualmente" : (hasta ?? "")}`.trim();
 ---
@@ -105,12 +142,13 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
 
   <!-- VOLVER -->
   <div class="perfil-topbar">
-    <a href="/Explorar/Psicologos" class="volver-link">
+    <a href={esPropio ? "/Psicologos/MiPerfil" : desdePanelPaciente ? volverPanel : "/Explorar/Psicologos"} class="volver-link">
       <span class="volver-icon">
         <i class="bi bi-arrow-left"></i>
       </span>
-      Volver a psicólogos
+      {esPropio ? "Volver a mi perfil" : desdePanelPaciente ? textoVolverPanel : "Volver a psicólogos"}
     </a>
+    {esPropio && <span class="perfil-propio-aviso">Así ven tu perfil los pacientes</span>}
   </div>
 
   <!-- INFORMACIÓN PRINCIPAL -->
@@ -199,6 +237,7 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
     <a href="#enfoque">Formación</a>
     <a href="#especialidades">Especialidades</a>
     <a href="#experiencia">Experiencia</a>
+    <a href="#horarios">Horarios</a>
     <a href="#resenas">Reseñas</a>
   </nav>
 
@@ -464,6 +503,42 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
           )
         }
 
+        <!-- CALIFICAR: solo pacientes con sesión que ya tuvieron una cita -->
+        {!rol && (
+          <div class="resena-nueva">
+            <div>
+              <strong>¿Tuviste una sesión con {psicologo.nombre.split(" ")[0]}?</strong>
+              <p>Inicia sesión con tu cuenta de paciente para calificar tu experiencia.</p>
+            </div>
+            <button type="button" class="resena-btn" id="resenaLogin">Iniciar sesión</button>
+          </div>
+        )}
+
+        {rol === "Paciente" && (
+          <div class="resena-nueva" id="resenaNueva" data-estado="cargando">
+            <p class="resena-estado" id="resenaEstado">Revisando si puedes calificar…</p>
+
+            <form class="resena-form" id="resenaForm" hidden>
+              <strong>Califica tu última sesión</strong>
+              <div class="resena-estrellas" role="radiogroup" aria-label="Calificación de 1 a 5 estrellas">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button type="button" class="estrella" data-valor={n} role="radio" aria-checked="false" aria-label={`${n} de 5 estrellas`}>
+                    <i class="bi bi-star-fill"></i>
+                  </button>
+                ))}
+                <span class="resena-valor" id="resenaValor">Elige de 1 a 5</span>
+              </div>
+              <textarea id="resenaComentario" maxlength="500" rows="3"
+                placeholder="Cuéntale a otros cómo te sentiste en la sesión (opcional)"></textarea>
+              <div class="resena-pie">
+                <small id="resenaContador">0 / 500</small>
+                <button type="submit" class="resena-btn" id="resenaEnviar">Publicar reseña</button>
+              </div>
+              <p class="resena-error" id="resenaError" hidden></p>
+            </form>
+          </div>
+        )}
+
       </section>
 
     </main>
@@ -565,6 +640,49 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
           <i class="bi bi-arrow-right"></i>
         </button>
 
+      </section>
+
+      <!-- HORARIOS (públicos: cualquiera los puede ver) -->
+      <section class="sidebar-card horarios-card" id="horarios">
+        <div class="sidebar-titulo">
+          <span>
+            <i class="bi bi-calendar-week"></i>
+          </span>
+
+          <h3>Horarios</h3>
+        </div>
+
+        <div class="horarios-publicos">
+          <div class="horarios-semana">
+            <h4>Atiende</h4>
+            {
+              horarioSemana.length ? (
+                <ul>
+                  {horarioSemana.map((d) => (
+                    <li>
+                      <strong>{d.dia}</strong>
+                      {d.rangos.map((r) => <span>{r}</span>)}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p class="horarios-vacio">Todavía no ha publicado su horario semanal.</p>
+              )
+            }
+          </div>
+
+          <div class="horarios-libres">
+            <h4>Próximos espacios libres</h4>
+            <div id="horariosLibres" class="horarios-dias">
+              <p class="horarios-vacio">Cargando horarios…</p>
+            </div>
+            <small class="horarios-nota">
+              {rol === "Paciente"
+                ? "Toca una hora para agendar tu cita."
+                : "Para agendar, inicia sesión con tu cuenta de paciente."}
+            </small>
+          </div>
+        </div>
       </section>
 
     </aside>
@@ -695,6 +813,50 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
 
     </div>
 
+    <!-- PASO 4: quién viene (individual, pareja o familia) -->
+    <div class="modal-paso">
+
+      <div class="paso-titulo">
+        <span>4</span>
+
+        <div>
+          <strong>¿Quién viene a la sesión?</strong>
+          <small>Puedes venir solo, en pareja o con tu familia</small>
+        </div>
+      </div>
+
+      <div class="modal-opciones formato-opciones">
+        <button type="button" class="modal-opcion formato-btn seleccionado" data-formato="Individual">
+          <span><i class="bi bi-person"></i></span>
+          <div><strong>Solo yo</strong><small>Individual</small></div>
+          <i class="bi bi-check-circle-fill opcion-check"></i>
+        </button>
+        <button type="button" class="modal-opcion formato-btn" data-formato="Pareja">
+          <span><i class="bi bi-people"></i></span>
+          <div><strong>En pareja</strong><small>2 personas</small></div>
+          <i class="bi bi-check-circle-fill opcion-check"></i>
+        </button>
+        <button type="button" class="modal-opcion formato-btn" data-formato="Familiar">
+          <span><i class="bi bi-house-heart"></i></span>
+          <div><strong>En familia</strong><small>Hasta 5 personas</small></div>
+          <i class="bi bi-check-circle-fill opcion-check"></i>
+        </button>
+      </div>
+
+      <div class="acompanantes" id="acompanantes" hidden>
+        <label class="acompanantes-titulo" id="acompanantesTitulo">Correo de tu pareja</label>
+        <div class="acompanantes-lista" id="acompanantesLista"></div>
+        <button type="button" class="acompanantes-agregar" id="agregarAcompanante" hidden>
+          <i class="bi bi-plus-lg"></i> Agregar otro familiar
+        </button>
+        <small class="acompanantes-nota">
+          <i class="bi bi-info-circle"></i>
+          Cada persona necesita su cuenta de paciente en Psynex. Le avisaremos y podrá entrar a la sala con su cuenta.
+        </small>
+      </div>
+
+    </div>
+
     <!-- RESUMEN -->
     <div class="cita-resumen">
 
@@ -708,6 +870,8 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
 
         <strong>
           <span id="resumenModalidad">Virtual</span>
+          <span class="resumen-punto">•</span>
+          <span id="resumenFormato">Individual</span>
           <span class="resumen-punto">•</span>
           <span id="resumenFecha">—</span>
           <span class="resumen-punto">•</span>
@@ -787,6 +951,8 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
 
   const abrir = () => {
     if (!modal) return;
+    // Sin sesión de paciente: solo la ventana de iniciar sesión, no la de agendar
+    if (!puedeElegir()) return;
     modal.classList.add("visible");
     modal.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-abierto");
@@ -806,7 +972,7 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
      AGENDA (fechas y horas reales)
   ========================================= */
 
-  const seleccion = { modalidad: "Virtual", fecha: "", hora: "" };
+  const seleccion = { modalidad: "Virtual", fecha: "", hora: "", formato: "Individual" };
 
   const resumenModalidad = document.getElementById("resumenModalidad");
   const resumenFecha = document.getElementById("resumenFecha");
@@ -840,6 +1006,10 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
   const actualizarResumen = () => {
     const dia = dias.find((d) => d.fecha === seleccion.fecha);
     if (resumenModalidad) resumenModalidad.textContent = seleccion.modalidad;
+    const resumenFormato = document.getElementById("resumenFormato");
+    if (resumenFormato) {
+      resumenFormato.textContent = { Individual: "Individual", Pareja: "En pareja", Familiar: "En familia" }[seleccion.formato] ?? "Individual";
+    }
     if (resumenFecha) resumenFecha.textContent = dia ? textoFecha(dia) : "—";
     if (resumenHora) resumenHora.textContent = seleccion.hora ? textoHora(seleccion.hora) : "—";
   };
@@ -929,6 +1099,84 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
   }
 
   /* =========================================
+     PASO 4: solo, en pareja o en familia
+     Pareja: 1 correo · Familia: de 1 a 4 correos
+  ========================================= */
+
+  const MAX_FAMILIARES = 4;
+  const cajaAcompanantes = document.getElementById("acompanantes");
+  const listaAcompanantes = document.getElementById("acompanantesLista");
+  const tituloAcompanantes = document.getElementById("acompanantesTitulo");
+  const botonAgregar = document.getElementById("agregarAcompanante") as HTMLButtonElement | null;
+
+  function correosAcompanantes(): string[] {
+    return [...(listaAcompanantes?.querySelectorAll<HTMLInputElement>("input") ?? [])]
+      .map((i) => i.value.trim().toLowerCase())
+      .filter(Boolean);
+  }
+
+  function agregarCampoCorreo(valor = "") {
+    if (!listaAcompanantes) return;
+    const fila = document.createElement("div");
+    fila.className = "acompanante-fila";
+    const input = document.createElement("input");
+    input.type = "email";
+    input.maxLength = 256;
+    input.autocomplete = "off";
+    input.placeholder = seleccion.formato === "Pareja" ? "correo@ejemplo.com" : `Correo del familiar ${listaAcompanantes.children.length + 1}`;
+    input.value = valor;
+    fila.append(input);
+    if (seleccion.formato === "Familiar" && listaAcompanantes.children.length > 0) {
+      const quitar = document.createElement("button");
+      quitar.type = "button";
+      quitar.className = "acompanante-quitar";
+      quitar.setAttribute("aria-label", "Quitar este familiar");
+      quitar.innerHTML = '<i class="bi bi-x-lg"></i>';
+      quitar.addEventListener("click", () => {
+        fila.remove();
+        pintarBotonAgregar();
+      });
+      fila.append(quitar);
+    }
+    listaAcompanantes.append(fila);
+    pintarBotonAgregar();
+  }
+
+  function pintarBotonAgregar() {
+    if (!botonAgregar || !listaAcompanantes) return;
+    botonAgregar.hidden = seleccion.formato !== "Familiar" || listaAcompanantes.children.length >= MAX_FAMILIARES;
+  }
+
+  function elegirFormato(formato: string) {
+    seleccion.formato = formato;
+    document.querySelectorAll<HTMLElement>(".formato-btn").forEach((b) =>
+      b.classList.toggle("seleccionado", b.dataset.formato === formato)
+    );
+    const anteriores = correosAcompanantes();
+    if (listaAcompanantes) listaAcompanantes.replaceChildren();
+    if (cajaAcompanantes) cajaAcompanantes.hidden = formato === "Individual";
+    if (tituloAcompanantes) {
+      tituloAcompanantes.textContent = formato === "Pareja" ? "Correo de tu pareja" : "Correos de tus familiares (hasta 4)";
+    }
+    if (formato === "Pareja") agregarCampoCorreo(anteriores[0] ?? "");
+    if (formato === "Familiar") {
+      (anteriores.length ? anteriores : [""]).slice(0, MAX_FAMILIARES).forEach((c) => agregarCampoCorreo(c));
+    }
+    actualizarResumen();
+  }
+
+  document.querySelectorAll<HTMLElement>(".formato-btn").forEach((b) =>
+    b.addEventListener("click", () => {
+      if (!puedeElegir()) return;
+      elegirFormato(b.dataset.formato ?? "Individual");
+    })
+  );
+  botonAgregar?.addEventListener("click", () => {
+    agregarCampoCorreo();
+    listaAcompanantes?.querySelector<HTMLInputElement>(".acompanante-fila:last-child input")?.focus();
+  });
+
+  /* =========================================
      CONTINUAR -> solicitar la cita
   ========================================= */
 
@@ -940,12 +1188,35 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
       return;
     }
 
+    // Correos de los acompañantes (pareja o familia)
+    const acompanantes = correosAcompanantes();
+    if (seleccion.formato !== "Individual") {
+      const malo = acompanantes.find((c) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c));
+      if (!acompanantes.length || malo) {
+        aviso(
+          "Revisa los correos",
+          malo
+            ? `"${malo}" no parece un correo válido.`
+            : seleccion.formato === "Pareja"
+            ? "Escribe el correo de tu pareja."
+            : "Escribe el correo de al menos un familiar.",
+        );
+        return;
+      }
+      if (new Set(acompanantes).size !== acompanantes.length) {
+        aviso("Revisa los correos", "Escribiste el mismo correo dos veces.");
+        return;
+      }
+    }
+
     continuar.disabled = true;
 
     const r = await apiEnviar("POST", `/api/explorar/psicologos/${psicologoId}/citas`, {
       fecha: seleccion.fecha,
       hora: seleccion.hora,
       modalidad: seleccion.modalidad,
+      formato: seleccion.formato,
+      acompanantes: seleccion.formato === "Individual" ? [] : acompanantes,
     });
 
     continuar.disabled = false;
@@ -955,7 +1226,7 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
       cerrar();
       aviso(
         "¡Solicitud enviada!",
-        `Pediste tu cita ${seleccion.modalidad.toLowerCase()} el ${dia ? textoFecha(dia) : seleccion.fecha} a las ${textoHora(seleccion.hora)}. Te avisaremos cuando el psicólogo la confirme.`,
+        `Pediste tu cita ${seleccion.modalidad.toLowerCase()}${seleccion.formato === "Individual" ? "" : seleccion.formato === "Pareja" ? " en pareja" : " en familia"} el ${dia ? textoFecha(dia) : seleccion.fecha} a las ${textoHora(seleccion.hora)}. Te avisaremos cuando el psicólogo la confirme.`,
         "aviso",
         "bi-check2-circle",
       );
@@ -972,6 +1243,167 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
     aviso("No se pudo agendar", textoError(r.data, "Inténtalo de nuevo en un momento."));
     if (r.status === 409) await cargarDisponibilidad();
   });
+
+  /* =========================================
+     HORARIOS PÚBLICOS (contenedor "Horarios")
+     Cualquiera los ve; al tocar una hora, el paciente
+     abre el modal con ese día y esa hora ya elegidos.
+  ========================================= */
+
+  const cajaLibres = document.getElementById("horariosLibres");
+
+  async function cargarHorariosPublicos() {
+    if (!cajaLibres) return;
+    let libres: DiaDisponible[] = [];
+    try {
+      const res = await fetch(`${API_URL}/api/explorar/psicologos/${psicologoId}/disponibilidad?dias=14`);
+      const data = await res.json();
+      libres = res.ok ? (data.dias ?? []) : [];
+    } catch {
+      libres = [];
+    }
+
+    cajaLibres.replaceChildren();
+    if (!libres.length) {
+      const p = document.createElement("p");
+      p.className = "horarios-vacio";
+      p.textContent = "No hay espacios libres en las próximas dos semanas.";
+      cajaLibres.append(p);
+      return;
+    }
+
+    libres.slice(0, 4).forEach((d) => {
+      const fila = document.createElement("div");
+      fila.className = "horarios-dia";
+
+      const fecha = document.createElement("span");
+      fecha.className = "horarios-fecha";
+      fecha.textContent = `${textoFecha(d)} ${MESES[Number(d.fecha.slice(5, 7)) - 1]}`;
+
+      const horas = document.createElement("div");
+      horas.className = "horarios-horas";
+      d.horas.slice(0, 4).forEach((h) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "hora-chip";
+        chip.textContent = textoHora(h);
+        chip.addEventListener("click", () => {
+          if (!puedeElegir()) return;
+          seleccion.fecha = d.fecha;
+          seleccion.hora = h;
+          abrir();
+        });
+        horas.append(chip);
+      });
+      if (d.horas.length > 4) {
+        const mas = document.createElement("small");
+        mas.className = "horarios-mas";
+        mas.textContent = `+${d.horas.length - 4} más`;
+        horas.append(mas);
+      }
+
+      fila.append(fecha, horas);
+      cajaLibres.append(fila);
+    });
+  }
+
+  void cargarHorariosPublicos();
+
+
+  /* =========================================
+     RESEÑAS: calificar (solo pacientes con una sesión realizada)
+  ========================================= */
+
+  document.getElementById("resenaLogin")?.addEventListener("click", () =>
+    aviso("Inicia sesión para calificar", "Ingresa con tu cuenta de paciente para dejar tu reseña.", "sesion", "bi-star"),
+  );
+
+  const resenaCaja = document.getElementById("resenaNueva");
+  const resenaForm = document.getElementById("resenaForm") as HTMLFormElement | null;
+  const resenaEstado = document.getElementById("resenaEstado");
+  const resenaError = document.getElementById("resenaError");
+  const comentario = document.getElementById("resenaComentario") as HTMLTextAreaElement | null;
+  const estrellas = [...document.querySelectorAll<HTMLButtonElement>(".resena-estrellas .estrella")];
+  const TEXTO_ESTRELLAS = ["", "Muy mala", "Mala", "Regular", "Buena", "Excelente"];
+  let puntaje = 0;
+
+  const pintarEstrellas = (valor: number) => {
+    estrellas.forEach((e) => {
+      const n = Number(e.dataset.valor);
+      e.classList.toggle("activa", n <= valor);
+      e.setAttribute("aria-checked", String(n === puntaje));
+    });
+    const texto = document.getElementById("resenaValor");
+    if (texto) texto.textContent = valor ? `${valor} de 5 · ${TEXTO_ESTRELLAS[valor]}` : "Elige de 1 a 5";
+  };
+
+  estrellas.forEach((e) => {
+    const n = Number(e.dataset.valor);
+    e.addEventListener("mouseenter", () => pintarEstrellas(n));
+    e.addEventListener("mouseleave", () => pintarEstrellas(puntaje));
+    e.addEventListener("click", () => {
+      puntaje = n;
+      pintarEstrellas(puntaje);
+    });
+  });
+
+  comentario?.addEventListener("input", () => {
+    const c = document.getElementById("resenaContador");
+    if (c) c.textContent = `${comentario.value.length} / 500`;
+  });
+
+  const ponerEstadoResena = (estado: string) => {
+    if (!resenaCaja || !resenaEstado || !resenaForm) return;
+    resenaCaja.dataset.estado = estado;
+    resenaForm.hidden = estado !== "puede";
+    resenaEstado.hidden = estado === "puede";
+    if (estado === "ya") resenaEstado.textContent = "Ya calificaste tus sesiones con este psicólogo. ¡Gracias por tu opinión!";
+    if (estado === "sin-cita") resenaEstado.textContent = "Podrás calificar después de tener tu primera sesión con este psicólogo.";
+    if (estado === "gracias") resenaEstado.textContent = "¡Gracias! Tu reseña quedó publicada.";
+    if (estado === "error") resenaEstado.textContent = "No pudimos revisar tus sesiones. Intenta más tarde.";
+  };
+
+  async function cargarEstadoResena() {
+    if (!resenaCaja) return;
+    try {
+      const res = await fetch(`${API_URL}/api/explorar/psicologos/${psicologoId}/mi-resena`, { credentials: "include" });
+      const data = await res.json().catch(() => ({}));
+      ponerEstadoResena(res.ok ? String(data.estado) : "error");
+    } catch {
+      ponerEstadoResena("error");
+    }
+  }
+
+  resenaForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (resenaError) resenaError.hidden = true;
+    if (!puntaje) {
+      if (resenaError) {
+        resenaError.textContent = "Elige de 1 a 5 estrellas.";
+        resenaError.hidden = false;
+      }
+      return;
+    }
+    const enviar = document.getElementById("resenaEnviar") as HTMLButtonElement | null;
+    if (enviar) enviar.disabled = true;
+    const r = await apiEnviar("POST", `/api/explorar/psicologos/${psicologoId}/resenas`, {
+      puntaje,
+      comentario: comentario?.value.trim() ?? "",
+    });
+    if (enviar) enviar.disabled = false;
+    if (r.ok) {
+      ponerEstadoResena("gracias");
+      setTimeout(() => location.reload(), 1500); // para ver la reseña en la lista
+      return;
+    }
+    if (resenaError) {
+      resenaError.textContent = textoError(r.data, "No se pudo publicar la reseña.");
+      resenaError.hidden = false;
+    }
+  });
+
+  void cargarEstadoResena();
+
 
   /* =========================================
      CARRUSEL DE RESEÑAS
