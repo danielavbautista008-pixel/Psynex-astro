@@ -213,7 +213,7 @@ const hoja = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M
 
 <script>
   const card = document.getElementById("recuperarCard") as HTMLElement;
-  const API = card.dataset.api || "http://localhost:8001";
+  const API = card.dataset.api ?? "http://localhost:8001"; // cambio (túnel): "" = misma dirección de la página
 
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 

@@ -47,10 +47,49 @@ import "./Navbar.css";
     ))}
   </ul>
 
-  <a href={loginHref} class="nav-btn-login">
-    {loginLabel}
-  </a>
+  <div class="nav-derecha">
+    <a href={loginHref} class="nav-btn-login">
+      {loginLabel}
+    </a>
+    <!-- cambio: botón de menú (☰) para celular; antes en celular solo se veía "Iniciar sesión" -->
+    <button type="button" class="nav-hamburguesa" id="navHamburguesa" aria-label="Abrir menú" aria-expanded="false" aria-controls="navMovil">
+      <i class="bi bi-list"></i>
+    </button>
+  </div>
+
+  <!-- cambio: menú desplegable del celular -->
+  <ul class="nav-movil" id="navMovil" hidden>
+    {menuItems.map((item: { label: string; href: string }) => (
+      <li>
+        <a href={item.href}>{item.label}</a>
+      </li>
+    ))}
+  </ul>
 </nav>
+
+<script>
+  // cambio: abrir / cerrar el menú en celular
+  const boton = document.getElementById("navHamburguesa");
+  const menu = document.getElementById("navMovil");
+  const icono = boton?.querySelector("i");
+  const cerrar = () => {
+    if (!menu || !boton) return;
+    menu.hidden = true;
+    boton.setAttribute("aria-expanded", "false");
+    if (icono) icono.className = "bi bi-list";
+  };
+  boton?.addEventListener("click", () => {
+    if (!menu) return;
+    const abrir = menu.hidden;
+    menu.hidden = !abrir;
+    boton.setAttribute("aria-expanded", abrir ? "true" : "false");
+    if (icono) icono.className = abrir ? "bi bi-x-lg" : "bi bi-list";
+  });
+  document.addEventListener("click", (e) => {
+    if (menu && !menu.hidden && !(e.target as HTMLElement).closest(".sticky-nav")) cerrar();
+  });
+  window.addEventListener("resize", () => { if (window.innerWidth > 768) cerrar(); });
+</script>
 
 <!--
   Este div vacío es necesario porque el nav de arriba es "fixed"

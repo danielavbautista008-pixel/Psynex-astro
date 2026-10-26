@@ -1,19 +1,65 @@
 ---
 // =====================================================================
-// Paquetes del paciente: código de la empresa + paquetes de sesiones.
-// DATOS DE PRUEBA: los paquetes y la compra son de ejemplo. El pago
-// real se conectará con la pasarela (Wompi) más adelante.
+// Paquetes del paciente: código de la empresa + planes de sesiones.
+// cambio: los planes ahora son los REALES que publica el administrador
+// (GET /api/planes?tipo=Individual, ruta pública que ya existía).
+// Rediseño: tarjetas con beneficios y valor por sesión, la opción de
+// "sesión suelta", comparación de planes y "¿Cómo funciona?".
+// cambio: "Elegir plan" ahora paga con Wompi (POST /api/pagos/wompi/plan/:id)
+// y "Mis paquetes activos" muestra las compras reales (GET /api/paciente/paquetes).
 // =====================================================================
 import Menu from "./menuPac.astro";
 import CodigoEmpresa from "./CodigoEmpresa.astro";
-import { pesos } from "../../lib/api";
+import { apiGet, pesos } from "../../lib/api";
 import "./paquetes.css";
 
-const paquetes = [
-  { id: "p1", nombre: "Sesión individual", sesiones: 1, precio: 150000, descuento: 0, texto: "Ideal para empezar o para una consulta puntual." },
-  { id: "p4", nombre: "Paquete 4 sesiones", sesiones: 4, precio: 552000, descuento: 8, texto: "Un mes de acompañamiento, una sesión por semana.", destacado: true },
-  { id: "p8", nombre: "Paquete 8 sesiones", sesiones: 8, precio: 1056000, descuento: 12, texto: "Para procesos más largos, con el mejor precio." },
-];
+interface PlanBD {
+  PlanId: string;
+  Nombre: string;
+  Descripcion: string | null;
+  Beneficios: string | null;
+  Precio: number | string;
+  CantidadSesiones: number | null;
+  DuracionDias: number | null;
+}
+
+const cookie = Astro.request.headers.get("cookie");
+const [datos, datosMios] = await Promise.all([
+  apiGet<{ planes: PlanBD[] }>(cookie, "/api/planes?tipo=Individual&porPagina=50"),
+  apiGet<{ modoPago: "wompi" | "manual"; paquetes: { id: string; plan: string; sesionesTotales: number; sesionesUsadas: number; sesionesDisponibles: number; fechaVence: string | null; vigente: boolean; enRevision: boolean }[] }>(cookie, "/api/paciente/paquetes"),
+]);
+const misPaquetes = datosMios?.paquetes ?? [];
+// cambio: "manual" = modo temporal (el administrador acepta el pago)
+const manual = datosMios?.modoPago !== "wompi";
+const fechaVence = (t: string | null) => {
+  if (!t) return "Sin vencimiento";
+  const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  return `Vence el ${+t.slice(8, 10)} ${MESES[+t.slice(5, 7) - 1]} ${t.slice(0, 4)}`;
+};
+
+const planes = (datos?.planes ?? []).map((p) => {
+  const precio = Number(p.Precio) || 0;
+  const sesiones = Number(p.CantidadSesiones) || 0;
+  return {
+    id: String(p.PlanId),
+    nombre: String(p.Nombre),
+    descripcion: String(p.Descripcion ?? ""),
+    beneficios: String(p.Beneficios ?? "").split(/\r?\n/).map((b) => b.trim()).filter(Boolean),
+    precio,
+    sesiones,
+    dias: Number(p.DuracionDias) || 0,
+    porSesion: sesiones ? Math.round(precio / sesiones) : 0,
+  };
+});
+
+const vigencia = (dias: number) =>
+  !dias ? "Sin vencimiento"
+  : dias % 365 === 0 ? `${dias / 365} ${dias / 365 === 1 ? "año" : "años"}`
+  : dias % 30 === 0 ? `${dias / 30} ${dias / 30 === 1 ? "mes" : "meses"}`
+  : `${dias} días`;
+
+// El del medio se marca como "Más elegido" (si hay 3 o más)
+const destacado = planes.length >= 3 ? Math.floor(planes.length / 2) : planes.length === 1 ? 0 : -1;
 ---
 
 <Menu />
@@ -25,86 +71,215 @@ const paquetes = [
       <div>
         <span class="pac-etiqueta">Sesiones</span>
         <h1>Paquetes</h1>
-        <p>Activa el beneficio de tu empresa o compra un paquete de sesiones con descuento.</p>
+        <p>Activa el beneficio de tu empresa o elige un plan de sesiones para cuidar tu bienestar.</p>
       </div>
     </header>
 
     <CodigoEmpresa />
 
+    <!-- cambio: planes reales -->
     <section>
       <div class="paq-titulo">
-        <h2>Paquetes de sesiones</h2>
-        <span class="pac-muted">Puedes usarlos con cualquier psicólogo de Psynex</span>
+        <h2>Planes para ti</h2>
+        <span class="pac-muted">Úsalos con cualquier psicólogo verificado de Psynex</span>
       </div>
 
+      {datos === null && (
+        <div class="pac-card pac-vacio">
+          <span class="pac-icono"><i class="bi bi-wifi-off"></i></span>
+          <h3>No pudimos cargar los planes</h3>
+          <p>Revisa tu conexión e intenta de nuevo.</p>
+        </div>
+      )}
+
       <div class="paq-grid">
-        {paquetes.map((p) => (
-          <article class:list={["pac-card", "paq-item", { destacado: p.destacado }]}>
-            {p.destacado && <span class="paq-recomendado">Más elegido</span>}
-            <h3>{p.nombre}</h3>
-            <p class="pac-muted">{p.texto}</p>
+        {planes.map((p, i) => (
+          <article class:list={["paq-plan", { destacado: i === destacado }]}>
+            {i === destacado && <span class="paq-recomendado"><i class="bi bi-star-fill"></i> {planes.length === 1 ? "Recomendado" : "Más elegido"}</span>}
+
+            <header>
+              <h3>{p.nombre}</h3>
+              {p.descripcion && <p>{p.descripcion}</p>}
+            </header>
+
             <div class="paq-precio">
               <strong>{pesos(p.precio)}</strong>
-              {p.descuento > 0 && <span class="pac-chip ok">-{p.descuento}%</span>}
+              {p.porSesion > 0 && <span>{pesos(p.porSesion)} por sesión</span>}
             </div>
-            <small class="pac-muted">{pesos(Math.round(p.precio / p.sesiones))} por sesión</small>
+
+            <div class="paq-datos">
+              <span><i class="bi bi-chat-heart"></i> {p.sesiones} {p.sesiones === 1 ? "sesión" : "sesiones"}</span>
+              <span><i class="bi bi-calendar-check"></i> {vigencia(p.dias)}</span>
+            </div>
+
+            {p.beneficios.length > 0 && (
+              <ul class="paq-beneficios">
+                {p.beneficios.map((b) => <li><i class="bi bi-check2"></i>{b}</li>)}
+              </ul>
+            )}
+
             <button
               type="button"
-              class:list={["pac-btn", { borde: !p.destacado }]}
+              class:list={["pac-btn", "paq-elegir", { borde: i !== destacado }]}
               data-comprar={p.nombre}
+              data-plan-id={p.id}
               data-precio={pesos(p.precio)}
+              data-detalle={`${p.sesiones} ${p.sesiones === 1 ? "sesión" : "sesiones"} · vigencia de ${vigencia(p.dias)}`}
             >
-              Comprar
+              Elegir plan
             </button>
           </article>
         ))}
+
+        <!-- Opción sin plan: pagar cada sesión -->
+        <article class="paq-plan suelta">
+          <header>
+            <h3>Sesión suelta</h3>
+            <p>¿Prefieres ir a tu ritmo? Paga solo la sesión que agendes.</p>
+          </header>
+          <div class="paq-precio">
+            <strong>Según el psicólogo</strong>
+            <span>verás el valor en su perfil</span>
+          </div>
+          <ul class="paq-beneficios">
+            <li><i class="bi bi-check2"></i>Sin compromiso</li>
+            <li><i class="bi bi-check2"></i>Eliges el día y la hora</li>
+            <li><i class="bi bi-check2"></i>Virtual o presencial</li>
+          </ul>
+          <a href="/Paciente/Especialistas" class="pac-btn borde paq-elegir">Buscar especialista</a>
+        </article>
       </div>
+    </section>
+
+    <!-- cambio: comparar (si hay 2 o más planes) -->
+    {planes.length >= 2 && (
+      <section class="pac-card">
+        <div class="pac-card-top">
+          <h2>Compara los planes</h2>
+        </div>
+        <div class="paq-tabla-wrap">
+          <table class="paq-tabla">
+            <thead>
+              <tr>
+                <th></th>
+                {planes.map((p, i) => <th class:list={{ destacado: i === destacado }}>{p.nombre}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Precio</td>{planes.map((p, i) => <td class:list={{ destacado: i === destacado }}>{pesos(p.precio)}</td>)}</tr>
+              <tr><td>Sesiones</td>{planes.map((p, i) => <td class:list={{ destacado: i === destacado }}>{p.sesiones}</td>)}</tr>
+              <tr><td>Valor por sesión</td>{planes.map((p, i) => <td class:list={{ destacado: i === destacado }}>{p.porSesion ? pesos(p.porSesion) : "—"}</td>)}</tr>
+              <tr><td>Vigencia</td>{planes.map((p, i) => <td class:list={{ destacado: i === destacado }}>{vigencia(p.dias)}</td>)}</tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    )}
+
+    <!-- cambio: cómo funciona -->
+    <section class="paq-pasos">
+      <div class="pac-card"><span>1</span><div><strong>Elige tu plan</strong><small>O activa el código de tu empresa si te lo dieron.</small></div></div>
+      <div class="pac-card"><span>2</span><div><strong>Paga en línea</strong><small>Con tarjeta, Nequi o PSE en la página segura de Wompi.</small></div></div>
+      <div class="pac-card"><span>3</span><div><strong>Agenda tus sesiones</strong><small>Con el psicólogo que prefieras, cuando quieras.</small></div></div>
     </section>
 
     <section class="pac-card">
       <div class="pac-card-top">
         <h2>Mis paquetes activos</h2>
       </div>
-      <div class="pac-vacio" id="sinPaquetes">
-        <span class="pac-icono"><i class="bi bi-box-seam"></i></span>
-        <h3>No tienes paquetes activos</h3>
-        <p>Cuando compres un paquete, aquí verás cuántas sesiones te quedan.</p>
-      </div>
+      {misPaquetes.length === 0 ? (
+        <div class="pac-vacio" id="sinPaquetes">
+          <span class="pac-icono"><i class="bi bi-box-seam"></i></span>
+          <h3>No tienes paquetes activos</h3>
+          <p>Cuando compres un plan, aquí verás cuántas sesiones te quedan.</p>
+        </div>
+      ) : (
+        <div class="paq-mios">
+          {misPaquetes.map((m) => (
+            <article class:list={["paq-mio", { agotado: !m.vigente }]}>
+              <div class="paq-mio-top">
+                <strong>{m.plan}</strong>
+                <span class:list={["pac-chip", m.enRevision ? "espera" : m.vigente ? "ok" : "neutro"]}>{m.enRevision ? "Pago en revisión" : m.vigente ? "Activo" : "Sin sesiones"}</span>
+              </div>
+              <div class="paq-mio-barra" aria-hidden="true">
+                <span style={`width:${m.sesionesTotales ? Math.round((m.sesionesDisponibles / m.sesionesTotales) * 100) : 0}%`}></span>
+              </div>
+              <div class="paq-mio-datos">
+                <span><i class="bi bi-chat-heart"></i> {m.sesionesDisponibles} de {m.sesionesTotales} {m.sesionesTotales === 1 ? "sesión disponible" : "sesiones disponibles"}</span>
+                <span><i class="bi bi-calendar-check"></i> {m.enRevision ? "Se activa cuando aprobemos tu pago" : fechaVence(m.fechaVence)}</span>
+              </div>
+            </article>
+          ))}
+          <p class="pac-muted">Para usar una sesión, cuando el psicólogo acepte tu cita entra a <a href="/Paciente/Citas">Mis citas</a> y elige “Usar mi paquete”.</p>
+        </div>
+      )}
     </section>
 
-    <span class="pac-prueba"><i class="bi bi-info-circle"></i> Paquetes de prueba · el pago se conectará con Wompi</span>
   </div>
 </main>
 
 <div class="pac-modal" id="modalComprar" hidden>
   <button type="button" class="pac-modal-fondo" data-cerrar-modal aria-label="Cerrar"></button>
   <div class="pac-modal-caja" role="dialog" aria-modal="true" aria-labelledby="comprarTitulo">
-    <h3 id="comprarTitulo">Comprar paquete</h3>
+    <h3 id="comprarTitulo">Elegir plan</h3>
     <p id="comprarTexto">—</p>
+    <p class="pac-muted" id="comprarDetalle"></p>
     <div class="paq-resumen">
       <span>Total a pagar</span>
       <strong id="comprarTotal">$0</strong>
     </div>
-    <p class="pac-muted">El pago con tarjeta, Nequi o PSE estará disponible muy pronto.</p>
+    {manual
+      ? <p class="pac-muted">Por ahora el equipo de Psynex confirma los pagos. Envía tu pago y tu paquete se activará cuando quede aprobado.</p>
+      : <p class="pac-muted">Pagas en la página segura de Wompi con tarjeta, PSE o Nequi. Al terminar vuelves a Psynex.</p>}
     <div class="pac-modal-acciones">
       <button type="button" class="pac-btn borde pequeno" data-cerrar-modal>Cerrar</button>
-      <button type="button" class="pac-btn pequeno" disabled>Pagar (pronto)</button>
+      <button type="button" class="pac-btn pequeno" id="pagarPlan" data-texto={manual ? "Enviar pago" : "Pagar con Wompi"}>
+        <i class="bi bi-shield-lock"></i> {manual ? "Enviar pago" : "Pagar con Wompi"}
+      </button>
     </div>
   </div>
 </div>
 
 <script>
-  import { abrirModal, prepararModales } from "./utilidades";
+  import { abrirModal, avisar, prepararModales } from "./utilidades";
+  import { apiEnviar, textoError } from "../../lib/api";
 
   prepararModales();
+  let planElegido = "";
 
   document.querySelectorAll<HTMLButtonElement>("[data-comprar]").forEach((b) =>
     b.addEventListener("click", () => {
-      const t = document.getElementById("comprarTexto");
-      const total = document.getElementById("comprarTotal");
-      if (t) t.textContent = b.dataset.comprar || "";
-      if (total) total.textContent = b.dataset.precio || "";
+      const poner = (id: string, t: string) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = t;
+      };
+      planElegido = b.dataset.planId || "";
+      poner("comprarTexto", b.dataset.comprar || "");
+      poner("comprarDetalle", b.dataset.detalle || "");
+      poner("comprarTotal", b.dataset.precio || "");
       abrirModal("modalComprar");
     })
   );
+
+  // cambio: pagar el plan con Wompi
+  const pagarPlan = document.getElementById("pagarPlan") as HTMLButtonElement | null;
+  pagarPlan?.addEventListener("click", async () => {
+    const textoBoton = pagarPlan.dataset.texto || "Pagar";
+    pagarPlan.disabled = true;
+    pagarPlan.textContent = "Enviando…";
+    const r = await apiEnviar("POST", `/api/pagos/wompi/plan/${encodeURIComponent(planElegido)}`);
+    if (r.ok && r.data?.url) {
+      window.location.href = r.data.url;
+      return;
+    }
+    // cambio: modo temporal -> la compra queda en revisión del administrador
+    if (r.ok && r.data?.manual) {
+      avisar("Enviamos tu pago. Tu paquete se activará cuando lo aprobemos.");
+      setTimeout(() => window.location.reload(), 1200);
+      return;
+    }
+    pagarPlan.disabled = false;
+    pagarPlan.textContent = textoBoton;
+    avisar(textoError(r.data, "No se pudo abrir el pago"));
+  });
 </script>

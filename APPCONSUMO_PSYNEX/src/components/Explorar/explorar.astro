@@ -41,7 +41,11 @@ const psicologos = (datos?.psicologos ?? []).map((p) => ({
 }));
 // Se duplica la lista para que el carrusel haga un loop continuo sin
 // salto visible (ver explorar.css, sección del carrusel).
-const psicologosLoop = [...psicologos, ...psicologos];
+// cambio: con pocos psicólogos se repiten hasta llenar la pantalla, así el
+// carrusel siempre se mueve sin dejar huecos.
+let base = [...psicologos];
+while (base.length > 0 && base.length < 8) base = [...base, ...psicologos];
+const psicologosLoop = [...base, ...base];
 
 const ofertas = (datos?.ofertas ?? []).map((o) => ({
   id: o.id,
@@ -195,14 +199,6 @@ const iniciales = (nombreEmpresa: string): string =>
 
 </main>
 
-<script>
-  // Pausa el carrusel automático de psicólogos si el usuario tiene
-  // activada la preferencia de accesibilidad "reducir movimiento".
-  const prefiereMenosMovimiento = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-  ).matches;
-
-  if (prefiereMenosMovimiento) {
-    document.getElementById("exMarquee")?.classList.add("is-paused");
-  }
-</script>
+<!-- cambio: se quitó la pausa por "reducir movimiento" de Windows: en tu
+     computador las animaciones están apagadas y por eso el carrusel de
+     psicólogos no se movía. Ahora siempre se mueve (se pausa con el mouse). -->

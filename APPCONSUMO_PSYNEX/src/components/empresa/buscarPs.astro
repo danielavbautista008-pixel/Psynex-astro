@@ -10,11 +10,13 @@ const {
 } = Astro.props;
 
 import MenuE from "./menuE.astro";
+import VentanasEmpresa from "./VentanasEmpresa.astro"; // cambio: ventanas emergentes
 import "./buscarPs.css";
 ---
 
 <div class="landing-container">
   <MenuE />
+  <VentanasEmpresa /> <!-- cambio: ventanas emergentes -->
   <main class="Bienvenida-Em">
     <!-- Encabezado unificado con la página de inicio -->
     <header class="dashboard-header">

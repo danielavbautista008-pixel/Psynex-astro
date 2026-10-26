@@ -81,16 +81,16 @@ const currentPath = Astro.url.pathname;
            y al tocarlo se abre la lista (GET /api/notificaciones) -->
       <div class="notification-dropdown">
 
+        <!-- cambio: en el paciente es una campanita que se mueve cuando hay notificaciones -->
         <button
-          class="notification-button"
+          class="notification-button pac-campana"
           id="psychNotifButton"
           type="button"
           aria-label="Notificaciones"
           aria-haspopup="true"
           aria-expanded="false"
         >
-          <span class="notification-dot"></span>
-          <span class="notification-ring"></span>
+          <i class="bi bi-bell-fill pac-campana-icono" aria-hidden="true"></i>
           <span class="notification-count" id="psychNotifCount" hidden>0</span>
         </button>
 
@@ -119,7 +119,16 @@ const currentPath = Astro.url.pathname;
         <div class="psych-profile">
           <!-- Nombre y foto: llevan a Mi perfil -->
           <a href="/Paciente/Perfil" class="profile-link" title="Ir a mi perfil">
-            <span class="profile-letter">{inicial}</span>
+            <!-- cambio: foto real del paciente (si no tiene, queda la inicial) -->
+            <span class="profile-letter">
+              {inicial}
+              <img
+                class="profile-foto pac-foto-menu"
+                src={`${API_URL}/api/paciente/perfil/foto`}
+                alt=""
+                onerror="this.hidden=true"
+              />
+            </span>
 
             <span class="profile-info">
               <strong>{nombre}</strong>
@@ -273,7 +282,7 @@ const currentPath = Astro.url.pathname;
     if (t.includes("cita")) return { url: "/Paciente/Citas", icono: "bi-calendar-check" };
     if (t.includes("pago") || t.includes("recibo")) return { url: "/Paciente/Pagos", icono: "bi-cash-coin" };
     if (t.includes("paquete") || t.includes("beneficio") || t.includes("código")) return { url: "/Paciente/Paquetes", icono: "bi-box-seam" };
-    if (t.includes("cuestionario") || t.includes("test")) return { url: "/Paciente/Registro", icono: "bi-clipboard-check" }; // cambio: los cuestionarios asignados están en Registro diario
+    if (t.includes("cuestionario") || t.includes("test")) return { url: "/Paciente/Registro?asignados=1", icono: "bi-clipboard-check" }; // cambio: los cuestionarios asignados están en Registro diario
     return { url: "", icono: "bi-bell" };
   };
 
@@ -293,6 +302,15 @@ const currentPath = Astro.url.pathname;
     notifCount.hidden = n === 0;
     notifCount.textContent = n > 9 ? "9+" : String(n);
     notifBoton.classList.toggle("tiene-nuevas", n > 0);
+    // cambio: la campanita se mueve mientras haya notificaciones que el paciente
+    // todavía no ha visto. Al abrir la lista se queda quieta hasta que llegue otra.
+    let vistas = 0;
+    try { vistas = Number(localStorage.getItem("pacNotifVistas") || 0); } catch { /* sin almacenamiento */ }
+    if (n < vistas) {
+      vistas = n;
+      try { localStorage.setItem("pacNotifVistas", String(n)); } catch { /* sin almacenamiento */ }
+    }
+    notifBoton.classList.toggle("sonando", n > vistas);
     // Si llegó una nueva desde la última revisión, la campana "salta"
     if (noLeidasAntes >= 0 && n > noLeidasAntes) {
       notifBoton.classList.remove("recien-llegada");
@@ -380,6 +398,9 @@ const currentPath = Astro.url.pathname;
     notifPanel.hidden = !abrir;
     notifBoton.setAttribute("aria-expanded", String(abrir));
     if (abrir) {
+      // cambio: al abrir las notificaciones, la campanita deja de moverse
+      notifBoton.classList.remove("sonando", "recien-llegada");
+      try { localStorage.setItem("pacNotifVistas", String(Number(noLeidasAntes) || 0)); } catch { /* sin almacenamiento */ }
       cerrarPerfil();
       cargarNotificaciones();
     }
@@ -394,7 +415,8 @@ const currentPath = Astro.url.pathname;
 
   // Se revisa al cargar y luego cada minuto
   cargarNotificaciones();
-  setInterval(cargarNotificaciones, 60000);
+  // cambio: revisa cada 20 segundos (antes 60) para que la campanita avise apenas llegue algo
+  setInterval(cargarNotificaciones, 20000);
 
   document.addEventListener("click", (evento) => {
     if (perfilMenu && !perfilMenu.contains(evento.target)) cerrarPerfil();
@@ -448,3 +470,60 @@ const currentPath = Astro.url.pathname;
     });
   }
 </script>
+
+<!-- cambio: estilos de la campanita del paciente (solo colores del tema) -->
+<style is:global>
+  .pac-campana .pac-campana-icono {
+    display: inline-block; /* cambio: sin esto el ícono no puede girar */
+    font-size: 18px;
+    line-height: 1;
+    color: var(--text-muted);
+    transform-origin: 50% 2px;
+    transition: color 0.25s ease;
+  }
+
+  .pac-campana:hover .pac-campana-icono {
+    color: var(--primary);
+  }
+
+  /* Con notificaciones sin leer: se pinta del color del tema */
+  .pac-campana.tiene-nuevas .pac-campana-icono {
+    color: var(--primary);
+  }
+
+  /* Mientras no se abran: se mueve sin parar */
+  .pac-campana.sonando .pac-campana-icono {
+    animation: pacCampanaMover 1.6s ease-in-out infinite;
+  }
+
+  /* Apenas llega una nueva: suena más fuerte */
+  .pac-campana.recien-llegada {
+    animation: none;
+  }
+
+  .pac-campana.sonando.recien-llegada .pac-campana-icono {
+    animation: pacCampanaSonar 0.9s ease-in-out 2, pacCampanaMover 1.6s ease-in-out 1.8s infinite;
+  }
+
+  @keyframes pacCampanaMover {
+    0%, 100% { transform: rotate(0); }
+    10% { transform: rotate(16deg); }
+    20% { transform: rotate(-14deg); }
+    30% { transform: rotate(10deg); }
+    40% { transform: rotate(-6deg); }
+    50% { transform: rotate(3deg); }
+    60% { transform: rotate(0); }
+  }
+
+  @keyframes pacCampanaSonar {
+    0%, 100% { transform: rotate(0); }
+    15% { transform: rotate(24deg); }
+    30% { transform: rotate(-22deg); }
+    45% { transform: rotate(16deg); }
+    60% { transform: rotate(-12deg); }
+    75% { transform: rotate(6deg); }
+  }
+
+  /* cambio: se quitó la regla de "reducir movimiento" porque Windows con los
+     efectos de animación apagados dejaba la campanita quieta */
+</style>

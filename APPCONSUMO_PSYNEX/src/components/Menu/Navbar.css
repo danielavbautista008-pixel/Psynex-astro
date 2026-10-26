@@ -136,12 +136,85 @@
     padding: 10px 20px;
   }
 
-  /* Ocultamos los links de texto en móvil para mantenerlo delgado;
-     aquí normalmente se conectaría un botón "hamburguesa", pero eso
-     ya implicaría JS/interactividad (otro componente aparte). */
+  /* En celular los links de arriba se esconden y se usa el botón ☰ */
   .nav-menu {
     display: none;
   }
+
+  .nav-btn-login {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+}
+
+/* -------------------------------------------------------------------------
+   cambio: BOTÓN ☰ Y MENÚ DESPLEGABLE DEL CELULAR
+   ------------------------------------------------------------------------- */
+.nav-derecha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-hamburguesa {
+  display: none; /* solo en celular (ver el @media de arriba) */
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.nav-movil {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 16px;
+  left: 16px;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.14);
+  animation: nav-movil-entra 0.2s ease;
+}
+
+.nav-movil[hidden] {
+  display: none;
+}
+
+.nav-movil a {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: var(--text);
+  font-weight: 500;
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.nav-movil a:hover,
+.nav-movil a:active {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* va después de la regla base para que gane en celular */
+@media (max-width: 768px) {
+  .nav-hamburguesa {
+    display: grid;
+  }
+}
+
+@keyframes nav-movil-entra {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 

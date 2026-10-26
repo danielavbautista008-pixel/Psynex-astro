@@ -5,39 +5,57 @@
 // estudio, trabajo...), cuánto durmió y su energía; puede compartirlo
 // con su psicólogo. Versión compacta y animada, íconos con el color
 // del tema (Bootstrap Icons).
-// DATOS DE PRUEBA: se guarda solo en este navegador (localStorage) y trae
-// unos días de ejemplo. Todavía no se conecta con el backend.
+// cambio: ahora es REAL. Se guarda en la base de datos (tabla registroemocional):
+//   GET /api/paciente/registro-emocional  -> registros del último año
+//   PUT /api/paciente/registro-emocional  -> guarda (o actualiza) el de hoy
 // =====================================================================
 import Menu from "./menuPac.astro";
+import HistorialResultados from "./HistorialResultados.astro"; // cambio: historial de cuestionarios
 import { apiGet, imagenCuestionario } from "../../lib/api";
 import "./registro.css";
 
-// cambio: CUESTIONARIOS ASIGNADOS POR EL PSICÓLOGO (pueden ser varios
-// psicólogos, por eso se agrupan por quién los asignó).
-// Los cuestionarios son los reales (ruta pública de Explorar) y al dar
-// "Responder" se abre su vista pública. Las asignaciones son DE PRUEBA
-// (todavía no hay ruta del backend para que el paciente vea las suyas).
-const rTests = await apiGet<{ cuestionarios: { id: string; sigla: string; descripcion: string; categoria: string; preguntas: number; minutos: number; tieneImagen: boolean }[] }>(
-  Astro.request.headers.get("cookie"), "/api/explorar/cuestionarios");
-const ejemplosAsignacion = [
-  { psicologo: "Víctor Santiago", asignado: "20 oct", limite: "25 oct", estado: "Pendiente", nota: "Respóndelo antes de nuestra próxima sesión." },
-  { psicologo: "Víctor Santiago", asignado: "18 oct", limite: "24 oct", estado: "Pendiente", nota: "" },
-  { psicologo: "Andrea Gómez Ruiz", asignado: "5 oct", limite: "10 oct", estado: "Completado", nota: "" },
-  { psicologo: "Andrea Gómez Ruiz", asignado: "21 oct", limite: "28 oct", estado: "Pendiente", nota: "Nos sirve para la sesión de pareja." },
-];
-const asignados = (rTests?.cuestionarios ?? []).slice(0, ejemplosAsignacion.length).map((c, i) => ({
-  ...ejemplosAsignacion[i],
-  id: c.id,
-  titulo: c.sigla,
-  descripcion: c.descripcion,
-  pie: `${c.preguntas} preguntas · ${c.minutos} min`,
-  imagen: imagenCuestionario(c),
+// cambio: CUESTIONARIOS ASIGNADOS POR EL PSICÓLOGO — ahora REALES.
+// GET /api/paciente/cuestionarios-asignados (ruta nueva de solo lectura).
+// Se agrupan por el psicólogo que los asignó. "Responder" abre la vista
+// pública del cuestionario; al terminar, el resultado se guarda y la
+// asignación queda "Completado" (eso ya lo hacía el backend).
+interface Asignacion {
+  id: string;
+  estado: string;
+  fechaAsignacion: string;
+  fechaLimite: string | null;
+  nota: string;
+  cuestionario: { id: string; sigla: string; descripcion: string; categoria: string; preguntas: number; minutos: number; tieneImagen: boolean };
+  psicologo: { nombre: string };
+}
+const rAsignados = await apiGet<{ asignaciones: Asignacion[] }>(
+  Astro.request.headers.get("cookie"), "/api/paciente/cuestionarios-asignados");
+const fechaCorta = (f: string | null) => {
+  if (!f) return "";
+  const d = new Date(f);
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("es-CO", { day: "numeric", month: "short", timeZone: "America/Bogota" });
+};
+const asignados = (rAsignados?.asignaciones ?? []).map((a) => ({
+  id: a.cuestionario.id,
+  estado: a.estado,
+  psicologo: a.psicologo.nombre,
+  asignado: fechaCorta(a.fechaAsignacion),
+  limite: fechaCorta(a.fechaLimite),
+  nota: a.nota,
+  titulo: a.cuestionario.sigla,
+  descripcion: a.cuestionario.descripcion,
+  pie: `${a.cuestionario.preguntas} preguntas · ${a.cuestionario.minutos} min`,
+  imagen: imagenCuestionario({ id: a.cuestionario.id, categoria: a.cuestionario.categoria, tieneImagen: a.cuestionario.tieneImagen }),
 }));
+const sinConexion = rAsignados === null;
 const pendientes = asignados.filter((a) => a.estado === "Pendiente").length;
 
-// cambio: agrupados por el psicólogo que los asignó
-const porPsicologo = [...new Set(asignados.map((a) => a.psicologo))].map((nombre) => {
-  const lista = asignados.filter((a) => a.psicologo === nombre);
+// cambio: agrupados por el psicólogo que los asignó.
+// cambio: solo se muestran los PENDIENTES; los ya respondidos desaparecen de
+// esta ventana y quedan en "Historial de cuestionarios asignados".
+const porResponder = asignados.filter((a) => a.estado === "Pendiente");
+const porPsicologo = [...new Set(porResponder.map((a) => a.psicologo))].map((nombre) => {
+  const lista = porResponder.filter((a) => a.psicologo === nombre);
   return { nombre, lista, pendientes: lista.filter((a) => a.estado === "Pendiente").length };
 });
 
@@ -221,7 +239,11 @@ const energias = [
       </div>
     </div>
 
-    <span class="pac-prueba"><i class="bi bi-info-circle"></i> Registro de prueba: se guarda solo en este navegador, todavía no en la base de datos</span>
+    <!-- cambio: al final, botón que abre aquí mismo el historial de los
+         cuestionarios asignados que ya respondió -->
+    <HistorialResultados modo="registro" />
+
+    <span class="pac-prueba" id="regError" hidden><i class="bi bi-wifi-off"></i> <span>No pudimos cargar tus registros.</span></span>
   </div>
 </main>
 
@@ -233,14 +255,18 @@ const energias = [
     <p class="pac-muted">Tus psicólogos te los asignaron para conocerte mejor. Al responder, quien te lo asignó podrá ver tus resultados.</p>
 
     <div class="reg-asignados">
-      {asignados.length === 0 && <p class="pac-muted">Todavía no te han asignado cuestionarios.</p>}
+      {sinConexion && <p class="pac-muted">No pudimos cargar tus cuestionarios. Intenta de nuevo más tarde.</p>}
+      {!sinConexion && asignados.length === 0 && <p class="pac-muted">Todavía no te han asignado cuestionarios.</p>}
+      {!sinConexion && asignados.length > 0 && porResponder.length === 0 && (
+        <p class="pac-muted"><i class="bi bi-check2-circle"></i> ¡Estás al día! Ya respondiste todos tus cuestionarios. Puedes ver tus resultados en el historial de esta página.</p>
+      )}
       {porPsicologo.map((g) => (
         <section class="reg-grupo">
           <header class="reg-grupo-top">
             <span class="reg-grupo-letra">{g.nombre.charAt(0)}</span>
             <div>
               <strong>Asignados por {g.nombre}</strong>
-              <small>{g.pendientes > 0 ? `${g.pendientes} pendiente${g.pendientes === 1 ? "" : "s"}` : "Todo al día"} · {g.lista.length} en total</small>
+              <small>{g.pendientes} pendiente{g.pendientes === 1 ? "" : "s"}</small>
             </div>
           </header>
       {g.lista.map((a) => (
@@ -249,7 +275,7 @@ const energias = [
           <div class="reg-asignado-info">
             <strong>{a.titulo} <span class={`pac-chip ${a.estado === "Pendiente" ? "espera" : "ok"}`}>{a.estado}</span></strong>
             <small>{a.descripcion}</small>
-            <small><i class="bi bi-calendar3"></i> {a.estado === "Pendiente" ? `Antes del ${a.limite}` : `Asignado el ${a.asignado}`} · {a.pie}</small>
+            <small><i class="bi bi-calendar3"></i> {a.estado === "Pendiente" && a.limite ? `Antes del ${a.limite}` : `Asignado el ${a.asignado}`} · {a.pie}</small>
             {a.nota && <em>"{a.nota}"</em>}
           </div>
           {a.estado === "Pendiente" ? (
@@ -263,7 +289,6 @@ const energias = [
       ))}
     </div>
 
-    <span class="pac-prueba"><i class="bi bi-info-circle"></i> Asignaciones de prueba: los cuestionarios sí son los reales</span>
     <div class="pac-modal-acciones">
       <button type="button" class="pac-btn pequeno borde" data-cerrar-modal>Cerrar</button>
     </div>
@@ -272,10 +297,13 @@ const energias = [
 
 <script>
   import { abrirModal, avisar, prepararModales } from "./utilidades";
+  import { API_URL, apiEnviar, textoError } from "../../lib/api";
 
   // cambio: abrir la ventana de cuestionarios asignados
   prepararModales();
   document.getElementById("regAbrirAsignados")?.addEventListener("click", () => abrirModal("modalAsignados"));
+  // Si llega desde la notificación (?asignados=1), la ventana se abre sola
+  if (new URLSearchParams(location.search).get("asignados") === "1") abrirModal("modalAsignados");
 
   type Registro = {
     fecha: string; // AAAA-MM-DD
@@ -288,7 +316,6 @@ const energias = [
     compartir: boolean;
   };
 
-  const CLAVE = "psynex:registro-emocional";
   const ICONO = ["", "bi-emoji-angry", "bi-emoji-frown", "bi-emoji-neutral", "bi-emoji-smile", "bi-emoji-laughing"];
   const TEXTO = ["", "Muy mal", "Mal", "Normal", "Bien", "Muy bien"];
   const MENSAJE = [
@@ -315,43 +342,11 @@ const energias = [
     const [a, m, d] = c.split("-").map(Number);
     return new Date(a, m - 1, d);
   };
-  const hoy = claveDia(new Date());
+  // cambio: "hoy" en hora de Colombia (igual que el servidor)
+  const hoy = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(new Date());
 
-  // Días de ejemplo (solo la primera vez)
-  const ejemplo = (): Registro[] =>
-    ([
-      [1, 4, ["Calma", "Gratitud"], ["Familia"], "7.5", "Media", "Salí a caminar y me sentí bien."],
-      [2, 3, ["Cansancio"], ["Estudio"], "6", "Baja", ""],
-      [3, 2, ["Ansiedad", "Estrés"], ["Trabajo", "Dinero"], "5", "Baja", "Mucho trabajo, me costó dormir."],
-      [4, 3, ["Estrés", "Motivación"], ["Estudio"], "6.5", "Media", ""],
-      [6, 4, ["Alegría"], ["Amigos"], "8", "Alta", "Vi a mis amigos."],
-      [7, 5, ["Alegría", "Gratitud", "Calma"], ["Pareja", "Familia"], "8", "Alta", ""],
-      [9, 3, ["Cansancio", "Ansiedad"], ["Trabajo"], "6", "Media", ""],
-      [11, 2, ["Tristeza"], ["Familia"], "5.5", "Baja", ""],
-    ] as [number, number, string[], string[], string, string, string][]).map(([n, estado, emociones, causas, sueno, energia, nota]) => ({
-      fecha: claveDia(haceDias(n)), estado, emociones, causas, sueno, energia, nota, compartir: true,
-    }));
-
-  const guardar = (lista: Registro[]) => {
-    try {
-      localStorage.setItem(CLAVE, JSON.stringify(lista));
-    } catch { /* si no se puede guardar, queda en memoria */ }
-  };
-
-  const leer = (): Registro[] => {
-    try {
-      const guardado = localStorage.getItem(CLAVE);
-      if (guardado) {
-        // los registros viejos no traían "causas"
-        return (JSON.parse(guardado) as Registro[]).map((r) => ({ ...r, causas: r.causas ?? [] }));
-      }
-    } catch { /* sin almacenamiento: se usan los de ejemplo */ }
-    const lista = ejemplo();
-    guardar(lista);
-    return lista;
-  };
-
-  let registros = leer();
+  // cambio: los registros vienen de la base de datos
+  let registros: Registro[] = [];
   let mostrar = 4; // cuántos se ven en el historial
 
   const fechaLarga = (c: string) =>
@@ -550,12 +545,13 @@ const energias = [
     pintar();
   });
 
-  form.addEventListener("submit", (e) => {
+  const botonGuardar = document.getElementById("regGuardar") as HTMLButtonElement | null;
+
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!form.reportValidity()) return;
     const datos = new FormData(form);
-    const nuevo: Registro = {
-      fecha: hoy,
+    const cuerpo = {
       estado: Number(datos.get("estado")),
       emociones: datos.getAll("emociones").map(String),
       causas: datos.getAll("causas").map(String),
@@ -564,15 +560,44 @@ const energias = [
       nota: String(datos.get("nota") ?? "").trim(),
       compartir: datos.get("compartir") === "on",
     };
-    registros = [...registros.filter((r) => r.fecha !== hoy), nuevo];
-    guardar(registros);
+    // cambio: se guarda en la base de datos
+    if (botonGuardar) {
+      botonGuardar.disabled = true;
+      botonGuardar.textContent = "Guardando…";
+    }
+    const r = await apiEnviar("PUT", "/api/paciente/registro-emocional", cuerpo);
+    if (botonGuardar) botonGuardar.disabled = false;
+    if (!r.ok || !r.data?.registro) {
+      llenarHoy();
+      avisar(textoError(r.data, "No se pudo guardar tu registro"));
+      return;
+    }
+    registros = [...registros.filter((x) => x.fecha !== hoy), r.data.registro as Registro];
     pintar();
     llenarHoy();
     document.querySelector(".reg-hoy")?.classList.add("guardado");
     setTimeout(() => document.querySelector(".reg-hoy")?.classList.remove("guardado"), 900);
-    avisar("Registro de hoy guardado (prueba).");
+    avisar("¡Listo! Guardamos tu registro de hoy.");
   });
 
+  // cambio: cargar los registros reales
+  const historialEl = document.getElementById("regHistorial");
+  if (historialEl) historialEl.innerHTML = '<p class="pac-muted">Cargando tus registros…</p>';
   llenarHoy();
-  pintar();
+  fetch(`${API_URL}/api/paciente/registro-emocional`, { credentials: "include" })
+    .then(async (res) => {
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.ok) throw new Error(textoError(json, "No pudimos cargar tus registros."));
+      registros = json.registros as Registro[];
+    })
+    .catch((err: Error) => {
+      const aviso = document.getElementById("regError");
+      const textoAviso = aviso?.querySelector("span");
+      if (textoAviso) textoAviso.textContent = err.message || "No pudimos cargar tus registros.";
+      if (aviso) aviso.hidden = false;
+    })
+    .finally(() => {
+      llenarHoy();
+      pintar();
+    });
 </script>

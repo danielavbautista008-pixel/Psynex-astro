@@ -208,7 +208,7 @@ import "./citas.css";
 </div>
 
 <script>
-  const API = "http://localhost:8001";
+  const API = (window as any).PSYNEX_API ?? "http://localhost:8001"; // cambio (túnel)
 
   function iniciales(nombre: string): string {
     return nombre

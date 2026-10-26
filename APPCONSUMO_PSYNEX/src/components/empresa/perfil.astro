@@ -1,10 +1,12 @@
 ---
 import MenuE from "./menuE.astro";
+import VentanasEmpresa from "./VentanasEmpresa.astro"; // cambio: ventanas emergentes
 import "./perfil.css";
 ---
 
 <div class="landing-container">
     <MenuE />
+    <VentanasEmpresa /> <!-- cambio: ventanas emergentes -->
     <main class="Bienvenida-Em">
         <div class="perfil-empresa-container">
             <!-- Header -->
@@ -299,7 +301,11 @@ import "./perfil.css";
         e.preventDefault();
         ocultarAlertas();
 
-        if (!empresaData) return;
+        // cambio: la ventana emergente muestra por qué no se pudo guardar
+        if (!empresaData) {
+            mostrarError("No se pudo identificar tu empresa. Cierra sesión y vuelve a entrar.");
+            return;
+        }
 
         btnGuardar.disabled = true;
         btnGuardar.textContent = "Guardando...";
@@ -348,6 +354,8 @@ import "./perfil.css";
             textoExito.textContent = msj;
             alertaExito.style.display = "flex";
         }
+        // cambio: avisa a la ventana emergente
+        window.dispatchEvent(new CustomEvent("empresa:resultado", { detail: { ok: true, mensaje: msj } }));
     }
 
     function mostrarError(msj: string) {
@@ -355,6 +363,8 @@ import "./perfil.css";
             textoError.textContent = msj;
             alertaError.style.display = "flex";
         }
+        // cambio: avisa a la ventana emergente
+        window.dispatchEvent(new CustomEvent("empresa:resultado", { detail: { ok: false, mensaje: msj } }));
     }
 
     function ocultarAlertas() {

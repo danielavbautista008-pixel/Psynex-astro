@@ -132,14 +132,11 @@ const documentosEmpresa = [
           </div>
         </div>
 
-        <div class="reg-checkbox-group">
-          <input type="checkbox" id="pacienteAnonima" />
-          <label for="pacienteAnonima">Crear cuenta anónima para mayor privacidad</label>
-        </div>
+        <!-- cambio: se quitó "Crear cuenta anónima" (no se usa en Psynex) -->
 
         <button type="submit" class="reg-btn-register">Crear cuenta</button>
 
-        <p class="reg-login-link">¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+        <p class="reg-login-link">¿Ya tienes cuenta? <a href="/Inicio/login">Inicia sesión</a> <!-- cambio: /login no existía --></p>
       </form>
 
       <!-- ================= FORMULARIO: PSICÓLOGO ================= -->
@@ -528,7 +525,7 @@ const documentosEmpresa = [
       }
 
       try {
-        const res = await fetch("http://localhost:8001/api/auth/register", {
+        const res = await fetch(`${(window as any).PSYNEX_API ?? "http://localhost:8001"}/api/auth/register`, { // cambio (túnel)
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include", // Permite recibir y guardar la cookie en el navegador
@@ -620,7 +617,7 @@ const documentosEmpresa = [
     if (boton) { boton.disabled = true; boton.textContent = "Creando cuenta..."; }
 
     try {
-      const res = await fetch("http://localhost:8001/api/auth/registro/psicologo", {
+      const res = await fetch(`${(window as any).PSYNEX_API ?? "http://localhost:8001"}/api/auth/registro/psicologo`, { // cambio (túnel)
         method: "POST",
         credentials: "include", // recibe la cookie de sesión
         body: datos,
@@ -681,7 +678,7 @@ const documentosEmpresa = [
     if (boton) { boton.disabled = true; boton.textContent = "Creando cuenta..."; }
 
     try {
-      const res = await fetch("http://localhost:8001/api/auth/registro/empresa", {
+      const res = await fetch(`${(window as any).PSYNEX_API ?? "http://localhost:8001"}/api/auth/registro/empresa`, { // cambio (túnel)
         method: "POST",
         credentials: "include", // recibe la cookie de sesión
         body: datos,

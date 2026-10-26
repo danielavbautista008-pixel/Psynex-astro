@@ -1075,3 +1075,41 @@ a.mp-button { text-decoration: none; display: inline-flex; align-items: center; 
 .mp-form-message:empty { display: none; }
 
 #mi-perfil-page button[disabled] { opacity: .6; cursor: wait; }
+
+/* cambio: la regla "AJUSTE DE TAMAÑOS" de arriba dejaba 3 columnas también
+   en celular y la tarjeta del perfil quedaba apretada (botones encima del
+   texto). Aquí se vuelve a acomodar en pantallas pequeñas. */
+@media (max-width: 1000px) {
+  .mp-profile-card {
+    grid-template-columns: 95px minmax(0, 1fr);
+  }
+
+  .mp-profile-actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 600px) {
+  .mp-profile-card {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: stretch;
+    padding: 18px;
+  }
+
+  .mp-avatar-column {
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .mp-avatar {
+    width: 72px;
+    height: 72px;
+  }
+
+  .mp-profile-actions .mp-button {
+    flex: 1 1 140px;
+  }
+}

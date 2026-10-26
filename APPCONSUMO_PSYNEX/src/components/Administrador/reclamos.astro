@@ -1,0 +1,241 @@
+---
+// =====================================================================
+// cambio: ARCHIVO NUEVO — components/Administrador/reclamos.astro
+// Reclamos de los psicólogos sobre sus pagos. Las rutas ya existían en el
+// backend (GET /api/admin/reclamos y PATCH /api/admin/reclamos/:id); solo
+// faltaba la vista. Al responder, al psicólogo le llega una notificación.
+// Usa los mismos estilos de "Pagos de empresas".
+// =====================================================================
+import MenuAdmin from "../Menu/MenuAdmin.astro";
+import "../EmpresaBeneficio/beneficio.css";
+import "./pagosempresas.css";
+import { apiGet, pesos } from "../../lib/api";
+
+interface Reclamo {
+  ReclamoId: string;
+  PagoId: string | null;
+  Motivo: string;
+  Descripcion: string;
+  Estado: "Abierto" | "EnRevision" | "Resuelto" | "Rechazado";
+  Respuesta: string | null;
+  CreadoEn: string;
+  RespondidoEn: string | null;
+  PsicologoNombre: string;
+  PsicologoEmail: string;
+  MontoNeto: number | string | null;
+  EstadoTransferencia: string | null;
+}
+
+const datos = await apiGet<{ reclamos: Reclamo[] }>(Astro.request.headers.get("cookie"), "/api/admin/reclamos?estado=todos");
+const reclamos = datos?.reclamos ?? [];
+
+const abiertos = reclamos.filter((r) => r.Estado === "Abierto").length;
+const enRevision = reclamos.filter((r) => r.Estado === "EnRevision").length;
+const resueltos = reclamos.filter((r) => r.Estado === "Resuelto").length;
+const rechazados = reclamos.filter((r) => r.Estado === "Rechazado").length;
+
+const fecha = (f: string | null) =>
+  f ? new Date(f).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric", timeZone: "America/Bogota" }) : "—";
+
+const CHIP: Record<string, { clase: string; texto: string }> = {
+  Abierto: { clase: "", texto: "Abierto" },
+  EnRevision: { clase: "neutro", texto: "En revisión" },
+  Resuelto: { clase: "activo", texto: "Resuelto" },
+  Rechazado: { clase: "rechazado", texto: "Rechazado" },
+};
+---
+
+<div class="pe-page">
+  <MenuAdmin />
+
+  <main class="pe-content">
+    <header class="pe-header">
+      <div class="pe-header-left">
+        <div class="pe-header-icon"><i class="bi bi-chat-left-text"></i></div>
+        <div>
+          <h1>Reclamos</h1>
+          <p>Reclamos de los psicólogos sobre sus pagos. Al responder, al psicólogo le llega una notificación.</p>
+        </div>
+      </div>
+    </header>
+
+    {!datos && (
+      <div class="bnf-aviso error"><i class="bi bi-exclamation-circle"></i><div>No se pudieron cargar los reclamos. Revisa que Deno esté encendido.</div></div>
+    )}
+
+    <section class="pe-metricas">
+      <div class="bnf-metrica"><small>Abiertos</small><strong>{abiertos}</strong></div>
+      <div class="bnf-metrica"><small>En revisión</small><strong>{enRevision}</strong></div>
+      <div class="bnf-metrica"><small>Resueltos</small><strong>{resueltos}</strong></div>
+      <div class="bnf-metrica"><small>Rechazados</small><strong>{rechazados}</strong></div>
+    </section>
+
+    <div class="pe-filtros" role="tablist">
+      <button type="button" class="pe-filtro activo" data-filtro="todos">Todos</button>
+      <button type="button" class="pe-filtro" data-filtro="Abierto">Abiertos</button>
+      <button type="button" class="pe-filtro" data-filtro="EnRevision">En revisión</button>
+      <button type="button" class="pe-filtro" data-filtro="Resuelto">Resueltos</button>
+      <button type="button" class="pe-filtro" data-filtro="Rechazado">Rechazados</button>
+    </div>
+
+    {reclamos.length === 0 ? (
+      <section class="bnf-vacio">
+        <i class="bi bi-inbox"></i>
+        <h2>No hay reclamos</h2>
+        <p>Cuando un psicólogo envíe un reclamo desde sus Finanzas, aparecerá aquí.</p>
+      </section>
+    ) : (
+      <section class="bnf-card" style="padding:8px 12px">
+        <div class="bnf-tabla-wrap">
+          <table class="bnf-tabla pe-tabla">
+            <thead>
+              <tr><th>Psicólogo</th><th>Reclamo</th><th>Pago</th><th>Enviado</th><th>Estado</th><th></th></tr>
+            </thead>
+            <tbody>
+              {reclamos.map((r) => (
+                <tr data-estado={r.Estado}>
+                  <td class="pe-empresa"><strong>{r.PsicologoNombre}</strong><span>{r.PsicologoEmail}</span></td>
+                  <td style="max-width:320px">
+                    <strong>{r.Motivo}</strong>
+                    <br /><span class="pe-espera">{r.Descripcion}</span>
+                    {r.Respuesta && <div class="pe-espera" style="margin-top:6px"><i class="bi bi-reply"></i> {r.Respuesta}</div>}
+                  </td>
+                  <td>
+                    {r.PagoId ? (
+                      <>{pesos(Number(r.MontoNeto ?? 0))}<br /><span class="pe-espera">{r.EstadoTransferencia ?? ""}</span></>
+                    ) : <span class="pe-espera">General</span>}
+                  </td>
+                  <td>{fecha(r.CreadoEn)}</td>
+                  <td>
+                    <span class={`bnf-chip ${CHIP[r.Estado]?.clase ?? "neutro"}`}>{CHIP[r.Estado]?.texto ?? r.Estado}</span>
+                    {r.RespondidoEn && <div class="pe-espera" style="margin-top:4px">{fecha(r.RespondidoEn)}</div>}
+                  </td>
+                  <td>
+                    {(r.Estado === "Abierto" || r.Estado === "EnRevision") && (
+                      <div class="pe-acciones">
+                        <button
+                          type="button"
+                          class="bnf-btn pequeno"
+                          data-responder={r.ReclamoId}
+                          data-psicologo={r.PsicologoNombre}
+                          data-motivo={r.Motivo}
+                          data-estado={r.Estado}
+                        >
+                          Responder
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="pe-espera" id="sinFiltro" hidden style="padding:10px">No hay reclamos con ese filtro.</p>
+      </section>
+    )}
+  </main>
+
+  {/* Responder */}
+  <div class="bnf-overlay" id="modalResponder" aria-hidden="true">
+    <div class="bnf-dialog" role="dialog" aria-modal="true" aria-labelledby="responderTitulo">
+      <div class="bnf-dialog-top">
+        <div><h3 id="responderTitulo">Responder reclamo</h3><p id="responderDe"></p></div>
+        <button type="button" class="bnf-cerrar" data-cerrar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="bnf-campo">
+        <label for="responderEstado">Estado</label>
+        <select id="responderEstado" class="form-select form-select-sm">
+          <option value="EnRevision">En revisión (lo estoy revisando)</option>
+          <option value="Resuelto">Resuelto</option>
+          <option value="Rechazado">Rechazado</option>
+        </select>
+      </div>
+      <div class="bnf-campo">
+        <label for="responderTexto">Respuesta para el psicólogo</label>
+        <textarea id="responderTexto" rows="4" maxlength="1000" placeholder="Ej.: Ya revisamos tu pago y la transferencia se hizo el 24 de octubre."></textarea>
+      </div>
+      <p class="bnf-error" id="responderError" role="alert"></p>
+      <div class="bnf-dialog-acciones">
+        <button type="button" class="bnf-btn secundario" data-cerrar>Cancelar</button>
+        <button type="button" class="bnf-btn" id="confirmarResponder">Guardar respuesta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { apiEnviar, textoError } from "../../lib/api";
+
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null;
+
+  function abrirModal(id: string) {
+    $(id)?.classList.add("visible");
+    $(id)?.setAttribute("aria-hidden", "false");
+  }
+  function cerrarModales() {
+    document.querySelectorAll(".bnf-overlay.visible").forEach((m) => {
+      m.classList.remove("visible");
+      m.setAttribute("aria-hidden", "true");
+    });
+  }
+  document.querySelectorAll(".bnf-overlay").forEach((m) => {
+    m.addEventListener("click", (e) => { if (e.target === m) cerrarModales(); });
+    m.querySelectorAll("[data-cerrar]").forEach((b) => b.addEventListener("click", cerrarModales));
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") cerrarModales(); });
+
+  // Filtros
+  document.querySelectorAll<HTMLButtonElement>(".pe-filtro").forEach((b) =>
+    b.addEventListener("click", () => {
+      document.querySelectorAll(".pe-filtro").forEach((x) => x.classList.toggle("activo", x === b));
+      const f = b.dataset.filtro;
+      let visibles = 0;
+      document.querySelectorAll<HTMLTableRowElement>("tr[data-estado]").forEach((tr) => {
+        const ok = f === "todos" || tr.dataset.estado === f;
+        tr.hidden = !ok;
+        if (ok) visibles++;
+      });
+      const sin = $("sinFiltro");
+      if (sin) sin.hidden = visibles > 0;
+    })
+  );
+
+  // Responder
+  let elegido = "";
+  document.querySelectorAll<HTMLButtonElement>("[data-responder]").forEach((b) =>
+    b.addEventListener("click", () => {
+      elegido = b.dataset.responder ?? "";
+      const d = $("responderDe");
+      if (d) d.textContent = `${b.dataset.psicologo} · ${b.dataset.motivo}`;
+      const sel = $<HTMLSelectElement>("responderEstado");
+      if (sel) sel.value = b.dataset.estado === "EnRevision" ? "Resuelto" : "EnRevision";
+      const t = $<HTMLTextAreaElement>("responderTexto");
+      if (t) t.value = "";
+      const e = $("responderError");
+      if (e) e.textContent = "";
+      abrirModal("modalResponder");
+      setTimeout(() => t?.focus(), 50);
+    })
+  );
+
+  const boton = $<HTMLButtonElement>("confirmarResponder");
+  boton?.addEventListener("click", async () => {
+    const estado = $<HTMLSelectElement>("responderEstado")?.value ?? "EnRevision";
+    const respuesta = ($<HTMLTextAreaElement>("responderTexto")?.value ?? "").trim();
+    const e = $("responderError");
+    if (estado !== "EnRevision" && respuesta.length < 5) {
+      if (e) e.textContent = "Para resolver o rechazar el reclamo escribe una respuesta (mínimo 5 caracteres).";
+      return;
+    }
+    if (respuesta && respuesta.length < 5) {
+      if (e) e.textContent = "La respuesta debe tener mínimo 5 caracteres.";
+      return;
+    }
+    boton.disabled = true;
+    const r = await apiEnviar("PATCH", `/api/admin/reclamos/${elegido}`, respuesta ? { estado, respuesta } : { estado });
+    if (r.ok) return location.reload();
+    if (e) e.textContent = textoError(r.data, "No se pudo guardar la respuesta");
+    boton.disabled = false;
+  });
+</script>

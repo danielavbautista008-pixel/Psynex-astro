@@ -47,7 +47,7 @@ const texto = a.Contenido.replace(/<[^>]+>/g, " ");
     descripcion={a.Resumen}
     tiempo={minutosLectura(texto.length)}
     fecha={fecha}
-    imagen={urlImagenBlog(a.ArticuloId, a.ImagenPortada) ?? "/Imagenes/imagendearticulo.jpeg"}
+    imagen={urlImagenBlog(a.ArticuloId, a.ImagenPortada) ?? "/Imagenes/imagendearticulo.jpg"} /* cambio: la imagen real es .jpg, no .jpeg */
     contenido={a.Contenido}
     autor={a.AutorRol ? `${a.AutorNombre} · ${a.AutorRol}` : a.AutorNombre}
   />

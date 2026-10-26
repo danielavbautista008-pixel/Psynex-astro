@@ -1,418 +1,241 @@
-/* Reseteo general */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+/* cambio: Inicio del paciente (lo común está en paciente.css).
+   Solo colores del tema; títulos con la fuente de los encabezados. */
 
-body {
-  background: var(--bg);
-  overflow-x: hidden;
-}
-
-/* Contenedor principal Grid */
-.dashboard-container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  display: grid;
-  margin: 30px auto;
-  grid-template-columns: 2fr 1fr;
-  gap: 32px;
-  padding: 0 200px;
-  max-width: 1200px;
-  width: 100%;
-  background: var(--bg);
-}
-
-/* --- COLUMNA IZQUIERDA --- */
-.greeting-header h1 {
-  font-size: 1.5rem;
-  color: var(--text);
+.ini-subtitulo {
+  margin: 0 0 12px;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 18px;
   font-weight: 500;
-}
-
-.greeting-header p {
   color: var(--text);
-  opacity: 0.75;
-  font-size: 0.95rem;
-  margin-top: 2px;
-  margin-bottom: 1.5rem;
 }
 
-/* Banner Dorado */
-.banner-card {
-  background-color: var(--primary);
-  border-radius: 12px;
+/* ---------- Próxima cita ---------- */
+.ini-cita .pac-card-top a.pac-chip { text-decoration: none; }
+
+.ini-cita-fila {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
-.banner-info {
-  padding: 2rem;
-  color: var(--text);
-}
-
-.banner-info h2 {
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin-bottom: 0.3rem;
-}
-
-.banner-info p {
-  font-size: 0.95rem;
-  margin-bottom: 1.2rem;
-  opacity: 0.9;
-}
-
-.banner-btn {
-  text-decoration: none;
-  color: var(--text);
-  font-weight: 700;
-  font-size: 0.95rem;
-  transition: opacity 0.2s;
-}
-
-.banner-btn:hover {
-  opacity: 0.8;
-}
-
-.banner-image img {
-  width: 200px;
-  height: 140px;
-  object-fit: cover;
-  display: block;
-}
-
-/* Puntos de Carrusel */
-.carousel-dots {
+.ini-cita-info {
+  flex: 1;
+  min-width: 200px;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ini-cita-info strong { font-size: 15px; color: var(--text); }
+.ini-cita-info > span { color: var(--text-muted); }
+
+.ini-cita-tags {
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  margin: 1rem 0 2rem 0;
+  margin-top: 4px;
 }
 
-.dot {
-  width: 6px;
-  height: 6px;
-  background-color: var(--border);
-  border-radius: 50%;
+.ini-cita-vacia {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
-.dot.active {
-  width: 18px;
-  height: 6px;
-  background-color: var(--primary);
-  border-radius: 4px;
-}
+.ini-cita-vacia p { margin: 0; }
 
-/* Accesos Rápidos */
-.quick-access h2 {
-  font-size: 1.2rem;
-  color: var(--text);
-  margin-bottom: 1rem;
-}
-
-.quick-cards {
+/* ---------- Accesos rápidos ---------- */
+.ini-accesos {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.card {
-  background-color: var(--surface, var(--bg));
-  border: 1px solid var(--border);
-  padding: 1rem 0.8rem;
-  border-radius: 10px;
-  text-align: center;
+.ini-acceso {
   display: flex;
   flex-direction: column;
   align-items: center;
-  cursor: pointer;
-  box-shadow: 0 5px 6px rgba(0, 0, 0, 0.02);
-  transition: transform 0.2s;
-  width: 150px;
+  gap: 10px;
+  padding: 18px 10px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: center;
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.card:hover {
-  transform: translateY(-2px);
+.ini-acceso:hover {
+  transform: translateY(-3px);
+  border-color: var(--primary);
+  box-shadow: 0 10px 22px -16px var(--primary);
 }
 
-.card-icon {
-  font-size: 1.2rem;
+/* ---------- Especialidades ---------- */
+.ini-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.ini-tag {
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.ini-tag:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
   color: var(--primary);
 }
 
-.card span {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text);
-}
-
-/* Buscar Especialista */
-.search-specialist {
-  background-color: var(--surface, var(--bg));
-  border: 1px solid var(--border);
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
-}
-
-.search-specialist h3 {
-  font-size: 0.95rem;
-  color: var(--text);
-  margin-bottom: 1rem;
-}
-
-.tags-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin-bottom: 1rem;
-}
-
-.tag {
-  background-color: var(--bg);
-  color: var(--text);
-  border: 1px solid var(--border);
-  padding: 0.5rem 0.9rem;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: background-color 0.2s, border-color 0.2s;
-}
-
-.tag:hover {
-  background-color: var(--primary);
-  border-color: var(--primary);
-}
-
-.see-more-link {
-  color: var(--text);
-  text-decoration: none;
-  font-size: 0.85rem;
+.ini-ver-mas {
+  color: var(--primary);
   font-weight: 700;
+  font-size: 13px;
+  text-decoration: none;
 }
 
-/* --- COLUMNA DERECHA ("Tu plan hoy") --- */
-.plan-card {
-  background-color: var(--surface, var(--bg));
-  border: 1px solid var(--border);
-  padding: 1.5rem;
-  border-radius: 16px;
-}
+.ini-ver-mas:hover { text-decoration: underline; }
 
-.plan-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.plan-header h2 {
-  font-size: 1.3rem;
-  color: var(--text);
-}
-
-.badge {
-  border: 1px solid var(--border);
-  padding: 0.2rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.7rem;
-  color: var(--text);
-  font-weight: 600;
-}
-
-/* Línea de tiempo vertical */
-.plan-timeline {
+/* ---------- Tu plan hoy ---------- */
+.ini-linea {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  position: relative;
+  gap: 14px;
 }
 
-.plan-timeline::before {
-  content: '';
+.ini-linea::before {
+  content: "";
   position: absolute;
-  top: 15px;
-  bottom: 30px;
-  left: 7px;
-  width: 2px;
+  top: 18px;
+  bottom: 24px;
+  left: 10px;
   border-left: 2px dashed var(--border);
 }
 
-.timeline-item {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
+.ini-paso {
   position: relative;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
 }
 
-.timeline-node {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
-  background-color: var(--surface, var(--bg));
+.ini-nodo {
   z-index: 1;
-  margin-top: 10px;
+  width: 22px;
+  height: 22px;
+  margin-top: 12px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: transparent;
+  font-size: 12px;
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
 }
 
-.timeline-content {
-  background-color: var(--bg);
+.ini-paso.hecho .ini-nodo {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+  animation: ini-pop 0.35s ease;
+}
+
+@keyframes ini-pop {
+  50% { transform: scale(1.25); }
+}
+
+.ini-paso-caja {
+  flex: 1;
+  min-width: 0;
+  padding: 14px;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1rem;
-  width: 100%;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  border-radius: 14px;
+  background: var(--bg);
 }
 
-/* Estado de ánimo */
-.mood-title {
-  text-align: center;
-  font-size: 0.85rem;
+.ini-paso-titulo {
+  margin: 0 0 8px;
   font-weight: 600;
   color: var(--text);
-  margin-bottom: 0.8rem;
 }
 
-.mood-emojis {
-  display: flex;
-  justify-content: space-around;
-}
-
-.emoji-btn {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  color: var(--text);
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.emoji-btn:hover {
-  transform: scale(1.2);
-}
-
-/* Tarjeta Chequeo */
-.checkup-card {
-  display: flex;
-  gap: 0.8rem;
-  align-items: center;
-}
-
-.checkup-img img {
-  width: 50px;
-  height: 50px;
-  border-radius: 8px;
-  object-fit: cover;
-}
-
-.checkup-details .sub-text {
-  font-size: 0.7rem;
-  color: var(--text);
-  opacity: 0.6;
-}
-
-.checkup-details h4 {
-  font-size: 0.85rem;
-  color: var(--text);
-  margin: 2px 0;
-}
-
-.checkin-tag {
-  font-size: 0.7rem;
-  color: var(--text);
-}
-
-/* Layout Global de la Página (Orden Vertical) */
-.page-layout {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  min-height: 100vh;
-  background: var(--bg);
-  color: var(--text);
-}
-
-/* El menú debe abarcar todo el ancho superior obligatoriamente */
-.navbar {
-  width: 100% !important;
+.ini-caritas {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background: var(--surface, var(--bg));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  padding: 0 2rem;
-  height: 65px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-  border-bottom: 1px solid var(--border);
+  gap: 4px;
+  margin-bottom: 10px;
 }
 
-/* Contenedor del contenido (Flex horizontal sólo para las 2 columnas) */
-.dashboard-container {
+.ini-carita {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 22px;
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.ini-carita:hover { transform: scale(1.15); color: var(--primary); }
+
+.ini-carita.activa {
+  color: var(--primary);
+  background: var(--primary-soft);
+  transform: scale(1.1);
+}
+
+.ini-paso-link {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.ini-paso-link:hover { text-decoration: underline; }
+
+.ini-chequeo {
   display: flex;
-  flex-direction: row;
-  width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem;
-  gap: 2rem;
-  box-sizing: border-box;
+  gap: 12px;
+  align-items: center;
 }
 
-/* Columna Izquierda (Saludo, accesos, búsqueda) */
-.main-content {
-  color: var(--text);
-  flex: 1;
-  min-width: 0; /* Evita que los elementos se desborden */
+.ini-chequeo .ini-paso-titulo { margin-bottom: 4px; }
+
+.ini-semana {
+  margin: 16px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-/* Columna Derecha (Tu plan hoy) */
-.sidebar-content {
-  width: 280px;
-  flex-shrink: 0;
+.ini-semana i { color: var(--primary); }
+
+/* ---------- Celular ---------- */
+@media (max-width: 900px) {
+  .ini-page .pac-grid-2 { grid-template-columns: 1fr; }
 }
 
-/* Responsividad para pantallas pequeñas */
-@media (max-width: 768px) {
-  .dashboard-container {
-    grid-template-columns: 1fr;
-  }
-  .quick-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* cambio: el menú del paciente ahora es la barra fija de arriba (igual a la del
-   psicólogo), así que se deja espacio para que no tape el contenido */
-.page-layout {
-  min-height: 100vh;
-  padding-top: 96px;
-  background: var(--bg);
-  color: var(--text);
-}
-
-@media (max-width: 1100px) {
-  .page-layout .dashboard-container {
-    padding: 0 24px;
-  }
-}
-
-@media (max-width: 760px) {
-  .page-layout .dashboard-container {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 560px) {
+  .ini-accesos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

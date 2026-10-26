@@ -2418,3 +2418,764 @@
   object-fit: cover;
   object-position: center 30%;
 }
+
+/* =====================================================
+   cambio: HORARIOS organizados (columna principal)
+   - La semana en 7 columnas (Lun a Dom)
+   - Próximos espacios libres: pestañas por día + horas
+   ===================================================== */
+
+.horarios-card {
+  scroll-margin-top: 90px;
+}
+
+.hor-semana {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.hor-dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 96px;
+  padding: 12px 6px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+  text-align: center;
+}
+
+.hor-dia strong {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.hor-dia.activo {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  background: var(--primary-soft);
+}
+
+.hor-dia.activo strong {
+  color: var(--primary);
+}
+
+.hor-rango {
+  width: 100%;
+  padding: 5px 4px;
+  white-space: nowrap;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.hor-no {
+  margin-top: auto;
+  margin-bottom: auto;
+  color: var(--text-muted);
+  font-size: 10.5px;
+  opacity: 0.8;
+}
+
+.hor-libres {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--border);
+}
+
+.hor-libres-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.hor-libres-top h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.hor-libres-top h3 i {
+  color: var(--primary);
+}
+
+.hor-libres-top small {
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+
+/* Pestañas de días */
+.hor-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.hor-tab {
+  flex: 0 0 auto;
+  min-width: 74px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.hor-tab:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+}
+
+.hor-tab small {
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.hor-tab strong {
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.hor-tab em {
+  margin-top: 3px;
+  font-style: normal;
+  font-size: 9.5px;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.hor-tab.activo {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.hor-tab.activo small,
+.hor-tab.activo em {
+  color: var(--on-primary);
+  opacity: 0.9;
+}
+
+/* Horas del día elegido */
+.hor-horas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+  animation: hor-entrar 0.3s ease;
+}
+
+.hor-horas .hora-chip {
+  height: 34px;
+  font-size: 12px;
+}
+
+@keyframes hor-entrar {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 760px) {
+  .hor-semana {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 460px) {
+  .hor-semana {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hor-dia {
+    min-height: 0;
+  }
+}
+
+/* =====================================================
+   cambio: AGENDA PÚBLICA (Hoy / Próx. 7 días / Otra fecha)
+   Horas agrupadas por mañana, tarde y noche. Solo colores del tema.
+===================================================== */
+
+.agd {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.agd-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.agd-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-height: 52px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.agd-tab strong {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.agd-tab small {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.agd-tab:hover:not(.activo) {
+  background: var(--primary-soft);
+}
+
+.agd-tab.activo {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 25%, transparent);
+}
+
+.agd-tab.activo small {
+  color: var(--on-primary);
+  opacity: 0.85;
+}
+
+.agd-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.agd-cabecera h3 {
+  margin: 0;
+  min-width: 190px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.agd-flecha {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--primary);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.agd-flecha:hover:not(:disabled) {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.agd-flecha:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* Días */
+.agd-dias {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px 4px;
+  justify-items: center;
+}
+
+.agd-dias.vista-hoy {
+  display: none;
+}
+
+.agd-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.agd-col span,
+.agd-cab {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.agd-num {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+/* puntico debajo = tiene horas libres */
+.agd-num.con-horas::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.agd-num.con-horas:hover {
+  background: var(--primary-soft);
+  transform: scale(1.06);
+}
+
+.agd-num:disabled {
+  color: var(--text-muted);
+  opacity: 0.5;
+  cursor: default;
+}
+
+.agd-num.es-hoy {
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.agd-num.elegido,
+.agd-num.elegido:hover {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.agd-num.elegido::after {
+  background: var(--on-primary);
+}
+
+/* Horas */
+.agd-horas {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: hor-entrar 0.3s ease;
+}
+
+.agd-grupo h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.agd-grupo h4 i {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 15px;
+}
+
+.agd-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-left: 36px;
+}
+
+.agd-chip {
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid color-mix(in srgb, var(--primary) 25%, var(--border));
+  border-radius: 10px;
+  background: var(--primary-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.agd-chip:hover {
+  background: var(--primary);
+  color: var(--on-primary);
+  transform: translateY(-2px);
+}
+
+.agd-vacio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.agd-ir {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.agd-ir:hover {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.agd-nota {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+
+/* Horario semanal compacto */
+.agd-semanal {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border);
+}
+
+.agd-semanal-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.agd-semanal-titulo i {
+  color: var(--primary);
+}
+
+.agd-semanal-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.agd-semanal-dia {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  font-size: 11.5px;
+  color: var(--text);
+}
+
+.agd-semanal-dia strong {
+  color: var(--primary);
+}
+
+.agd-semanal-dia.inactivo {
+  background: var(--bg);
+  color: var(--text-muted);
+}
+
+.agd-semanal-dia.inactivo strong {
+  color: var(--text-muted);
+}
+
+@media (max-width: 460px) {
+  .agd-num {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+  }
+
+  .agd-chips {
+    padding-left: 0;
+  }
+}
+
+/* =====================================================
+   cambio: la agenda vive en el sidebar (debajo de "¿Quieres comenzar?").
+   Días y horas como cuadraditos; los días disponibles son "hojitas"
+   de calendario (franja de color arriba).
+===================================================== */
+
+.perfil-sidebar:has(.agd) {
+  position: static;
+}
+
+.sidebar-card.agd {
+  gap: 14px;
+  padding: 18px 16px;
+}
+
+.agd-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.agd-titulo i {
+  color: var(--primary);
+}
+
+.agd .agd-tab {
+  min-height: 46px;
+  padding: 5px 4px;
+}
+
+.agd .agd-tab strong {
+  font-size: 12px;
+}
+
+.agd .agd-tab small {
+  font-size: 9.5px;
+}
+
+.agd .agd-cabecera h3 {
+  min-width: 0;
+  flex: 1;
+  font-size: 13.5px;
+}
+
+.agd .agd-flecha {
+  width: 28px;
+  height: 28px;
+  flex: none;
+}
+
+.agd .agd-dias {
+  gap: 5px;
+  justify-items: stretch;
+}
+
+.agd .agd-cab {
+  text-align: center;
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+/* Cuadradito de cada día */
+.agd .agd-num {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  font-size: 13px;
+}
+
+.agd .agd-dias.vista-semana .agd-num {
+  aspect-ratio: 3 / 4;
+}
+
+.agd .agd-num small {
+  font-size: 9px;
+  font-weight: 600;
+  color: inherit;
+  opacity: 0.75;
+}
+
+.agd .agd-num strong {
+  font-size: 14px;
+  line-height: 1.1;
+}
+
+.agd .agd-num::after {
+  display: none;
+}
+
+/* Hojita: día disponible (franja de color arriba, como hoja de calendario) */
+.agd .agd-num.con-horas {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  background: var(--surface);
+  box-shadow: 0 3px 8px color-mix(in srgb, var(--primary) 12%, transparent);
+  padding-top: 4px;
+}
+
+.agd .agd-num.con-horas::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: var(--primary);
+}
+
+.agd .agd-num.con-horas:hover {
+  transform: translateY(-2px);
+  background: var(--primary-soft);
+}
+
+.agd .agd-num:disabled {
+  background: transparent;
+  border-style: dashed;
+  opacity: 0.45;
+}
+
+.agd .agd-num.es-hoy {
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.agd .agd-num.elegido,
+.agd .agd-num.elegido:hover {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.agd .agd-num.elegido::before {
+  background: color-mix(in srgb, var(--on-primary) 55%, var(--primary));
+}
+
+/* Horas en cuadraditos */
+.agd .agd-grupo h4 {
+  font-size: 12.5px;
+  margin-bottom: 8px;
+}
+
+.agd .agd-grupo h4 i {
+  width: 24px;
+  height: 24px;
+  font-size: 13px;
+}
+
+.agd .agd-chips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding-left: 0;
+}
+
+.agd .agd-chip {
+  height: 36px;
+  padding: 0 4px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.agd .agd-ir {
+  font-size: 11.5px;
+}
+
+.agd-semanal.sin-linea {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* cambio: números del calendario y horas con la misma fuente del resto */
+.agd .agd-num,
+.agd .agd-num small,
+.agd .agd-num strong,
+.agd .agd-chip,
+.agd .agd-cab,
+.agd .agd-cabecera h3,
+.agd .agd-tab {
+  font-family: var(--bs-body-font-family);
+}
+
+.agd .agd-num strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.agd .agd-num small {
+  font-weight: 500;
+}
+
+.agd .agd-chip {
+  font-weight: 500;
+}
+
+/* cambio: mapa del consultorio (Google Maps sin llave) */
+.consultorio-mapa {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.consultorio-mapa iframe {
+  width: 100%;
+  height: 170px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.consultorio-mapa a {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}

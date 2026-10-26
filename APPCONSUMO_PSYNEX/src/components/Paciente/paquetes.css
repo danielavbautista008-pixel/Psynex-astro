@@ -1,4 +1,5 @@
-/* Paquetes del paciente (lo común está en paciente.css) */
+/* Paquetes del paciente (lo común está en paciente.css)
+   cambio: rediseño con los planes reales, solo colores del tema */
 
 .paq-titulo {
   display: flex;
@@ -6,39 +7,62 @@
   justify-content: space-between;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .paq-titulo h2 {
   margin: 0;
   font-family: "Fraunces", Georgia, serif;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 500;
 }
 
 .paq-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  align-items: stretch;
 }
 
-.paq-item {
+.paq-plan {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 14px;
+  padding: 22px 20px 20px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
-.paq-item.destacado {
-  border-color: var(--primary);
-  box-shadow: 0 10px 28px color-mix(in srgb, var(--primary) 14%, transparent);
+.paq-plan:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  box-shadow: 0 16px 34px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.paq-plan.destacado {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 55%),
+    var(--surface);
+  box-shadow: 0 16px 36px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
+.paq-plan.suelta {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--surface) 70%, var(--bg));
 }
 
 .paq-recomendado {
   position: absolute;
-  top: -10px;
-  right: 16px;
-  padding: 3px 10px;
+  top: -12px;
+  left: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
   border-radius: 999px;
   background: var(--primary);
   color: var(--on-primary);
@@ -46,49 +70,244 @@
   font-weight: 700;
 }
 
-.paq-item h3 {
+.paq-plan header h3 {
   margin: 0;
-  font-size: 15px;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 19px;
+  font-weight: 500;
+  color: var(--text);
 }
 
-.paq-item p {
-  margin: 0;
-  flex: 1;
+.paq-plan header p {
+  margin: 5px 0 0;
+  color: var(--text-muted);
+  font-size: 12.5px;
   line-height: 1.5;
 }
 
 .paq-precio {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .paq-precio strong {
-  font-size: 20px;
-  color: var(--text);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+  color: var(--primary);
 }
 
-.paq-item .pac-btn {
-  margin-top: 8px;
+.paq-plan.suelta .paq-precio strong {
+  font-size: 18px;
 }
 
+.paq-precio span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.paq-datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.paq-datos span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 12px;
+}
+
+.paq-datos i {
+  color: var(--primary);
+}
+
+.paq-beneficios {
+  margin: 0;
+  padding: 12px 0 0;
+  border-top: 1px dashed var(--border);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12.5px;
+}
+
+.paq-beneficios li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.paq-beneficios i {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 12px;
+}
+
+.paq-elegir {
+  margin-top: auto;
+  width: 100%;
+  height: 40px;
+  justify-content: center;
+  text-decoration: none;
+}
+
+/* Comparar */
+.paq-tabla-wrap {
+  overflow-x: auto;
+}
+
+.paq-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.paq-tabla th,
+.paq-tabla td {
+  padding: 11px 14px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.paq-tabla th:first-child,
+.paq-tabla td:first-child {
+  text-align: left;
+  color: var(--text-muted);
+}
+
+.paq-tabla tr:last-child td {
+  border-bottom: 0;
+}
+
+.paq-tabla .destacado {
+  background: color-mix(in srgb, var(--primary) 7%, transparent);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* Cómo funciona */
+.paq-pasos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.paq-pasos .pac-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.paq-pasos span {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.paq-pasos strong {
+  display: block;
+  font-size: 13.5px;
+}
+
+.paq-pasos small {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* Ventana de compra */
 .paq-resumen {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
+  margin: 12px 0;
+  padding: 12px 14px;
   border-radius: 12px;
   background: var(--bg);
-  margin-bottom: 10px;
 }
 
 .paq-resumen strong {
-  font-size: 17px;
+  font-size: 18px;
+  color: var(--primary);
 }
 
-@media (max-width: 860px) {
-  .paq-grid {
+@media (max-width: 760px) {
+  .paq-pasos {
     grid-template-columns: 1fr;
   }
+}
+
+/* cambio: mis paquetes comprados */
+.paq-mios {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.paq-mio {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.paq-mio.agotado {
+  opacity: 0.7;
+}
+
+.paq-mio-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.paq-mio-barra {
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  overflow: hidden;
+}
+
+.paq-mio-barra span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+}
+
+.paq-mio-datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.paq-mio-datos i {
+  color: var(--primary);
 }

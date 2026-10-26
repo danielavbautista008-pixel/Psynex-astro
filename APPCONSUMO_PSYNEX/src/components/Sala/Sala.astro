@@ -312,7 +312,7 @@ const datosJson = JSON.stringify({ sala, api: API_URL, iconos: ICONOS }).replace
   ===================================================== */
   const datos = JSON.parse(document.getElementById("salaDatos")?.textContent || "{}");
   const sala = datos.sala;
-  const API: string = datos.api || "http://localhost:8001";
+  const API: string = datos.api ?? "http://localhost:8001"; // cambio (túnel): "" = misma dirección de la página
   const ICONOS: Record<string, string> = datos.iconos || {};
 
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T | null;
@@ -824,7 +824,7 @@ const datosJson = JSON.stringify({ sala, api: API_URL, iconos: ICONOS }).replace
     }
 
     function conectar() {
-      ws = new WebSocket(API.replace(/^http/, "ws") + "/api/chat/ws");
+      ws = new WebSocket((API || location.origin).replace(/^http/, "ws") + "/api/chat/ws");
 
       ws.addEventListener("open", () => {
         espera = 1000;

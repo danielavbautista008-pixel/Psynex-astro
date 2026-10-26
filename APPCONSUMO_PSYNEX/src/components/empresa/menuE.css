@@ -483,3 +483,139 @@
     width: auto;
   }
 }
+
+/* -------------------------------------------------------------------------
+   cambio: AJUSTES PARA CELULAR del panel de Empresa
+   (están aquí porque este menú se carga en todas las vistas de Empresa)
+   ------------------------------------------------------------------------- */
+.nav-hamburguesa-emp {
+  display: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .nav-hamburguesa-emp {
+    display: grid;
+  }
+
+  .nav-logo-text {
+    max-width: 38vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Menú desplegable debajo de la barra */
+  .sticky-nav.menu-abierto .nav-menu {
+    display: flex;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 12px;
+    right: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    padding: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.14);
+    animation: empMenuEntrar 0.2s ease;
+  }
+
+  .sticky-nav.menu-abierto .nav-menu a {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+
+  .sticky-nav.menu-abierto .nav-menu a:hover {
+    transform: none;
+    background: var(--primary-soft);
+  }
+
+  .sticky-nav.menu-abierto .nav-menu a i {
+    font-size: 1.1rem;
+    width: 22px;
+  }
+}
+
+@keyframes empMenuEntrar {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Botón de perfil: en pantallas muy angostas solo la foto */
+@media (max-width: 480px) {
+  .nav-btn-perfil {
+    padding: 4px;
+  }
+
+  .nav-btn-perfil span,
+  .nav-btn-perfil .bi-chevron-down {
+    display: none;
+  }
+
+  .sticky-nav {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+}
+
+/* Tablas de Empresa (Inicio y Ofertas): en celular cada fila es una tarjeta */
+@media (max-width: 600px) {
+  .custom-table thead {
+    display: none;
+  }
+
+  .custom-table,
+  .custom-table tbody,
+  .custom-table tr,
+  .custom-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .custom-table tr {
+    padding: 12px 2px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .custom-table tr:last-child {
+    border-bottom: 0;
+  }
+
+  .custom-table td {
+    padding: 3px 0 !important;
+    border: 0 !important;
+    text-align: left !important;
+    white-space: normal;
+  }
+
+  .custom-table td:first-child {
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  .custom-table .action-buttons-group {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+
+  .responsive-table-holder {
+    overflow-x: visible;
+  }
+}

@@ -21,7 +21,11 @@ const ruta = Astro.url.pathname.toLowerCase();
   </a>
 
   <div class="pv-usuario">
-    <span class="pv-letra">{inicial}</span>
+    <!-- cambio: foto real del paciente (si no tiene, queda la inicial) -->
+    <span class="pv-letra">
+      {inicial}
+      <img class="pv-foto pac-foto-menu" src={`${API_URL}/api/paciente/perfil/foto`} alt="" onerror="this.hidden=true" />
+    </span>
     <div>
       <strong>{nombre}</strong>
       <small>{correo || "Paciente"}</small>
@@ -114,6 +118,8 @@ const ruta = Astro.url.pathname.toLowerCase();
   }
 
   .pv-letra {
+    position: relative; /* cambio: para la foto encima de la inicial */
+    overflow: hidden;
     width: 36px;
     height: 36px;
     flex-shrink: 0;
@@ -124,6 +130,18 @@ const ruta = Astro.url.pathname.toLowerCase();
     color: var(--on-primary);
     font-weight: 700;
     font-size: 14px;
+  }
+
+  .pv-foto {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pv-foto[hidden] {
+    display: none;
   }
 
   .pv-usuario div {
@@ -256,7 +274,7 @@ const ruta = Astro.url.pathname.toLowerCase();
 
 <script>
   const barra = document.getElementById("pvBarra");
-  const API = barra?.dataset.api || "http://localhost:8001";
+  const API = barra?.dataset.api ?? "http://localhost:8001"; // cambio (túnel): "" = misma dirección de la página
 
   // Cerrar sesión: borra la cookie en el backend y va al login
   document.getElementById("pvSalir")?.addEventListener("click", async () => {

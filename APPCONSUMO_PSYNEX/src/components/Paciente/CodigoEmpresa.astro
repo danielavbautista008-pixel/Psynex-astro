@@ -4,8 +4,9 @@
 // le dio su empresa (por ejemplo ESAS-7K3P) y ve cuántas sesiones le
 // quedan cubiertas. Se usa en Paquetes y en Mi perfil.
 //
-// DATOS DE PRUEBA: el código se valida en el navegador (utilidades.ts).
-// Códigos que funcionan: ESAS-7K3P y SALU-7K3P.
+// cambio: ahora es REAL. El código lo genera Psynex cuando el admin aprueba
+// el plan de la empresa (GET/POST/DELETE /api/paciente/beneficio).
+// Con el beneficio activo, en "Mis citas" se paga la cita con una sesión.
 // =====================================================================
 ---
 
@@ -26,7 +27,7 @@
         id="codigoInput"
         name="codigo"
         maxlength="9"
-        placeholder="Ej: ESAS-7K3P"
+        placeholder="Ej: PSYX-KQ3S"
         autocomplete="off"
         spellcheck="false"
       />
@@ -59,6 +60,7 @@
 
     <div class="codigo-acciones">
       <a href="/Paciente/Especialistas" class="pac-btn pequeno">Agendar con mi beneficio</a>
+      <a href="/Paciente/Citas" class="pac-btn pequeno borde">Usarlo en mis citas</a>
       <button type="button" class="pac-btn pequeno borde" id="codigoQuitar">Quitar código</button>
     </div>
   </div>
@@ -163,7 +165,18 @@
 </style>
 
 <script>
-  import { activarCodigo, avisar, fechaBonita, leerBeneficio, quitarBeneficio, type Beneficio } from "./utilidades";
+  // cambio: el código se valida y se guarda en el backend
+  import { avisar, fechaBonita } from "./utilidades";
+  import { API_URL, apiEnviar, textoError } from "../../lib/api";
+
+  interface Beneficio {
+    codigo: string;
+    empresa: string;
+    vence: string;
+    sesionesTotales: number;
+    sesionesUsadas: number;
+    sesionesDisponibles: number;
+  }
 
   const caja = document.getElementById("codigoEmpresa");
   if (caja) {
@@ -173,6 +186,7 @@
     const error = $("codigoError");
     const activo = $("codigoActivo");
     const estado = $("codigoEstado");
+    const quitar = $("codigoQuitar") as HTMLButtonElement | null;
 
     const texto = (id: string, valor: string) => {
       const el = $(id);
@@ -183,47 +197,58 @@
       if (form) form.hidden = Boolean(b);
       if (activo) activo.hidden = !b;
       if (estado) {
-        estado.textContent = b ? "Activo" : "Sin código";
-        estado.className = b ? "pac-chip ok" : "pac-chip neutro";
+        estado.textContent = b ? (b.sesionesDisponibles > 0 ? "Activo" : "Sin sesiones") : "Sin código";
+        estado.className = b ? (b.sesionesDisponibles > 0 ? "pac-chip ok" : "pac-chip neutro") : "pac-chip neutro";
       }
       if (!b) return;
-      const disponibles = Math.max(0, b.sesionesTotales - b.sesionesUsadas);
       texto("codigoEmpresaNombre", b.empresa);
       texto("codigoTexto", b.codigo);
-      texto("codigoVence", fechaBonita(b.vence));
-      texto("codigoDisponibles", String(disponibles));
+      texto("codigoVence", b.vence ? fechaBonita(b.vence) : "Sin vencimiento");
+      texto("codigoDisponibles", String(b.sesionesDisponibles));
       texto("codigoTotales", String(b.sesionesTotales));
       const barra = $("codigoBarra");
-      if (barra) barra.style.width = `${b.sesionesTotales ? (disponibles / b.sesionesTotales) * 100 : 0}%`;
+      if (barra) barra.style.width = `${b.sesionesTotales ? (b.sesionesDisponibles / b.sesionesTotales) * 100 : 0}%`;
+      // Si ya usó sesiones, el código no se puede quitar
+      if (quitar) quitar.hidden = b.sesionesUsadas > 0;
     }
 
-    // Escribe el guion solo: "esas7k3p" -> "ESAS-7K3P"
+    // Escribe el guion solo: "psyxkq3s" -> "PSYX-KQ3S"
     input?.addEventListener("input", () => {
       const limpio = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
       input.value = limpio.length > 4 ? `${limpio.slice(0, 4)}-${limpio.slice(4)}` : limpio;
       if (error) error.textContent = "";
     });
 
-    form?.addEventListener("submit", (e) => {
+    form?.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const r = activarCodigo(input?.value || "");
+      const boton = form.querySelector<HTMLButtonElement>("button[type=submit]");
+      if (boton) boton.disabled = true;
+      const r = await apiEnviar("POST", "/api/paciente/beneficio", { codigo: input?.value || "" });
+      if (boton) boton.disabled = false;
       if (!r.ok) {
-        if (error) error.textContent = r.error;
+        if (error) error.textContent = textoError(r.data, "No se pudo activar el código");
         return;
       }
-      pintar(r.beneficio);
+      pintar(r.data.beneficio);
       avisar("¡Listo! Tu beneficio quedó activo.");
-      document.dispatchEvent(new CustomEvent("psynex:beneficio", { detail: r.beneficio }));
+      document.dispatchEvent(new CustomEvent("psynex:beneficio", { detail: r.data.beneficio }));
     });
 
-    $("codigoQuitar")?.addEventListener("click", () => {
-      quitarBeneficio();
+    quitar?.addEventListener("click", async () => {
+      quitar.disabled = true;
+      const r = await apiEnviar("DELETE", "/api/paciente/beneficio");
+      quitar.disabled = false;
+      if (!r.ok) return avisar(textoError(r.data, "No se pudo quitar el código"));
       if (input) input.value = "";
       pintar(null);
       avisar("Quitaste el código de tu empresa.");
       document.dispatchEvent(new CustomEvent("psynex:beneficio", { detail: null }));
     });
 
-    pintar(leerBeneficio());
+    // Estado real al cargar
+    fetch(`${API_URL}/api/paciente/beneficio`, { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((d) => pintar(d?.beneficio ?? null))
+      .catch(() => pintar(null));
   }
 </script>

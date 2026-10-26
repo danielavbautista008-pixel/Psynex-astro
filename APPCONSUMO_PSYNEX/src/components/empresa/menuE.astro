@@ -134,12 +134,35 @@ import { API_URL } from "../../lib/api";
     </div>
   </div>
 
+  <!-- cambio: botón de menú (☰) para celular; antes en celular no había
+       forma de pasar a Ofertas, Profesionales, Planes, etc. -->
+  <button type="button" class="nav-hamburguesa-emp" id="empMenuBtn" aria-label="Abrir menú" aria-expanded="false">
+    <i class="bi bi-list"></i>
+  </button>
+
   </div><!-- fin nav-acciones -->
 </nav>
 
 <div class="nav-spacer"></div>
 
  <script>
+  // cambio: abrir / cerrar el menú en celular
+  {
+    const nav = document.querySelector<HTMLElement>('.sticky-nav');
+    const btn = document.getElementById('empMenuBtn');
+    btn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const abierto = !nav?.classList.contains('menu-abierto');
+      nav?.classList.toggle('menu-abierto', abierto);
+      btn.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+      const i = btn.querySelector('i');
+      if (i) i.className = abierto ? 'bi bi-x-lg' : 'bi bi-list';
+    });
+    document.addEventListener('click', (e) => {
+      if (nav?.classList.contains('menu-abierto') && !(e.target as HTMLElement).closest('.sticky-nav')) btn?.click();
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     const trigger = document.getElementById('perfil-trigger');
     const dropdown = document.getElementById('dropdown-perfil');
@@ -164,7 +187,7 @@ import { API_URL } from "../../lib/api";
     //   GET   /api/notificaciones?limite=10  -> lista + cuántas sin leer
     //   PATCH /api/notificaciones/:id/leida  -> marcar una como leída
     //   PATCH /api/notificaciones/leer-todas -> marcar todas
-    const API = document.getElementById('notifEmpresa')?.dataset.api || 'http://localhost:8001';
+    const API = document.getElementById('notifEmpresa')?.dataset.api ?? 'http://localhost:8001'; // cambio (túnel): "" = misma dirección de la página
     const notifBoton = document.getElementById('notifBoton');
     const notifPanel = document.getElementById('notifPanel');
     const notifContador = document.getElementById('notifContador');

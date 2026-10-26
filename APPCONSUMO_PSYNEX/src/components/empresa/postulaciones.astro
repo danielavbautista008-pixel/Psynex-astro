@@ -1,0 +1,131 @@
+---
+// =====================================================================
+// cambio: VISTA NUEVA — Postulaciones de la empresa.
+// En Inicio los enlaces "Ver postulaciones" llevaban a una página que no
+// existía. Muestra las postulaciones REALES a sus ofertas
+// (GET /api/empresa/postulaciones) con filtros por nombre, oferta y estado.
+// "Ver postulación" abre una ventana con las respuestas y los documentos.
+// "Ver perfil" abre el perfil público de Explorar (y "Volver" regresa aquí).
+// =====================================================================
+import MenuE from "./menuE.astro";
+import VentanasEmpresa from "./VentanasEmpresa.astro";
+import "./inicio.css";
+import "./postulaciones.css";
+import { cargarPostulaciones, fechaEmpresa } from "./datosEmpresa";
+import { API_URL, fotoIniciales } from "../../lib/api";
+
+const postulaciones = await cargarPostulaciones(Astro.request.headers.get("cookie"));
+
+const lista = postulaciones.map((p) => ({
+  ...p,
+  iniciales: fotoIniciales(p.psicologo.nombre),
+  foto: p.psicologo.tieneFoto && p.psicologo.perfilId
+    ? `${API_URL}/api/explorar/psicologos/${p.psicologo.perfilId}/foto?v=${p.psicologo.fotoVersion}`
+    : fotoIniciales(p.psicologo.nombre),
+}));
+
+const ofertas = [...new Set(postulaciones.map((p) => p.oferta.titulo))];
+const estados = [...new Set(postulaciones.map((p) => p.estado))];
+const psicologos = new Set(postulaciones.map((p) => p.psicologo.usuarioId)).size;
+const pendientes = postulaciones.filter((p) => /pendiente/i.test(p.estado)).length;
+---
+
+<div class="landing-container">
+  <MenuE />
+  <VentanasEmpresa />
+  <main class="Bienvenida-Em">
+    <header class="dashboard-header">
+      <h1>Postulaciones</h1>
+      <p>Psicólogos que se postularon a tus ofertas laborales.</p>
+    </header>
+
+    <section class="pos-resumen">
+      <div><strong>{postulaciones.length}</strong><span>Postulaciones</span></div>
+      <div><strong>{psicologos}</strong><span>Psicólogos</span></div>
+      <div><strong>{pendientes}</strong><span>Por revisar</span></div>
+      <div><strong>{ofertas.length}</strong><span>Ofertas con postulados</span></div>
+    </section>
+
+    <section class="pos-filtros">
+      <label class="pos-buscar">
+        <i class="bi bi-search"></i>
+        <input type="search" id="posBuscar" placeholder="Buscar psicólogo..." autocomplete="off" />
+      </label>
+      <select id="posOferta" aria-label="Filtrar por oferta">
+        <option value="">Todas las ofertas</option>
+        {ofertas.map((o) => <option value={o}>{o}</option>)}
+      </select>
+      <select id="posEstado" aria-label="Filtrar por estado">
+        <option value="">Todos los estados</option>
+        {estados.map((e) => <option value={e}>{e}</option>)}
+      </select>
+    </section>
+
+    <section class="pos-lista" id="posLista">
+      {lista.length === 0 && (
+        <div class="pos-vacio">
+          <i class="bi bi-inbox"></i>
+          <h2>Todavía no tienes postulaciones</h2>
+          <p>Cuando un psicólogo se postule a una de tus ofertas, aparecerá aquí.</p>
+          <a href="/Empresa/Ofertas" class="pos-btn">Ir a mis ofertas</a>
+        </div>
+      )}
+
+      {lista.map((p) => (
+        <article class="pos-item" data-nombre={p.psicologo.nombre.toLowerCase()} data-oferta={p.oferta.titulo} data-estado={p.estado}>
+          <img class="pos-foto" src={p.foto} data-alt={p.iniciales} alt="" onerror="this.onerror=null;this.src=this.dataset.alt" />
+
+          <div class="pos-info">
+            <strong>{p.psicologo.nombre}</strong>
+            <small><i class="bi bi-briefcase"></i> {p.oferta.titulo} · {fechaEmpresa(p.fecha)}</small>
+            <div class="pos-ofertas">
+              <span class:list={["status-badge", /pendiente/i.test(p.estado) ? "pending" : "reviewed"]}>{p.estado}</span>
+              {p.respuestas.especialidad && <span class="pos-oferta">{p.respuestas.especialidad}</span>}
+              {p.respuestas.experienciaAnos !== null && <span class="pos-oferta">{p.respuestas.experienciaAnos} años de experiencia</span>}
+              <span class="pos-oferta"><i class="bi bi-paperclip"></i> {p.documentos.length} {p.documentos.length === 1 ? "documento" : "documentos"}</span>
+            </div>
+          </div>
+
+          <div class="pos-acciones">
+            <button type="button" class="pos-btn" data-ver-postulacion={p.id}>Ver postulación</button>
+            {p.psicologo.perfilId && (
+              <a href={`/Explorar/${p.psicologo.perfilId}?volver=/Empresa/Postulaciones`} class="pos-btn borde">Ver perfil</a>
+            )}
+            <a href="/Empresa/Chats" class="pos-btn borde"><i class="bi bi-chat-left-dots"></i> Escribir</a>
+          </div>
+        </article>
+      ))}
+
+      <p class="pos-vacio-filtro" id="posSinResultados" hidden>No hay postulaciones con esos filtros.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+  // Filtros: nombre, oferta y estado
+  const buscar = document.getElementById("posBuscar") as HTMLInputElement | null;
+  const oferta = document.getElementById("posOferta") as HTMLSelectElement | null;
+  const estado = document.getElementById("posEstado") as HTMLSelectElement | null;
+  const items = Array.from(document.querySelectorAll<HTMLElement>(".pos-item"));
+  const sinResultados = document.getElementById("posSinResultados");
+
+  const filtrar = () => {
+    const q = (buscar?.value || "").trim().toLowerCase();
+    const o = oferta?.value || "";
+    const e = estado?.value || "";
+    let visibles = 0;
+    items.forEach((it) => {
+      const ok =
+        (!q || (it.dataset.nombre || "").includes(q)) &&
+        (!o || it.dataset.oferta === o) &&
+        (!e || it.dataset.estado === e);
+      it.hidden = !ok;
+      if (ok) visibles++;
+    });
+    if (sinResultados) sinResultados.hidden = visibles > 0 || items.length === 0;
+  };
+
+  buscar?.addEventListener("input", filtrar);
+  oferta?.addEventListener("change", filtrar);
+  estado?.addEventListener("change", filtrar);
+</script>

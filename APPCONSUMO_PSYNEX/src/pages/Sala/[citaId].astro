@@ -6,7 +6,7 @@
 // =====================================================================
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Sala from "../../components/Sala/Sala.astro";
-import { API_URL } from "../../lib/api";
+import { API_SERVIDOR } from "../../lib/api"; // cambio (túnel): desde el servidor se llama directo a Deno
 
 const citaId = Astro.params.citaId ?? "";
 const cookie = Astro.request.headers.get("cookie");
@@ -18,7 +18,7 @@ let sala: any = null;
 let error = "";
 
 try {
-  const res = await fetch(`${API_URL}/api/sala/${encodeURIComponent(citaId)}`, {
+  const res = await fetch(`${API_SERVIDOR}/api/sala/${encodeURIComponent(citaId)}`, {
     headers: { cookie },
   });
   if (res.status === 401) return Astro.redirect(irAlLogin);

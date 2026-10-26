@@ -1,0 +1,1004 @@
+---
+// =====================================================================
+// cambio: COMPONENTE NUEVO — ventanas emergentes de Empresa.
+// Se pone al final de Profesionales, Favoritos, Ofertas y Perfil SIN
+// cambiar esas vistas: escucha los botones que ya tenían.
+//
+//  1. "Ver perfil" (tarjetas de psicólogos): abre su perfil público de
+//     Explorar (/Explorar/:id) y "Volver" regresa a la vista de empresa.
+//     Si la tarjeta es de ejemplo, avisa que todavía no tiene perfil.
+//  2. "Enviar mensaje" (ícono de chat): escribe por el chat REAL
+//     (solo se puede con psicólogos que se postularon a tus ofertas).
+//  3. "Aceptar" / "Rechazar" (postulantes en Ofertas): confirma antes y,
+//     si escribes un mensaje, se lo manda por el chat.
+//  4. "Guardar cambios" (Perfil): confirma antes de guardar y muestra
+//     el resultado en una ventana.
+//  5. "Ver postulación" (Postulaciones, y el nombre del postulante en
+//     Ofertas): respuestas del formulario y documentos (hoja de vida...).
+// Rutas del backend:
+//   GET  /api/explorar/psicologos
+//   GET  /api/empresa/postulaciones                 (nueva, solo lectura)
+//   GET  /api/empresa/postulaciones/documentos/:id  (nueva, solo lectura)
+//   GET  /api/chat/empresa/postulados
+//   POST /api/chat/empresa/postulados/:usuarioId
+//   POST /api/chat/conversaciones/:id/mensajes
+// =====================================================================
+import { API_URL } from "../../lib/api";
+---
+
+<div class="ve-raiz" id="veRaiz" data-api={API_URL}>
+  <!-- 5. Ver postulación: respuestas y documentos -->
+  <div class="ve-fondo" id="vePostulacion" hidden>
+    <section class="ve-caja ancha" role="dialog" aria-modal="true" aria-labelledby="vePosNombre">
+      <button type="button" class="ve-cerrar" data-ve-cerrar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+      <div class="ve-perfil-top">
+        <img id="vePosFoto" alt="" />
+        <div>
+          <span class="ve-chip" id="vePosEstado">Pendiente</span>
+          <h3 id="vePosNombre">Psicólogo</h3>
+          <p id="vePosOferta"></p>
+        </div>
+      </div>
+
+      <h4 class="ve-subtitulo"><i class="bi bi-list-check"></i> Respuestas de la postulación</h4>
+      <dl class="ve-respuestas" id="vePosRespuestas"></dl>
+
+      <h4 class="ve-subtitulo"><i class="bi bi-paperclip"></i> Documentos</h4>
+      <div class="ve-documentos" id="vePosDocumentos"></div>
+
+      <div class="ve-acciones">
+        <button type="button" class="ve-btn borde" id="vePosMensaje"><i class="bi bi-chat-left"></i> Enviar mensaje</button>
+        <a class="ve-btn" id="vePosPerfil" href="/Explorar/Psicologos">Ver perfil</a>
+      </div>
+    </section>
+  </div>
+
+  <!-- 2. Enviar mensaje -->
+  <div class="ve-fondo" id="veMensaje" hidden>
+    <section class="ve-caja" role="dialog" aria-modal="true" aria-labelledby="veMensajeTitulo">
+      <button type="button" class="ve-cerrar" data-ve-cerrar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+      <h3 id="veMensajeTitulo">Enviar mensaje</h3>
+      <p class="ve-sub" id="veMensajePara"></p>
+
+      <p class="ve-cargando" id="veMensajeCargando">Revisando si puedes escribirle…</p>
+
+      <div id="veMensajeNo" hidden>
+        <div class="ve-aviso">
+          <i class="bi bi-info-circle"></i>
+          <span>Solo puedes escribirle a los psicólogos que se postularon a tus ofertas. Cuando se postule, aparecerá en tus chats.</span>
+        </div>
+        <div class="ve-acciones">
+          <button type="button" class="ve-btn borde" data-ve-cerrar>Cerrar</button>
+          <a href="/Empresa/Chats" class="ve-btn">Ir a Chats</a>
+        </div>
+      </div>
+
+      <form id="veMensajeForm" hidden>
+        <textarea id="veMensajeTexto" rows="4" maxlength="1000" placeholder="Escribe tu mensaje…" required></textarea>
+        <p class="ve-error" id="veMensajeError" role="alert"></p>
+        <div class="ve-acciones">
+          <button type="button" class="ve-btn borde" data-ve-cerrar>Cancelar</button>
+          <button type="submit" class="ve-btn" id="veMensajeEnviar">Enviar</button>
+        </div>
+      </form>
+
+      <div id="veMensajeOk" hidden>
+        <div class="ve-ok"><i class="bi bi-check-circle"></i><span>¡Mensaje enviado! Puedes seguir la conversación en Chats.</span></div>
+        <div class="ve-acciones">
+          <button type="button" class="ve-btn borde" data-ve-cerrar>Cerrar</button>
+          <a href="/Empresa/Chats" class="ve-btn">Ir a Chats</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- 3. Aceptar / Rechazar postulante -->
+  <div class="ve-fondo" id="veDecision" hidden>
+    <section class="ve-caja" role="dialog" aria-modal="true" aria-labelledby="veDecisionTitulo">
+      <button type="button" class="ve-cerrar" data-ve-cerrar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+      <h3 id="veDecisionTitulo">Aceptar postulante</h3>
+      <p class="ve-sub" id="veDecisionTexto"></p>
+      <label class="ve-campo">
+        Mensaje para el psicólogo (opcional)
+        <textarea id="veDecisionMensaje" rows="3" maxlength="1000"></textarea>
+        <small>Si lo escribes, se le envía por el chat.</small>
+      </label>
+      <p class="ve-error" id="veDecisionError" role="alert"></p>
+      <div class="ve-acciones">
+        <button type="button" class="ve-btn borde" data-ve-cerrar>Cancelar</button>
+        <button type="button" class="ve-btn" id="veDecisionConfirmar">Sí, aceptar</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- 4. Guardar perfil: confirmar y resultado -->
+  <div class="ve-fondo" id="veGuardar" hidden>
+    <section class="ve-caja chica" role="dialog" aria-modal="true" aria-labelledby="veGuardarTitulo">
+      <h3 id="veGuardarTitulo">¿Guardar los cambios?</h3>
+      <p class="ve-sub">Se actualizará la información de tu empresa.</p>
+      <div class="ve-acciones">
+        <button type="button" class="ve-btn borde" data-ve-cerrar>Cancelar</button>
+        <button type="button" class="ve-btn" id="veGuardarConfirmar">Sí, guardar</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="ve-fondo" id="veResultado" hidden>
+    <section class="ve-caja chica" role="dialog" aria-modal="true" aria-labelledby="veResultadoTitulo">
+      <div class="ve-resultado-icono" id="veResultadoIcono"><i class="bi bi-check-lg"></i></div>
+      <h3 id="veResultadoTitulo">Listo</h3>
+      <p class="ve-sub" id="veResultadoTexto"></p>
+      <div class="ve-acciones centro">
+        <button type="button" class="ve-btn" data-ve-cerrar>Entendido</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="ve-toast" id="veToast" hidden></div>
+</div>
+
+<script>
+  const raiz = document.getElementById("veRaiz");
+  const API = raiz?.dataset.api ?? "http://localhost:8001"; // cambio (túnel): "" = misma dirección de la página
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T | null;
+
+  // ---------------- utilidades ----------------
+  const abrir = (id: string) => {
+    const v = $(id);
+    if (!v) return;
+    v.hidden = false;
+    requestAnimationFrame(() => v.classList.add("visible"));
+  };
+  const cerrar = (v: HTMLElement) => {
+    v.classList.remove("visible");
+    v.hidden = true;
+  };
+  document.querySelectorAll<HTMLElement>(".ve-fondo").forEach((v) => {
+    v.addEventListener("click", (e) => {
+      if (e.target === v || (e.target as HTMLElement).closest("[data-ve-cerrar]")) cerrar(v);
+    });
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") document.querySelectorAll<HTMLElement>(".ve-fondo:not([hidden])").forEach(cerrar);
+  });
+
+  let tiempoToast = 0;
+  const avisar = (texto: string) => {
+    const t = $("veToast");
+    if (!t) return;
+    t.textContent = texto;
+    t.hidden = false;
+    clearTimeout(tiempoToast);
+    tiempoToast = window.setTimeout(() => (t.hidden = true), 2800);
+  };
+
+  const normal = (s: string) =>
+    s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/^(dra?\.?|ps\.?)\s+/i, "").trim().toLowerCase();
+
+  // Psicólogos reales (para enlazar el perfil) y postulados (para el chat)
+  type Ps = { id: string; nombre: string; calificacion: number | null; totalResenas: number };
+  type Post = { usuarioId: string; nombre: string };
+  let psicologos: Promise<Ps[]> | null = null;
+  let postulados: Promise<Post[]> | null = null;
+
+  const cargarPsicologos = () =>
+    (psicologos ??= fetch(`${API}/api/explorar/psicologos`)
+      .then((r) => (r.ok ? r.json() : { psicologos: [] }))
+      .then((d): Ps[] => d.psicologos ?? [])
+      .catch(() => []));
+  const cargarPostulados = () =>
+    (postulados ??= fetch(`${API}/api/chat/empresa/postulados`, { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : { postulados: [] }))
+      .then((d): Post[] => d.postulados ?? [])
+      .catch(() => []));
+
+  const buscarPostulado = async (nombre: string) => (await cargarPostulados()).find((p) => normal(p.nombre) === normal(nombre)) ?? null;
+
+  // Envía un mensaje por el chat real a un postulado
+  async function enviarPorChat(usuarioId: string, texto: string) {
+    const r1 = await fetch(`${API}/api/chat/empresa/postulados/${encodeURIComponent(usuarioId)}`, { method: "POST", credentials: "include" });
+    const d1 = await r1.json().catch(() => ({}));
+    if (!r1.ok || !d1.conversacionId) throw new Error(d1.error || d1.mensaje || "No se pudo abrir la conversación");
+    const r2 = await fetch(`${API}/api/chat/conversaciones/${encodeURIComponent(d1.conversacionId)}/mensajes`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ texto }),
+    });
+    if (!r2.ok) {
+      const d2 = await r2.json().catch(() => ({}));
+      throw new Error(d2.error || d2.mensaje || "No se pudo enviar el mensaje");
+    }
+  }
+
+  // Imagen con las iniciales (por si no hay foto)
+  const iniciales = (nombre: string) => {
+    const letras = normal(nombre).split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join("") || "P";
+    const color = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim() || "#9c6e37";
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><rect width="120" height="120" fill="${color}"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="46" font-weight="700" fill="#fff">${letras}</text></svg>`;
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  };
+
+  // ---------------- 1. Ver perfil: abre el de Explorar ----------------
+  let nombreActual = "";
+
+  async function verPerfil(tarjeta: HTMLElement) {
+    nombreActual = tarjeta.querySelector("h2")?.textContent?.trim() || "";
+    const real = (await cargarPsicologos()).find((p) => normal(p.nombre) === normal(nombreActual));
+    if (real) {
+      location.href = `/Explorar/${real.id}?volver=${location.pathname}`;
+    } else {
+      avisar(`${nombreActual || "Este psicólogo"} es de ejemplo: todavía no tiene perfil en Psynex.`);
+    }
+  }
+
+  // ---------------- 5. Ver postulación ----------------
+  type Doc = { id: string; nombre: string; archivo: string; mime: string; bytes: number };
+  type Postulacion = {
+    id: string; estado: string; fecha: string;
+    oferta: { titulo: string };
+    psicologo: { usuarioId: string; perfilId: string | null; nombre: string; email: string; tieneFoto: boolean; fotoVersion: string };
+    respuestas: { telefono: string; ciudad: string; especialidad: string; experienciaAnos: number | null; perfilProfesional: string; cartaPresentacion: string };
+    documentos: Doc[];
+  };
+  let postulaciones: Promise<Postulacion[]> | null = null;
+  const cargarPostulaciones = () =>
+    (postulaciones ??= fetch(`${API}/api/empresa/postulaciones`, { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : { postulaciones: [] }))
+      .then((d): Postulacion[] => d.postulaciones ?? [])
+      .catch(() => []));
+
+  const fecha = (f: string) => {
+    const d = new Date(f);
+    return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" });
+  };
+  const peso = (b: number) => (b > 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
+
+  function mostrarPostulacion(p: Postulacion) {
+    nombreActual = p.psicologo.nombre;
+    const img = $<HTMLImageElement>("vePosFoto");
+    if (img) {
+      img.onerror = () => {
+        img.onerror = null;
+        img.src = iniciales(nombreActual);
+      };
+      img.src = p.psicologo.tieneFoto && p.psicologo.perfilId
+        ? `${API}/api/explorar/psicologos/${p.psicologo.perfilId}/foto?v=${p.psicologo.fotoVersion}`
+        : iniciales(nombreActual);
+    }
+    const poner = (id: string, t: string) => { const e = $(id); if (e) e.textContent = t; };
+    poner("vePosNombre", p.psicologo.nombre);
+    poner("vePosEstado", p.estado);
+    poner("vePosOferta", `Se postuló a "${p.oferta.titulo}"${p.fecha ? ` el ${fecha(p.fecha)}` : ""}`);
+
+    // Respuestas
+    const r = p.respuestas;
+    const filas: [string, string][] = [
+      ["Correo", p.psicologo.email],
+      ["Teléfono", r.telefono],
+      ["Ciudad", r.ciudad],
+      ["Especialidad", r.especialidad],
+      ["Años de experiencia", r.experienciaAnos === null ? "" : String(r.experienciaAnos)],
+      ["Perfil profesional", r.perfilProfesional],
+      ["Carta de presentación", r.cartaPresentacion],
+    ];
+    const dl = $("vePosRespuestas");
+    if (dl) {
+      dl.replaceChildren();
+      filas.forEach(([k, v]) => {
+        const dt = document.createElement("dt");
+        dt.textContent = k;
+        const dd = document.createElement("dd");
+        dd.textContent = v || "—";
+        if (k === "Perfil profesional" || k === "Carta de presentación") dd.className = "largo";
+        dl.append(dt, dd);
+      });
+    }
+
+    // Documentos (se abren en otra pestaña)
+    const docs = $("vePosDocumentos");
+    if (docs) {
+      docs.replaceChildren();
+      if (!p.documentos.length) {
+        const v = document.createElement("p");
+        v.className = "ve-sub";
+        v.textContent = "No adjuntó documentos.";
+        docs.append(v);
+      }
+      p.documentos.forEach((d) => {
+        const a = document.createElement("a");
+        a.className = "ve-doc";
+        a.href = `${API}/api/empresa/postulaciones/documentos/${encodeURIComponent(d.id)}`;
+        a.target = "_blank";
+        a.rel = "noopener";
+        const icono = document.createElement("i");
+        icono.className = d.mime.includes("pdf") ? "bi bi-file-earmark-pdf" : "bi bi-file-earmark-image";
+        const info = document.createElement("span");
+        const titulo = document.createElement("strong");
+        titulo.textContent = d.nombre;
+        const det = document.createElement("small");
+        det.textContent = `${d.archivo || "archivo"} · ${peso(d.bytes)}`;
+        info.append(titulo, det);
+        const abrirTxt = document.createElement("em");
+        abrirTxt.textContent = "Abrir";
+        a.append(icono, info, abrirTxt);
+        docs.append(a);
+      });
+    }
+
+    const perfil = $<HTMLAnchorElement>("vePosPerfil");
+    if (perfil) {
+      perfil.hidden = !p.psicologo.perfilId;
+      perfil.href = p.psicologo.perfilId ? `/Explorar/${p.psicologo.perfilId}?volver=${location.pathname}` : "#";
+    }
+    abrir("vePostulacion");
+  }
+
+  async function verPostulacion(id: string | null, nombre: string) {
+    const lista = await cargarPostulaciones();
+    const p = id ? lista.find((x) => x.id === id) : lista.find((x) => normal(x.psicologo.nombre) === normal(nombre));
+    if (p) mostrarPostulacion(p);
+    else avisar(`La postulación de ${nombre || "este psicólogo"} es de ejemplo: no tiene respuestas ni documentos.`);
+  }
+
+  $("vePosMensaje")?.addEventListener("click", () => {
+    const v = $("vePostulacion");
+    if (v) cerrar(v);
+    abrirMensaje(nombreActual);
+  });
+
+  // ---------------- 2. Enviar mensaje ----------------
+  let postuladoActual: Post | null = null;
+
+  async function abrirMensaje(nombre: string) {
+    nombreActual = nombre;
+    const para = $("veMensajePara");
+    if (para) para.textContent = `Para: ${nombre}`;
+    ["veMensajeNo", "veMensajeForm", "veMensajeOk"].forEach((id) => { const e = $(id); if (e) e.hidden = true; });
+    const cargando = $("veMensajeCargando");
+    if (cargando) cargando.hidden = false;
+    const error = $("veMensajeError");
+    if (error) error.textContent = "";
+    abrir("veMensaje");
+
+    postuladoActual = await buscarPostulado(nombre);
+    if (cargando) cargando.hidden = true;
+    const destino = $(postuladoActual ? "veMensajeForm" : "veMensajeNo");
+    if (destino) destino.hidden = false;
+    if (postuladoActual) setTimeout(() => $<HTMLTextAreaElement>("veMensajeTexto")?.focus(), 50);
+  }
+
+  $("veMensajeForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const campo = $<HTMLTextAreaElement>("veMensajeTexto");
+    const boton = $<HTMLButtonElement>("veMensajeEnviar");
+    const error = $("veMensajeError");
+    const texto = campo?.value.trim() || "";
+    if (!texto || !postuladoActual) return;
+    if (boton) { boton.disabled = true; boton.textContent = "Enviando…"; }
+    try {
+      await enviarPorChat(postuladoActual.usuarioId, texto);
+      if (campo) campo.value = "";
+      const form = $("veMensajeForm");
+      if (form) form.hidden = true;
+      const ok = $("veMensajeOk");
+      if (ok) ok.hidden = false;
+    } catch (err) {
+      if (error) error.textContent = (err as Error).message;
+    } finally {
+      if (boton) { boton.disabled = false; boton.textContent = "Enviar"; }
+    }
+  });
+
+
+  // ---------------- 3. Aceptar / Rechazar ----------------
+  let filaActual: HTMLTableRowElement | null = null;
+  let aceptar = true;
+
+  function abrirDecision(boton: HTMLElement, esAceptar: boolean) {
+    filaActual = boton.closest("tr");
+    aceptar = esAceptar;
+    nombreActual = filaActual?.querySelector(".user-profile-cell span")?.textContent?.trim() || "este psicólogo";
+    const oferta = (boton.closest(".data-card")?.querySelector("h2")?.textContent || "").replace(/^Postulantes\s*-\s*/i, "").trim();
+    const titulo = $("veDecisionTitulo");
+    if (titulo) titulo.textContent = esAceptar ? "Aceptar postulante" : "Rechazar postulante";
+    const texto = $("veDecisionTexto");
+    if (texto) texto.textContent = `¿Seguro que quieres ${esAceptar ? "aceptar" : "rechazar"} a ${nombreActual}${oferta ? ` para "${oferta}"` : ""}?`;
+    const msj = $<HTMLTextAreaElement>("veDecisionMensaje");
+    if (msj) {
+      msj.value = "";
+      msj.placeholder = esAceptar
+        ? `Ej: ¡Hola ${nombreActual.split(" ")[0]}! Nos gustó tu perfil, queremos agendar una entrevista.`
+        : `Ej: Gracias por postularte, ${nombreActual.split(" ")[0]}. En esta ocasión seguimos con otro perfil.`;
+    }
+    const conf = $("veDecisionConfirmar");
+    if (conf) {
+      conf.textContent = esAceptar ? "Sí, aceptar" : "Sí, rechazar";
+      conf.classList.toggle("peligro", !esAceptar);
+    }
+    const error = $("veDecisionError");
+    if (error) error.textContent = "";
+    abrir("veDecision");
+  }
+
+  $("veDecisionConfirmar")?.addEventListener("click", async () => {
+    const boton = $<HTMLButtonElement>("veDecisionConfirmar");
+    const error = $("veDecisionError");
+    const mensaje = $<HTMLTextAreaElement>("veDecisionMensaje")?.value.trim() || "";
+    if (boton) boton.disabled = true;
+
+    let enviado = false;
+    if (mensaje) {
+      const p = await buscarPostulado(nombreActual);
+      if (p) {
+        try {
+          await enviarPorChat(p.usuarioId, mensaje);
+          enviado = true;
+        } catch (err) {
+          if (error) error.textContent = (err as Error).message;
+          if (boton) boton.disabled = false;
+          return;
+        }
+      }
+    }
+
+    // La fila muestra el nuevo estado
+    const grupo = filaActual?.querySelector(".action-buttons-group");
+    if (grupo) {
+      const chip = document.createElement("span");
+      chip.className = `ve-estado ${aceptar ? "ok" : "mal"}`;
+      chip.textContent = aceptar ? "Aceptado" : "Rechazado";
+      grupo.replaceChildren(chip);
+    }
+    if (boton) boton.disabled = false;
+    const v = $("veDecision");
+    if (v) cerrar(v);
+    avisar(
+      `${nombreActual} ${aceptar ? "aceptado" : "rechazado"}` +
+        (enviado ? " · mensaje enviado por el chat." : mensaje ? " · no se envió el mensaje (no está en tus postulados)." : ".")
+    );
+  });
+
+  // ---------------- 4. Guardar perfil ----------------
+  const formPerfil = document.getElementById("perfil-form") as HTMLFormElement | null;
+  let confirmado = false;
+  let esperandoResultado = false;
+
+  // Antes de guardar, pregunta (se intercepta el envío del formulario)
+  formPerfil?.addEventListener(
+    "submit",
+    (e) => {
+      if (confirmado) {
+        confirmado = false;
+        esperandoResultado = true;
+        return; // sigue el guardado normal de la vista
+      }
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (!formPerfil.reportValidity()) return;
+      abrir("veGuardar");
+    },
+    true,
+  );
+
+  $("veGuardarConfirmar")?.addEventListener("click", () => {
+    const v = $("veGuardar");
+    if (v) cerrar(v);
+    confirmado = true;
+    formPerfil?.requestSubmit();
+  });
+
+  // La vista avisa el resultado con este evento (desde mostrarExito / mostrarError)
+  window.addEventListener("empresa:resultado", (e) => {
+    if (!esperandoResultado) return;
+    esperandoResultado = false;
+    const { ok, mensaje } = (e as CustomEvent<{ ok: boolean; mensaje: string }>).detail;
+    const titulo = $("veResultadoTitulo");
+    if (titulo) titulo.textContent = ok ? "¡Cambios guardados!" : "No se pudo guardar";
+    const texto = $("veResultadoTexto");
+    if (texto) texto.textContent = mensaje;
+    const icono = $("veResultadoIcono");
+    if (icono) {
+      icono.classList.toggle("mal", !ok);
+      icono.innerHTML = ok ? '<i class="bi bi-check-lg"></i>' : '<i class="bi bi-exclamation-lg"></i>';
+    }
+    abrir("veResultado");
+  });
+
+  // ---------------- Escuchar los botones que ya tenían las vistas ----------------
+  document.addEventListener("click", (e) => {
+    const el = e.target as HTMLElement;
+
+    const botonPerfil = el.closest<HTMLElement>(".view-profile-btn");
+    if (botonPerfil && botonPerfil.tagName === "BUTTON") {
+      const tarjeta = botonPerfil.closest<HTMLElement>(".profile-card");
+      if (tarjeta) {
+        e.preventDefault();
+        verPerfil(tarjeta);
+      }
+      return;
+    }
+
+    const botonPostulacion = el.closest<HTMLElement>("[data-ver-postulacion]");
+    if (botonPostulacion) {
+      e.preventDefault();
+      verPostulacion(botonPostulacion.dataset.verPostulacion || null, "");
+      return;
+    }
+
+    // En Ofertas: tocar el nombre del postulante abre su postulación
+    const celda = el.closest<HTMLElement>(".user-profile-cell");
+    if (celda) {
+      verPostulacion(null, celda.querySelector("span")?.textContent?.trim() || "");
+      return;
+    }
+
+    const mensaje = el.closest<HTMLElement>('.action-icon-btn[title="Enviar mensaje"]');
+    if (mensaje) {
+      const tarjeta = mensaje.closest<HTMLElement>(".profile-card");
+      e.preventDefault();
+      abrirMensaje(tarjeta?.querySelector("h2")?.textContent?.trim() || "Psicólogo");
+      return;
+    }
+
+    const acepta = el.closest<HTMLElement>(".btn-accept");
+    if (acepta && acepta.closest("tr")?.querySelector(".user-profile-cell")) {
+      e.preventDefault();
+      abrirDecision(acepta, true);
+      return;
+    }
+
+    const rechaza = el.closest<HTMLElement>(".btn-reject");
+    if (rechaza && rechaza.closest("tr")?.querySelector(".user-profile-cell")) {
+      e.preventDefault();
+      abrirDecision(rechaza, false);
+    }
+  });
+</script>
+
+<style is:global>
+  /* cambio: ventanas emergentes con los colores del tema
+     (global porque JavaScript crea algunos elementos; todo usa el prefijo ve-) */
+  .ve-fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 4000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(20, 16, 12, 0.45);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .ve-fondo[hidden] {
+    display: none;
+  }
+
+  .ve-fondo.visible {
+    opacity: 1;
+  }
+
+  .ve-caja {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    max-height: calc(100vh - 36px);
+    overflow-y: auto;
+    padding: 24px;
+    border-radius: 20px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--bs-body-font-family);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+    transform: translateY(12px) scale(0.98);
+    transition: transform 0.25s ease;
+  }
+
+  .ve-fondo.visible .ve-caja {
+    transform: none;
+  }
+
+  .ve-caja.chica {
+    max-width: 380px;
+    text-align: center;
+  }
+
+  .ve-caja h3 {
+    margin: 0;
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 20px;
+    font-weight: 500;
+  }
+
+  .ve-sub {
+    margin: 6px 0 0;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .ve-cerrar {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  /* Perfil */
+  .ve-perfil-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-right: 30px;
+  }
+
+  .ve-perfil-top img {
+    width: 84px;
+    height: 84px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center 25%;
+    background: var(--primary-soft);
+    border: 3px solid var(--primary-soft);
+  }
+
+  .ve-perfil-top p {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+    font-size: 12.5px;
+  }
+
+  .ve-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .ve-datos {
+    margin: 18px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ve-datos li {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg);
+    font-size: 12px;
+  }
+
+  .ve-precio {
+    margin: 16px 0 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .ve-caja.ancha {
+    max-width: 620px;
+  }
+
+  .ve-subtitulo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 20px 0 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+  }
+
+  .ve-subtitulo i {
+    color: var(--primary);
+  }
+
+  .ve-respuestas {
+    display: grid;
+    grid-template-columns: 170px minmax(0, 1fr);
+    gap: 0;
+    margin: 0;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    font-size: 13px;
+  }
+
+  .ve-respuestas dt,
+  .ve-respuestas dd {
+    margin: 0;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ve-respuestas dt {
+    background: var(--bg);
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .ve-respuestas dd.largo {
+    white-space: pre-wrap;
+    line-height: 1.5;
+  }
+
+  .ve-respuestas dt:nth-last-of-type(1),
+  .ve-respuestas dd:last-child {
+    border-bottom: 0;
+  }
+
+  .ve-documentos {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ve-doc {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .ve-doc:hover {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+
+  .ve-doc > i {
+    font-size: 22px;
+    color: var(--primary);
+  }
+
+  .ve-doc span {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ve-doc strong {
+    font-size: 13px;
+  }
+
+  .ve-doc small {
+    color: var(--text-muted);
+    font-size: 11.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ve-doc em {
+    font-style: normal;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .user-profile-cell {
+    cursor: pointer;
+  }
+
+  @media (max-width: 520px) {
+    .ve-respuestas {
+      grid-template-columns: 1fr;
+    }
+
+    .ve-respuestas dt {
+      border-bottom: 0;
+      padding-bottom: 2px;
+    }
+  }
+
+  /* Botones */
+  .ve-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .ve-acciones.centro {
+    justify-content: center;
+  }
+
+  .ve-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 40px;
+    padding: 0 18px;
+    border: 1px solid var(--primary);
+    border-radius: 999px;
+    background: var(--primary);
+    color: var(--on-primary);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .ve-btn.borde {
+    background: transparent;
+    color: var(--primary);
+  }
+
+  .ve-btn.peligro {
+    border-color: var(--danger-fg);
+    background: var(--danger-fg);
+  }
+
+  .ve-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  /* Formularios */
+  .ve-caja textarea {
+    font-weight: 400;
+    width: 100%;
+    margin-top: 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    resize: vertical;
+    outline: none;
+  }
+
+  .ve-caja textarea:focus {
+    border-color: var(--primary);
+  }
+
+  .ve-campo {
+    display: block;
+    margin-top: 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+
+  .ve-campo textarea {
+    margin-top: 6px;
+  }
+
+  .ve-campo small {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .ve-cargando {
+    margin: 16px 0 0;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .ve-aviso,
+  .ve-ok {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .ve-aviso {
+    background: var(--primary-soft);
+  }
+
+  .ve-aviso i {
+    color: var(--primary);
+  }
+
+  .ve-ok {
+    background: var(--success-bg);
+    color: var(--success-fg);
+  }
+
+  .ve-error {
+    min-height: 0;
+    margin: 8px 0 0;
+    color: var(--danger-fg);
+    font-size: 12.5px;
+  }
+
+  .ve-error:empty {
+    display: none;
+  }
+
+  /* Resultado */
+  .ve-resultado-icono {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 12px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--success-bg);
+    color: var(--success-fg);
+    font-size: 26px;
+    font-weight: 700;
+  }
+
+  .ve-resultado-icono.mal {
+    background: var(--danger-bg);
+    color: var(--danger-fg);
+  }
+
+  /* Estado en la tabla de postulantes */
+  .ve-estado {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .ve-estado.ok {
+    background: var(--success-bg);
+    color: var(--success-fg);
+  }
+
+  .ve-estado.mal {
+    background: var(--danger-bg);
+    color: var(--danger-fg);
+  }
+
+  .ve-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 4100;
+    transform: translateX(-50%);
+    max-width: calc(100vw - 32px);
+    padding: 11px 18px;
+    border-radius: 999px;
+    background: var(--text);
+    color: var(--surface);
+    font-size: 13px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+
+  .ve-toast[hidden] {
+    display: none;
+  }
+</style>

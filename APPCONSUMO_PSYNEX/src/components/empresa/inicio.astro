@@ -148,7 +148,7 @@ console.log("hola mundo");
 <!-- Script para consumo de Backend Deno.js y manejo del DOM -->
  <script>
   // Cambia según el puerto donde esté corriendo tu backend Deno
-  const API_URL = "http://localhost:8001/api";
+  const API_URL = `${(window as any).PSYNEX_API ?? "http://localhost:8001"}/api`; // cambio (túnel)
 
 //   const sesionRecuperada = JSON.parse(localStorage.getItem("sesionPrueba"));
 // console.log("Objeto de sesión completo:", sesionRecuperada.usuarioId);

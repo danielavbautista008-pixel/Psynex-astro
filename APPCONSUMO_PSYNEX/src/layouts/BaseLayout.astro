@@ -5,6 +5,7 @@ import "../styles/colores-globales.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import ThemePicker from "../components/ThemePicker.astro";
+import { API_URL } from "../lib/api";
 
 interface Props {
   title?: string;
@@ -31,6 +32,10 @@ const { title = "Psynex" } = Astro.props;
     />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <!-- cambio (túnel): dirección del backend para los scripts "is:inline" -->
+    <script is:inline define:vars={{ apiPsynex: API_URL }}>
+      window.PSYNEX_API = apiPsynex;
+    </script>
     <script is:inline>
       // Aplica el tema guardado antes de pintar (evita el parpadeo)
       try {

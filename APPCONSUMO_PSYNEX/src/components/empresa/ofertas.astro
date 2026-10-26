@@ -1,10 +1,12 @@
 ---
 import MenuE from "./menuE.astro";
+import VentanasEmpresa from "./VentanasEmpresa.astro"; // cambio: ventanas emergentes
 import "./ofertas.css";
 ---
 
 <div class="landing-container">
   <MenuE />
+  <VentanasEmpresa /> <!-- cambio: ventanas emergentes -->
   <main class="Bienvenida-Em">
     
     <!-- Encabezado igual a Inicio -->
@@ -165,7 +167,8 @@ import "./ofertas.css";
             </table>
           </div>
           <div class="card-footer-link">
-            <a href="/Empresa/Gestion/Postulantes" class="view-more-btn">Ver todos los postulantes &rarr;</a>
+            <!-- cambio: antes iba a /Empresa/Gestion/Postulantes (no existía) -->
+            <a href="/Empresa/Postulaciones" class="view-more-btn">Ver todos los postulantes &rarr;</a>
           </div>
         </div>
 

@@ -7,8 +7,17 @@
 // así el backend sabe qué usuario está pidiendo los datos.
 // ---------------------------------------------------------------------
 
-export const API_URL: string =
-  import.meta.env.PUBLIC_API_URL ?? "http://localhost:8001";
+// cambio: MODO TÚNEL (npm run dev:tunel). En ese modo API_URL queda vacío
+// ("") y el navegador llama al backend por la MISMA dirección de la página
+// (/api/...): Astro lo reenvía a Deno (ver astro.config.mjs). Así todo
+// funciona con un solo enlace de Cloudflare, desde un celular u otro
+// computador. Con "npm run dev" normal no cambia nada.
+export const API_URL: string = import.meta.env.MODE === "tunel"
+  ? ""
+  : (import.meta.env.PUBLIC_API_URL ?? "http://localhost:8001");
+
+// Desde el SERVIDOR de Astro siempre se llama directo a Deno
+export const API_SERVIDOR = API_URL || "http://localhost:8001";
 
 // Pide datos al backend. Devuelve el JSON, o null si algo falla
 // (backend apagado, sesión vencida, error 500...). Así la página nunca
@@ -18,7 +27,7 @@ export async function apiGet<T = any>(
   ruta: string,
 ): Promise<T | null> {
   try {
-    const res = await fetch(`${API_URL}${ruta}`, {
+    const res = await fetch(`${import.meta.env.SSR ? API_SERVIDOR : API_URL}${ruta}`, {
       headers: cookie ? { cookie } : {},
     });
     if (!res.ok) {

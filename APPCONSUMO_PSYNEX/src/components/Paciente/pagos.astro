@@ -1,25 +1,47 @@
 ---
 // =====================================================================
 // Pagos del paciente: resumen e historial con recibo.
-// DATOS DE PRUEBA: los pagos son de ejemplo (todavía sin backend).
+// cambio: ahora son los pagos REALES (GET /api/paciente/pagos):
+// citas pagadas con Wompi o con paquete, y paquetes comprados.
 // =====================================================================
 import Menu from "./menuPac.astro";
-import { pesos } from "../../lib/api";
+import { apiGet, pesos } from "../../lib/api";
 import "./pagos.css";
 
-const pagos = [
-  { id: "PG-1042", fecha: "21 oct 2026", concepto: "Sesión individual", psicologo: "Andrea Gómez Ruiz", metodo: "Tarjeta •••• 4242", valor: 150000, estado: "Aprobado" },
-  { id: "PG-1031", fecha: "12 oct 2026", concepto: "Sesión individual", psicologo: "Camila Barrera", metodo: "Nequi", valor: 150000, estado: "Aprobado" },
-  { id: "PG-1027", fecha: "3 oct 2026", concepto: "Terapia de pareja", psicologo: "Víctor Santiago", metodo: "Beneficio empresa", valor: 0, estado: "Cubierto" },
-  { id: "PG-1012", fecha: "25 sep 2026", concepto: "Sesión individual", psicologo: "Andrea Gómez Ruiz", metodo: "PSE", valor: 150000, estado: "Aprobado" },
-  { id: "PG-1009", fecha: "10 sep 2026", concepto: "Sesión individual", psicologo: "Víctor Santiago", metodo: "Tarjeta •••• 1111", valor: 150000, estado: "Rechazado" },
-];
+interface PagoApi {
+  id: string;
+  tipo: "cita" | "paquete";
+  concepto: string;
+  detalle: string;
+  metodo: string;
+  valor: number;
+  estado: "Aprobado" | "Rechazado" | "Por devolver" | "Devuelto"; // cambio: citas canceladas ya pagadas
+  fecha: string; // "AAAA-MM-DD HH:MM"
+  referencia: string;
+}
 
-const totalPagado = pagos.filter((p) => p.estado === "Aprobado").reduce((s, p) => s + p.valor, 0);
-const sesionesPagadas = pagos.filter((p) => p.estado === "Aprobado").length;
-const cubiertas = pagos.filter((p) => p.estado === "Cubierto").length;
+const datos = await apiGet<{ pagos: PagoApi[] }>(Astro.request.headers.get("cookie"), "/api/paciente/pagos");
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+const textoFecha = (t: string) => (t ? `${+t.slice(8, 10)} ${MESES[+t.slice(5, 7) - 1]} ${t.slice(0, 4)}` : "—");
 
-const clase: Record<string, string> = { Aprobado: "ok", Cubierto: "", Rechazado: "mal", Pendiente: "espera" };
+const pagos = (datos?.pagos ?? []).map((p) => ({
+  ...p,
+  fecha: textoFecha(p.fecha),
+  psicologo: p.detalle,
+  // En el recibo se muestra la referencia de Wompi si existe
+  ref: p.referencia || p.id.slice(0, 8).toUpperCase(),
+  // Las citas pagadas con paquete ya se cobraron al comprar el paquete
+  // cambio: tampoco cuentan las que cubrió la empresa
+  incluida: p.metodo === "Sesión de mi paquete" || p.metodo === "Beneficio de mi empresa",
+  cuenta: p.estado === "Aprobado" && !(p.tipo === "cita" && (p.metodo === "Sesión de mi paquete" || p.metodo === "Beneficio de mi empresa")),
+}));
+
+const totalPagado = pagos.filter((p) => p.cuenta).reduce((s, p) => s + p.valor, 0);
+const sesionesPagadas = pagos.filter((p) => p.tipo === "cita" && p.estado === "Aprobado").length;
+const paquetesComprados = pagos.filter((p) => p.tipo === "paquete" && p.estado === "Aprobado").length;
+const cubiertasEmpresa = pagos.filter((p) => p.metodo === "Beneficio de mi empresa" && p.estado === "Aprobado").length;
+
+const clase: Record<string, string> = { Aprobado: "ok", Rechazado: "mal", Pendiente: "espera", "Por devolver": "espera", Devuelto: "neutro" };
 ---
 
 <Menu />
@@ -45,8 +67,8 @@ const clase: Record<string, string> = { Aprobado: "ok", Cubierto: "", Rechazado:
         <strong>{sesionesPagadas}</strong>
       </article>
       <article class="pac-card">
-        <span class="pac-muted">Cubiertas por tu empresa</span>
-        <strong>{cubiertas}</strong>
+        <span class="pac-muted">{cubiertasEmpresa ? "Cubiertas por tu empresa" : "Paquetes comprados"}</span>
+        <strong>{cubiertasEmpresa || paquetesComprados}</strong>
       </article>
     </section>
 
@@ -69,6 +91,9 @@ const clase: Record<string, string> = { Aprobado: "ok", Cubierto: "", Rechazado:
             </tr>
           </thead>
           <tbody>
+            {pagos.length === 0 && (
+              <tr><td colspan="6" class="pac-muted">Todavía no tienes pagos. Cuando pagues una cita o un paquete, aparecerá aquí.</td></tr>
+            )}
             {pagos.map((p) => (
               <tr>
                 <td>{p.fecha}</td>
@@ -78,18 +103,18 @@ const clase: Record<string, string> = { Aprobado: "ok", Cubierto: "", Rechazado:
                 </td>
                 <td>{p.metodo}</td>
                 <td><span class={`pac-chip ${clase[p.estado] ?? ""}`}>{p.estado}</span></td>
-                <td class="der">{p.valor ? pesos(p.valor) : "—"}</td>
+                <td class="der">{p.metodo === "Beneficio de mi empresa" ? "Cubierta" : p.metodo === "Sesión de mi paquete" ? "Incluida" : pesos(p.valor)}</td>
                 <td class="der">
                   {p.estado !== "Rechazado" && (
                     <button
                       type="button"
                       class="pac-btn pequeno borde"
-                      data-recibo={p.id}
+                      data-recibo={p.ref}
                       data-fecha={p.fecha}
                       data-concepto={p.concepto}
                       data-psicologo={p.psicologo}
                       data-metodo={p.metodo}
-                      data-valor={p.valor ? pesos(p.valor) : "Cubierto por tu empresa"}
+                      data-valor={p.metodo === "Beneficio de mi empresa" ? "Cubierta por tu empresa" : p.metodo === "Sesión de mi paquete" ? "Incluida en tu paquete" : pesos(p.valor)}
                     >
                       Recibo
                     </button>
@@ -102,7 +127,9 @@ const clase: Record<string, string> = { Aprobado: "ok", Cubierto: "", Rechazado:
       </div>
     </section>
 
-    <span class="pac-prueba"><i class="bi bi-info-circle"></i> Pagos de prueba · los reales llegarán con la pasarela de pago</span>
+    {datos === null && (
+      <span class="pac-prueba"><i class="bi bi-wifi-off"></i> No pudimos cargar tus pagos. Revisa que el servidor esté encendido.</span>
+    )}
   </div>
 </main>
 
@@ -114,7 +141,7 @@ const clase: Record<string, string> = { Aprobado: "ok", Cubierto: "", Rechazado:
       <div><dt>Referencia</dt><dd id="rId">—</dd></div>
       <div><dt>Fecha</dt><dd id="rFecha">—</dd></div>
       <div><dt>Concepto</dt><dd id="rConcepto">—</dd></div>
-      <div><dt>Psicólogo</dt><dd id="rPsicologo">—</dd></div>
+      <div><dt>Detalle</dt><dd id="rPsicologo">—</dd></div>
       <div><dt>Método</dt><dd id="rMetodo">—</dd></div>
       <div class="total"><dt>Total</dt><dd id="rValor">—</dd></div>
     </dl>

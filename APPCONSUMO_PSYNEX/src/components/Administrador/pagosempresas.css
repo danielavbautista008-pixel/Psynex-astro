@@ -112,3 +112,53 @@
 }
 
 .pe-tabla .bnf-chip { white-space: nowrap; }
+
+/* cambio: en celular las tablas de "Pagos de empresas", "Pagos de pacientes"
+   y "Reclamos" se ven como tarjetas, una debajo de otra (antes se cortaban
+   y había que deslizar de lado para ver el estado y los botones) */
+@media (max-width: 640px) {
+  .pe-tabla thead {
+    display: none;
+  }
+
+  .pe-tabla,
+  .pe-tabla tbody,
+  .pe-tabla tr,
+  .pe-tabla td {
+    display: block;
+    width: 100%;
+  }
+
+  .pe-tabla tr {
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pe-tabla tr:last-child {
+    border-bottom: 0;
+  }
+
+  .pe-tabla td {
+    padding: 3px 0;
+    border: 0;
+    white-space: normal;
+    max-width: none !important;
+  }
+
+  .pe-tabla td:nth-child(n) {
+    white-space: normal;
+  }
+
+  .pe-tabla td:first-child {
+    margin-bottom: 4px;
+  }
+
+  .pe-tabla td:last-child:not(:empty) {
+    margin-top: 8px;
+  }
+
+  .pe-tabla .pe-acciones {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}

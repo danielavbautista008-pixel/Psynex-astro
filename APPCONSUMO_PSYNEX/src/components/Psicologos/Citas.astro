@@ -13,7 +13,15 @@ import {
 const nombre = Astro.locals.usuario?.NombreCompleto ?? "Psicólogo";
 
 const cookie = Astro.request.headers.get("cookie");
-const respuesta = await apiGet(cookie, "/api/psicologo/citas?porPagina=50");
+const [respuesta, respPerfil] = await Promise.all([
+  apiGet(cookie, "/api/psicologo/citas?porPagina=50"),
+  apiGet(cookie, "/api/psicologo/perfil"), // cambio: dirección del consultorio (citas presenciales)
+]);
+const direccionPerfil: string = respPerfil?.perfil?.Direccion ?? "";
+
+// cambio: enlace de Google Maps (sin llave) para una dirección
+const mapaDe = (d: string) =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(/colombia/i.test(d) ? d : `${d}, Colombia`)}`;
 const citas: any[] = respuesta?.citas ?? [];
 
 const ahora = new Date();
@@ -28,7 +36,8 @@ const salaDe = (c: any) => {
   return {
     href: `/Sala/${encodeURIComponent(c.CitaId)}`,
     abierta: ahora.getTime() >= abre,
-    abreA: hora(new Date(abre)),
+    // cambio: con a. m. / p. m. ("7:50 a. m.")
+    abreA: new Date(abre).toLocaleTimeString("es-CO", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "America/Bogota" }),
   };
 };
 
@@ -56,6 +65,9 @@ const aTarjeta = (c: any) => ({
   // Sala de videollamada: citas virtuales confirmadas, desde 10 min antes
   // hasta 30 min después de terminar
   sala: salaDe(c),
+  // cambio: lugar de la cita presencial y su enlace a Google Maps
+  lugar: String(c.Modalidad).toLowerCase() === "presencial" ? String(c.Direccion ?? "").trim() : "",
+  mapa: String(c.Modalidad).toLowerCase() === "presencial" && String(c.Direccion ?? "").trim() ? mapaDe(String(c.Direccion)) : "",
 });
 
 const porFecha = (a: any, b: any) =>
@@ -272,6 +284,7 @@ const citasAnteriores = citas
               <span>
                 {cita.modalidad}
               </span>
+              {cita.lugar && <span class="cita-lugar"><i class="bi bi-geo-alt"></i> {cita.lugar}</span>}
             </div>
 
           </div>
@@ -309,6 +322,12 @@ const citasAnteriores = citas
 
 
           <div class="card-links">
+            {/* cambio: cita presencial -> abrir el lugar en Google Maps */}
+            {cita.mapa && (
+              <a href={cita.mapa} target="_blank" rel="noopener" class="session-link">
+                <i class="bi bi-geo-alt" aria-hidden="true"></i> Ver mapa
+              </a>
+            )}
             {cita.sala && (
               <a
                 href={cita.sala.href}
@@ -386,6 +405,7 @@ const citasAnteriores = citas
               <span>
                 {cita.modalidad}
               </span>
+              {cita.lugar && <span class="cita-lugar"><i class="bi bi-geo-alt"></i> {cita.lugar}</span>}
             </div>
 
           </div>
@@ -416,6 +436,12 @@ const citasAnteriores = citas
 
 
           <div class="card-links">
+            {/* cambio: cita presencial -> abrir el lugar en Google Maps */}
+            {cita.mapa && (
+              <a href={cita.mapa} target="_blank" rel="noopener" class="session-link">
+                <i class="bi bi-geo-alt" aria-hidden="true"></i> Ver mapa
+              </a>
+            )}
             {cita.sala && (
               <a
                 href={cita.sala.href}
@@ -447,7 +473,7 @@ const citasAnteriores = citas
 </main>
 
 
-<Aceptarcita />
+<Aceptarcita direccionPerfil={direccionPerfil} />
 
 <script>
   import { API_URL } from "../../lib/api";

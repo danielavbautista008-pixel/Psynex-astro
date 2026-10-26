@@ -146,59 +146,6 @@ nav {
 
 
 /* -------------------------------------------------------------------------
-   5. RESPONSIVE — pasa a barra horizontal compacta en pantallas angostas,
-      mismo criterio que navbar.css: prioriza que quepa, no la densidad
-      de texto.
-   ------------------------------------------------------------------------- */
-@media (max-width: 900px) {
-  .sidebar-vidrio {
-    position: static;
-    width: auto;
-    margin: 10px;
-    border-radius: 18px;
-
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    padding: 6px 10px;
-  }
-
-  .marca {
-    border-bottom: none;
-    padding: 4px 8px;
-    margin-bottom: 0;
-  }
-
-  nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    flex: none;
-  }
-
-  .item span {
-    display: none;
-  }
-
-  .item {
-    padding: 8px;
-  }
-
-  .item:hover {
-    transform: none;
-  }
-
-  .salir {
-    margin-top: 0;
-    border-top: none;
-    padding: 8px;
-  }
-
-  .salir span {
-    display: none;
-  }
-}
-
-/* -------------------------------------------------------------------------
    6. SIN ÍCONOS Y SIN BARRA DE DESPLAZAMIENTO
       Las opciones se reparten en el alto del panel (con su espacio de
       siempre) y, si la pantalla es muy baja, se acercan un poco en vez de
@@ -240,14 +187,97 @@ nav {
   }
 }
 
+/* -------------------------------------------------------------------------
+   cambio: CELULAR Y TABLETA (hasta 900px)
+   Antes el menú se volvía una fila de botones que se salía de la pantalla
+   y la campanita tapaba el nombre. Ahora es una barra arriba con logo,
+   campanita y botón ☰; al tocar ☰ se despliega la lista de opciones.
+   ------------------------------------------------------------------------- */
+.adm-menu-btn {
+  display: none;
+}
+
 @media (max-width: 900px) {
-  .sidebar-vidrio .item span,
-  .sidebar-vidrio .salir span {
-    display: inline;
+  .sidebar-vidrio {
+    position: sticky;
+    top: 8px;
+    bottom: auto;
+    left: auto;
+    width: auto;
+    margin: 8px;
+    padding: 8px 12px;
+    border-radius: 18px;
+    max-height: calc(100vh - 16px);
+    flex-direction: column;
+  }
+
+  .sidebar-vidrio .adm-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sidebar-vidrio .marca {
+    flex: 1;
+    min-width: 0;
+    padding: 2px 4px;
+    margin: 0;
+    border-bottom: none;
+  }
+
+  .sidebar-vidrio .adm-campana {
+    position: relative; /* así el numerito queda sobre la campanita */
+    top: auto;
+    right: auto;
+    flex-shrink: 0;
+  }
+
+  .adm-menu-btn {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  /* La lista de opciones solo se ve con el menú abierto */
+  .sidebar-vidrio nav,
+  .sidebar-vidrio .salir {
+    display: none;
+  }
+
+  .sidebar-vidrio.abierto nav {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 2px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    animation: admMenuEntrar 0.2s ease;
+  }
+
+  .sidebar-vidrio.abierto .salir {
+    display: flex;
   }
 
   .sidebar-vidrio .item {
-    padding: 6px 10px;
-    font-size: 12px;
+    padding: 11px 14px;
+    font-size: 14px;
   }
+
+  .sidebar-vidrio .item:hover {
+    transform: none;
+  }
+}
+
+@keyframes admMenuEntrar {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
 }

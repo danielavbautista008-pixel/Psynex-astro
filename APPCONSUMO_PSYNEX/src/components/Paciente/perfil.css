@@ -45,6 +45,11 @@
 
 .per-foto-acciones {
   margin-top: 8px;
+  /* cambio: botones de la foto en fila */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
 }
 
 .per-acciones {
