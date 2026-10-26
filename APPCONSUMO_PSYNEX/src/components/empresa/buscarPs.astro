@@ -215,8 +215,12 @@ import "./buscarPs.css";
   </main>
 </div>
 
-<!-- <script>
-  const API_URL = "http://localhost:8000/api";
+<script>
+  // cambio: antes apuntaba a http://localhost:8000/api/psicologos/nombres (puerto y ruta
+  // que no existen, y la página mostraba "No se pudieron cargar"). Ahora usa la ruta real
+  // de Explorar (GET /api/explorar/psicologos) y la dirección del túnel si se usa.
+  const BASE = (window as any).PSYNEX_API ?? "http://localhost:8001";
+  const API_URL = `${BASE}/api`;
 
   interface Psicologo {
     id: string | number;
@@ -237,10 +241,18 @@ import "./buscarPs.css";
     const btnLimpiar = document.getElementById("btn-limpiar-filtros");
 
     try {
-      const res = await fetch(`${API_URL}/psicologos/nombres`);
+      const res = await fetch(`${API_URL}/explorar/psicologos`);
       if (!res.ok) throw new Error("Error al obtener la lista de psicólogos");
 
-      listaPsicologos = await res.json();
+      // cambio: se adapta la respuesta de Explorar a lo que usa esta vista
+      const json = await res.json();
+      listaPsicologos = (json.psicologos ?? []).map((p: any) => ({
+        id: p.id,
+        nombreCompleto: p.nombre,
+        foto: p.tieneFoto ? `${API_URL}/explorar/psicologos/${p.id}/foto?v=${p.fotoVersion ?? ""}` : undefined,
+        especialidades: p.especialidades ?? [],
+        precioPorHora: Number(p.precio ?? 0),
+      }));
       listaFiltrada = [...listaPsicologos];
 
       renderizarVista();
@@ -298,7 +310,7 @@ import "./buscarPs.css";
     gridEl.innerHTML = psicologosPagina
       .map((p) => {
         const fotoUrl =
-          !p.foto || p.foto === "sin-foto.jpg" ? "https://via.placeholder.com/90" : p.foto;
+          !p.foto || p.foto === "sin-foto.jpg" ? "/Imagenes/logo.png" : p.foto; // cambio: via.placeholder.com ya no funciona
         const especialidadesHtml =
           p.especialidades && p.especialidades.length > 0
             ? p.especialidades.join("<br>")
@@ -323,6 +335,13 @@ import "./buscarPs.css";
       `;
       })
       .join("");
+
+    // cambio: "Ver perfil" abre el perfil público del psicólogo
+    gridEl.querySelectorAll<HTMLButtonElement>(".view-profile-btn").forEach((b) =>
+      b.addEventListener("click", () => {
+        window.location.href = `/Explorar/${encodeURIComponent(b.dataset.id ?? "")}?volver=/Empresa/BuscarPs`;
+      })
+    );
 
     if (totalPaginas > 1) {
       paginationEl.style.display = "flex";
@@ -373,4 +392,4 @@ import "./buscarPs.css";
       paginationEl.style.display = "none";
     }
   }
-</script> -->
+</script>

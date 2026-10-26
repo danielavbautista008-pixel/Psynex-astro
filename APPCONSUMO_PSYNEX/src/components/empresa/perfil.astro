@@ -249,17 +249,17 @@ import "./perfil.css";
                     inputNombre.value = empresaData.nombreEmpresa || "";
                 if (inputNit) inputNit.value = empresaData.nit || "";
                 if (selectSector)
-                    selectSector.value = empresaData.sector || "Salud";
+                    selectSector.value = empresaData.Sector || "Salud";
                 if (inputDescripcion)
-                    inputDescripcion.value = empresaData.descripcion || "";
+                    inputDescripcion.value = empresaData.Descripcion || "";
                 if (inputSitioWeb)
-                    inputSitioWeb.value = empresaData.sitioWeb || "";
+                    inputSitioWeb.value = empresaData.SitioWeb || "";
                 if (inputTelefono)
-                    inputTelefono.value = empresaData.telefono || "";
+                    inputTelefono.value = empresaData.Telefono || "";
 
                 if (empresaData.logo) {
-                    avatarPreview.src = empresaData.logo;
-                    logoBase64 = empresaData.logo;
+                    avatarPreview.src = empresaData.Logo;
+                    logoBase64 = empresaData.Logo;
                 }
             }
         } catch (err) {
@@ -312,18 +312,18 @@ import "./perfil.css";
 
         const payload = {
             ...empresaData,
-            nombreEmpresa: inputNombre.value,
-            nit: inputNit.value,
-            sector: selectSector.value,
-            descripcion: inputDescripcion.value,
-            sitioWeb: inputSitioWeb.value,
-            telefono: inputTelefono.value,
-            logo: logoBase64 || empresaData.logo,
+            NombreEmpresa: inputNombre.value,
+            Nit: inputNit.value,
+            Sector: selectSector.value,
+            Descripcion: inputDescripcion.value,
+            SitioWeb: inputSitioWeb.value,
+            Telefono: inputTelefono.value,
+            Logo: logoBase64 || empresaData.Logo,
         };
 
         try {
             const res = await fetch(
-                `${API_URL}/empresa/${empresaData.id || empresaData.perfilId}`,
+                `${API_URL}/empresa/${empresaData.id || empresaData.PerfilId}`,
                 {
                     method: "PUT",
                     headers: {
@@ -338,8 +338,8 @@ import "./perfil.css";
             mostrarExito("Cambios guardados con éxito.");
 
             // Actualizar encabezados
-            if (headerTitulo) headerTitulo.textContent = payload.nombreEmpresa;
-            if (nombreTitle) nombreTitle.textContent = payload.nombreEmpresa;
+            if (headerTitulo) headerTitulo.textContent = payload.NombreEmpresa;
+            if (nombreTitle) nombreTitle.textContent = payload.NombreEmpresa;
         } catch (err) {
             console.error(err);
             mostrarError("Ocurrió un error al intentar guardar los cambios.");

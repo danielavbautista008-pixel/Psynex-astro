@@ -15,7 +15,9 @@ export interface PerfilEmpresaData {
 
 const {
   Logo= "/Imagenes/logo.png",
-  NombreEmpresa = "NombreEmpresa", // nombre de la base de datos de la empresa
+  // cambio: antes decía "${empresa.data.NombreEmpresa}!" como texto fijo (salía así en el menú).
+  // Ahora toma el nombre de la empresa que inició sesión (lo pone el middleware).
+  NombreEmpresa = Astro.locals.usuario?.NombreCompleto ?? "Mi empresa",
 } = Astro.props;
 
 import "./menuE.css";
@@ -168,6 +170,7 @@ import { API_URL } from "../../lib/api";
     const dropdown = document.getElementById('dropdown-perfil');
     const btnLogout = document.getElementById('btn-logout');
     const ftoperfil = document.getElementById('nav-perfil-img');
+    const titulo = document.getElementById("titulo-bienvenida");
 
 
     if (trigger && dropdown) {
@@ -179,6 +182,7 @@ import { API_URL } from "../../lib/api";
       document.addEventListener('click', (e) => {
         if (!dropdown.contains(e.target as Node) && !trigger.contains(e.target as Node)) {
           dropdown.classList.add('hidden');
+          
         }
       });
     }
@@ -317,5 +321,23 @@ import { API_URL } from "../../lib/api";
         window.location.href = '/';
       });
     }
+
+  //      if (!usuario.usuario.UsuarioId) {
+  //     if (titulo) titulo.textContent = "No se detectó una sesión activa.";
+  //     return;
+  //   }
+  //    try {
+  //     // 2. Traer perfil de la empresa desde el servidor Deno
+  //     const resEmpresa = await fetch(`${API_URL}/perfilempresa/usuario/${usuario.usuario.UsuarioId}`);
+  //     // console.log(resEmpresa, "------------");
+  //     if (!resEmpresa.ok) throw new Error("No se pudo obtener el perfil");
+      
+  //     const empresa = await resEmpresa.json();
+  // console.log("Datos de la empresa obtenidos:", empresa);
+  //     if (empresa && empresa.data.NombreEmpresa) {
+  //       if (titulo) titulo.textContent = `¡Bienvenida, ${empresa.data.NombreEmpresa}!`;
+        
+  //      });
+    
   });
 </script>
