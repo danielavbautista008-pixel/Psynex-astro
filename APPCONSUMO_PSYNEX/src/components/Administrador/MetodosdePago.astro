@@ -1,0 +1,491 @@
+---
+import MenuAdmin from "../Menu/MenuAdmin.astro";
+import "./MetodosdePago.css";
+
+import { apiGet } from "../../lib/api";
+
+// ---------------------------------------------------------------
+// Datos reales: GET /api/admin/metodos-pago (solo Admin)
+// ---------------------------------------------------------------
+const cookie = Astro.request.headers.get("cookie");
+const respuesta = await apiGet(cookie, "/api/admin/metodos-pago");
+const errorCarga = !respuesta;
+
+// Ícono según el nombre del método (la base de datos no guarda íconos)
+const iconoDe = (nombre: string) => {
+  const n = nombre.toLowerCase();
+  if (n.includes("pse")) return "bi-globe";
+  if (n.includes("tarjeta")) return "bi-credit-card";
+  if (n.includes("nequi")) return "bi-phone";
+  if (n.includes("davi")) return "bi-wallet2";
+  if (n.includes("transfer") || n.includes("banc")) return "bi-bank";
+  if (n.includes("efectivo")) return "bi-cash-coin";
+  return "bi-wallet2";
+};
+
+const fechaCorta = (f: string) =>
+  new Intl.DateTimeFormat("es-CO", { day: "2-digit", month: "short", year: "numeric", timeZone: "America/Bogota" })
+    .format(new Date(f));
+
+const metodosIniciales = ((respuesta?.metodos ?? []) as any[]).map((m, i) => ({
+  id: String(m.MetodoPagoId),
+  nombre: String(m.Nombre),
+  descripcion: String(m.Descripcion ?? ""),
+  fecha: fechaCorta(m.CreadoEn),
+  icono: iconoDe(String(m.Nombre)),
+  color: (i % 5) + 1,
+  activo: Number(m.EstadoActivo) === 1,
+}));
+
+const activos = metodosIniciales.filter((m) => m.activo).length;
+const inactivos = metodosIniciales.length - activos;
+const datosJson = JSON.stringify(metodosIniciales).replace(/</g, "\\u003c");
+---
+
+<div class="admin-layout">
+  <MenuAdmin />
+
+  <main class="metodos-pago-page">
+    <header class="metodos-header">
+      <div class="encabezado-texto">
+        <div class="titulo-con-icono">
+          <i class="bi bi-credit-card-2-front"></i>
+          <h1>Métodos de pago</h1>
+        </div>
+        <p>
+          Gestiona los medios con los que los pacientes pueden
+          pagar sus citas en Psynex.
+        </p>
+      </div>
+
+      <button class="btn-agregar" id="agregarMetodo">
+        <i class="bi bi-plus-lg"></i>
+        Agregar método de pago
+      </button>
+    </header>
+
+    <section class="resumen-metodos" aria-label="Resumen de métodos">
+      <article class="resumen-card resumen-activos">
+        <div class="resumen-icono">
+          <i class="bi bi-check-lg"></i>
+        </div>
+        <div>
+          <p>Métodos activos</p>
+          <strong id="totalActivos">{activos}</strong>
+          <span id="detalleActivos">de {metodosIniciales.length} en total</span>
+        </div>
+      </article>
+
+      <article class="resumen-card resumen-inactivos">
+        <div class="resumen-icono">
+          <i class="bi bi-x-lg"></i>
+        </div>
+        <div>
+          <p>Métodos inactivos</p>
+          <strong id="totalInactivos">{inactivos}</strong>
+          <span id="detalleInactivos">de {metodosIniciales.length} en total</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="tabla-contenedor">
+      <div class="tabla-scroll">
+        <table class="tabla-metodos">
+          <thead>
+            <tr>
+              <th>Método de pago</th>
+              <th>Estado</th>
+              <th>Fecha de agregado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody id="listaMetodos">
+            {metodosIniciales.map((metodo) => (
+              <tr data-id={metodo.id}>
+                <td>
+                  <div class="metodo-info">
+                    <div class:list={["metodo-icono", `metodo-icono-${metodo.color}`]}>
+                      <i class={`bi ${metodo.icono}`}></i>
+                    </div>
+                    <div class="metodo-textos">
+                      <strong class="metodo-nombre">{metodo.nombre}</strong>
+                      {metodo.descripcion && <span class="metodo-descripcion">{metodo.descripcion}</span>}
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <span class:list={["estado-badge", metodo.activo ? "activo" : "inactivo"]}>
+                    {metodo.activo ? "Activo" : "Inactivo"}
+                  </span>
+                </td>
+
+                <td>
+                  <span class="fecha-metodo">{metodo.fecha}</span>
+                </td>
+
+                <td>
+                  <div class="acciones-metodo">
+                   <button
+  type="button"
+  class:list={["interruptor", metodo.activo && "encendido"]}
+  role="switch"
+  aria-checked={metodo.activo ? "true" : "false"}
+  aria-label={`Cambiar estado de ${metodo.nombre}`}
+  data-accion="estado"
+  data-id={metodo.id}
+>
+  <span></span>
+</button>
+
+                    <button
+                      type="button"
+                      class="btn-editar"
+                      aria-label={`Editar ${metodo.nombre}`}
+                      title="Editar método"
+                      data-accion="editar"
+                      data-id={metodo.id}
+                    >
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {errorCarga && (
+        <p class="mensaje-modal" style="padding:12px 16px">No se pudieron cargar los métodos de pago. Revisa que el servidor esté encendido.</p>
+      )}
+
+      <div class="sin-metodos" id="sinMetodos" hidden={metodosIniciales.length > 0}>
+        <i class="bi bi-credit-card"></i>
+        <h3>No hay métodos de pago</h3>
+        <p>Agrega un método para comenzar a gestionar los pagos.</p>
+      </div>
+    </section>
+
+    <aside class="aviso-importante">
+      <i class="bi bi-info-circle-fill"></i>
+      <div>
+        <strong>Información importante</strong>
+        <ul>
+          <li>Los métodos no se eliminan: se desactivan para conservar el historial.</li>
+          <li>Siempre debe haber al menos un método activo.</li>
+          <li>Los pacientes solo verán los métodos que estén activos.</li>
+          <li>Cada pago conserva su método para consultar los ingresos desde Finanzas.</li>
+        </ul>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<!-- Ventana para agregar o editar un método -->
+<div class="modal-overlay" id="modalMetodo" hidden>
+  <section
+    class="modal-metodo"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tituloModal"
+  >
+    <header class="modal-header">
+      <div>
+        <span class="modal-etiqueta">CONFIGURACIÓN</span>
+        <h2 id="tituloModal">Agregar método de pago</h2>
+      </div>
+
+      <button type="button" class="btn-cerrar-modal" id="cerrarModal" aria-label="Cerrar">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </header>
+
+    <form id="formMetodo">
+      <label for="nombreMetodo">Nombre del método</label>
+      <input
+        id="nombreMetodo"
+        name="nombreMetodo"
+        type="text"
+        maxlength="100"
+        placeholder="Ej. Transferencia bancaria"
+        required
+      />
+
+      <label for="descripcionMetodo">Descripción</label>
+      <input
+        id="descripcionMetodo"
+        name="descripcionMetodo"
+        type="text"
+        maxlength="150"
+        placeholder="Información breve para identificarlo"
+      />
+
+      <p class="mensaje-modal" id="mensajeModal" role="status"></p>
+
+      <footer class="modal-acciones">
+        <button type="button" class="btn-cancelar" id="cancelarModal">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-guardar" id="guardarMetodo">
+          Guardar método
+        </button>
+      </footer>
+    </form>
+  </section>
+</div>
+
+<div class="notificacion" id="notificacion" role="status" aria-live="polite"></div>
+
+<script type="application/json" id="metodosDatos" set:html={datosJson}></script>
+
+<script>
+  import { apiEnviar, textoError } from "../../lib/api";
+
+  type Metodo = {
+    id: string;
+    nombre: string;
+    descripcion: string;
+    fecha: string;
+    icono: string;
+    color: number;
+    activo: boolean;
+  };
+
+  const lista = document.querySelector<HTMLTableSectionElement>("#listaMetodos")!;
+  const modal = document.querySelector<HTMLDivElement>("#modalMetodo")!;
+  const formulario = document.querySelector<HTMLFormElement>("#formMetodo")!;
+  const campoNombre = document.querySelector<HTMLInputElement>("#nombreMetodo")!;
+  const campoDescripcion = document.querySelector<HTMLInputElement>("#descripcionMetodo")!;
+  const mensajeModal = document.querySelector<HTMLParagraphElement>("#mensajeModal")!;
+  const botonGuardar = document.querySelector<HTMLButtonElement>("#guardarMetodo")!;
+  const notificacion = document.querySelector<HTMLDivElement>("#notificacion")!;
+
+  // Los métodos vienen de la base de datos (los pinta el servidor)
+  let metodos: Metodo[] = JSON.parse(document.getElementById("metodosDatos")?.textContent || "[]");
+  let idEditando: string | null = null;
+  let temporizadorNotificacion: number | undefined;
+
+  const iconoDe = (nombre: string) => {
+    const n = nombre.toLowerCase();
+    if (n.includes("pse")) return "bi-globe";
+    if (n.includes("tarjeta")) return "bi-credit-card";
+    if (n.includes("nequi")) return "bi-phone";
+    if (n.includes("davi")) return "bi-wallet2";
+    if (n.includes("transfer") || n.includes("banc")) return "bi-bank";
+    if (n.includes("efectivo")) return "bi-cash-coin";
+    return "bi-wallet2";
+  };
+
+  function escapar(texto: string) {
+    return texto.replace(/[&<>"']/g, (caracter) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    })[caracter] ?? caracter);
+  }
+
+  function mostrarNotificacion(texto: string) {
+    notificacion.textContent = texto;
+    notificacion.classList.add("visible");
+    window.clearTimeout(temporizadorNotificacion);
+    temporizadorNotificacion = window.setTimeout(() => {
+      notificacion.classList.remove("visible");
+    }, 3200);
+  }
+
+  function actualizarResumen() {
+    const activos = metodos.filter((m) => m.activo).length;
+    const inactivos = metodos.length - activos;
+
+    document.querySelector("#totalActivos")!.textContent = String(activos);
+    document.querySelector("#totalInactivos")!.textContent = String(inactivos);
+    document.querySelector("#detalleActivos")!.textContent = `de ${metodos.length} en total`;
+    document.querySelector("#detalleInactivos")!.textContent = `de ${metodos.length} en total`;
+    document.querySelector("#sinMetodos")!.toggleAttribute("hidden", metodos.length > 0);
+  }
+
+  function dibujarLista() {
+    // Activos primero, luego por nombre (igual que el servidor)
+    metodos.sort((a, b) => Number(b.activo) - Number(a.activo) || a.nombre.localeCompare(b.nombre, "es"));
+    lista.innerHTML = metodos.map((m) => `
+      <tr data-id="${escapar(m.id)}">
+        <td>
+          <div class="metodo-info">
+            <div class="metodo-icono metodo-icono-${m.color}">
+              <i class="bi ${escapar(m.icono)}"></i>
+            </div>
+            <div class="metodo-textos">
+              <strong class="metodo-nombre">${escapar(m.nombre)}</strong>
+              ${m.descripcion ? `<span class="metodo-descripcion">${escapar(m.descripcion)}</span>` : ""}
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="estado-badge ${m.activo ? "activo" : "inactivo"}">
+            ${m.activo ? "Activo" : "Inactivo"}
+          </span>
+        </td>
+        <td><span class="fecha-metodo">${escapar(m.fecha)}</span></td>
+        <td>
+          <div class="acciones-metodo">
+            <button type="button"
+              class="interruptor ${m.activo ? "encendido" : ""}"
+              role="switch" aria-checked="${m.activo}"
+              aria-label="Cambiar estado de ${escapar(m.nombre)}"
+              data-accion="estado" data-id="${escapar(m.id)}">
+              <span></span>
+            </button>
+            <button type="button" class="btn-editar"
+              aria-label="Editar ${escapar(m.nombre)}"
+              title="Editar método"
+              data-accion="editar" data-id="${escapar(m.id)}">
+              <i class="bi bi-pencil"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join("");
+
+    actualizarResumen();
+  }
+
+  function abrirModal(metodo?: Metodo) {
+    idEditando = metodo?.id ?? null;
+    formulario.reset();
+    mensajeModal.textContent = "";
+    document.querySelector("#tituloModal")!.textContent =
+      metodo ? "Editar método de pago" : "Agregar método de pago";
+    botonGuardar.textContent = metodo ? "Guardar cambios" : "Guardar método";
+    botonGuardar.disabled = false;
+    campoNombre.value = metodo?.nombre ?? "";
+    campoDescripcion.value = metodo?.descripcion ?? "";
+    modal.hidden = false;
+    document.body.classList.add("modal-abierto");
+    campoNombre.focus();
+  }
+
+  function cerrarModal() {
+    modal.hidden = true;
+    document.body.classList.remove("modal-abierto");
+    idEditando = null;
+  }
+
+  function fechaActual() {
+    return new Intl.DateTimeFormat("es-CO", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(new Date());
+  }
+
+  document.querySelector("#agregarMetodo")!.addEventListener("click", () => abrirModal());
+  document.querySelector("#cerrarModal")!.addEventListener("click", cerrarModal);
+  document.querySelector("#cancelarModal")!.addEventListener("click", cerrarModal);
+
+  modal.addEventListener("click", (evento) => {
+    if (evento.target === modal) cerrarModal();
+  });
+
+  document.addEventListener("keydown", (evento) => {
+    if (evento.key === "Escape" && !modal.hidden) cerrarModal();
+  });
+
+  // Activar / desactivar y editar
+  lista.addEventListener("click", async (evento) => {
+    const boton = (evento.target as HTMLElement).closest<HTMLButtonElement>("button[data-accion]");
+    if (!boton) return;
+
+    const metodo = metodos.find((m) => m.id === boton.dataset.id);
+    if (!metodo) return;
+
+    if (boton.dataset.accion === "editar") {
+      abrirModal(metodo);
+      return;
+    }
+
+    if (boton.dataset.accion === "estado") {
+      if (metodo.activo && metodos.filter((m) => m.activo).length === 1) {
+        mostrarNotificacion("Debe quedar al menos un método de pago activo.");
+        return;
+      }
+
+      boton.disabled = true;
+      const r = await apiEnviar("PATCH", `/api/admin/metodos-pago/${encodeURIComponent(metodo.id)}`, {
+        estadoActivo: !metodo.activo,
+      });
+      boton.disabled = false;
+      if (!r.ok) {
+        mostrarNotificacion(textoError(r.data, "No se pudo cambiar el estado."));
+        return;
+      }
+
+      metodo.activo = !metodo.activo;
+      dibujarLista();
+      mostrarNotificacion(metodo.activo ? `${metodo.nombre} está activo.` : `${metodo.nombre} está inactivo.`);
+    }
+  });
+
+  // Agregar o editar (se guarda en la base de datos)
+  formulario.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+
+    const nombre = campoNombre.value.trim();
+    const descripcion = campoDescripcion.value.trim();
+
+    if (nombre.length < 2) {
+      mensajeModal.textContent = "Escribe el nombre del método de pago (mínimo 2 caracteres).";
+      campoNombre.focus();
+      return;
+    }
+
+    const duplicado = metodos.some(
+      (m) => m.nombre.toLocaleLowerCase("es") === nombre.toLocaleLowerCase("es") && m.id !== idEditando,
+    );
+    if (duplicado) {
+      mensajeModal.textContent = "Ya existe un método con ese nombre.";
+      campoNombre.focus();
+      return;
+    }
+
+    botonGuardar.disabled = true;
+    mensajeModal.textContent = "";
+    const editando = idEditando;
+
+    const r = editando
+      ? await apiEnviar("PATCH", `/api/admin/metodos-pago/${encodeURIComponent(editando)}`, { nombre, descripcion: descripcion || null })
+      : await apiEnviar("POST", "/api/admin/metodos-pago", { nombre, descripcion: descripcion || null, estadoActivo: true });
+
+    botonGuardar.disabled = false;
+    if (!r.ok) {
+      mensajeModal.textContent = textoError(r.data, "No se pudo guardar el método de pago.");
+      return;
+    }
+
+    if (editando) {
+      const metodo = metodos.find((m) => m.id === editando);
+      if (metodo) {
+        metodo.nombre = nombre;
+        metodo.descripcion = descripcion;
+        metodo.icono = iconoDe(nombre);
+      }
+    } else {
+      metodos.push({
+        id: String(r.data?.metodoPagoId ?? crypto.randomUUID()),
+        nombre,
+        descripcion,
+        fecha: fechaActual(),
+        icono: iconoDe(nombre),
+        color: (metodos.length % 5) + 1,
+        activo: true,
+      });
+    }
+
+    dibujarLista();
+    cerrarModal();
+    mostrarNotificacion(editando ? "Método de pago actualizado correctamente." : "Método de pago agregado correctamente.");
+  });
+</script>

@@ -1,3 +1,11 @@
+body {
+  background: var(--bg);
+  overflow-x: hidden;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 /* ==========================================================================
      DASHBOARD SECTION (Adaptado para Astro)
      ========================================================================== */
@@ -6,12 +14,9 @@
   min-height: 100vh;
   background: var(--bg);
 }
-     body {
-  background: var(--bg);
-  overflow-x: hidden;
-}
+
      .Bienvenida-Em {
-    font-family: "Roboto", sans-serif;
+    font-family: var(--bs-body-font-family); /* cambio de fuente: la misma de las vistas de psicólogo */
     max-width: 1200px;
     margin: 30px auto;
     padding: 0 200px;
@@ -282,3 +287,12 @@
   .view-more-btn:hover {
     color: var(--text, #4b3425);
   }
+
+/* cambio de fuente: botones, campos y listas usan la misma letra que el resto
+   (el navegador no se la pasa sola a los formularios) */
+.Bienvenida-Em button,
+.Bienvenida-Em input,
+.Bienvenida-Em select,
+.Bienvenida-Em textarea {
+  font-family: var(--bs-body-font-family); /* cambio de fuente: la misma de las vistas de psicólogo */
+}

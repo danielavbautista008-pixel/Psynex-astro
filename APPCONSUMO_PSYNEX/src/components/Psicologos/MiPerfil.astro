@@ -1,7 +1,95 @@
 
 ---
 import NavbarPsicologo from "../Menu/NavbarPsicologo.astro";
+import { apiGet, API_URL, pesos } from "../../lib/api";
 import "./MiPerfil.css";
+
+// ---------------------------------------------------------------
+// Datos reales desde el backend (Deno):
+//   GET /api/psicologo/perfil                 -> perfil, estudios, experiencia, reseñas
+//   GET /api/psicologo/perfil/especialidades  -> catálogo para el selector
+// ---------------------------------------------------------------
+const cookie = Astro.request.headers.get("cookie");
+const [respPerfil, respCatalogo] = await Promise.all([
+  apiGet(cookie, "/api/psicologo/perfil"),
+  apiGet(cookie, "/api/psicologo/perfil/especialidades"),
+]);
+
+const perfil: any = respPerfil?.perfil ?? null;
+const catalogo: any[] = respCatalogo?.especialidades ?? [];
+
+const nombre = perfil?.NombreCompleto ?? Astro.locals.usuario?.NombreCompleto ?? "Tu nombre profesional";
+
+// "Ambas" se guarda así en la base de datos, pero se muestra más claro
+const textoModalidad = (m: string | null | undefined) =>
+  !m ? "Por definir" : m === "Ambas" ? "Virtual y presencial" : m;
+
+// Estado del perfil: verificado por el admin o en revisión
+const estado = perfil?.EstaVerificado
+  ? { texto: "Verificado", clase: "is-ok" }
+  : perfil?.EstadoVerificacion === "Rechazado"
+    ? { texto: "Rechazado", clase: "is-bad" }
+    : { texto: "En revisión", clase: "is-wait" };
+
+// Años de experiencia: desde el primer trabajo registrado
+const inicios = (perfil?.experiencia ?? [])
+  .map((e: any) => new Date(e.FechaInicio).getTime())
+  .filter((t: number) => !Number.isNaN(t));
+const anios = inicios.length
+  ? Math.max(0, Math.floor((Date.now() - Math.min(...inicios)) / (365.25 * 24 * 3600 * 1000)))
+  : 0;
+const textoExperiencia = !inicios.length
+  ? "Sin experiencia registrada"
+  : anios < 1 ? "Menos de 1 año de experiencia" : `${anios} ${anios === 1 ? "año" : "años"} de experiencia`;
+
+// Reseñas
+const resenas = perfil?.resenas ?? { promedio: null, total: 0, porEstrella: [], comentarios: [] };
+const estrellas = (n: number) => {
+  const r = Math.round(n);
+  return "★".repeat(r) + "☆".repeat(Math.max(0, 5 - r));
+};
+const textoResenas = `${resenas.total} ${resenas.total === 1 ? "reseña" : "reseñas"}`;
+const fechaResena = (f: string) =>
+  new Date(f).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric", timeZone: "America/Bogota" });
+
+// Especialidades agrupadas por categoría para el selector
+const elegidas = new Set((perfil?.especialidades ?? []).map((e: any) => e.EspecialidadId));
+const grupos = new Map<string, any[]>();
+for (const e of catalogo) {
+  const cat = e.Categoria || "Otras";
+  if (!grupos.has(cat)) grupos.set(cat, []);
+  grupos.get(cat)!.push(e);
+}
+
+const precio = Number(perfil?.PrecioPorHora ?? 0);
+const urlFoto = perfil?.TieneFoto ? `${API_URL}/api/psicologo/perfil/foto?v=${Date.now()}` : null;
+const iniciales = String(nombre).split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+const fotoPorDefecto = `data:image/svg+xml;utf8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><rect width="160" height="160" fill="#ece7df"/><text x="50%" y="54%" font-family="Arial" font-size="56" fill="#8a7a63" text-anchor="middle" dominant-baseline="middle">${iniciales || "?"}</text></svg>`,
+)}`;
+
+// Lo que necesita el script del navegador
+const datos = {
+  perfilId: perfil?.PerfilId ?? null,
+  verificado: Boolean(perfil?.EstaVerificado),
+  estudios: (perfil?.estudios ?? []).map((e: any) => ({
+    id: e.EstudioId,
+    institution: e.Universidad,
+    degree: e.Titulo,
+    level: e.NivelEstudio,
+    year: e.FechaGrado ? String(e.FechaGrado).slice(0, 4) : "",
+    ongoing: Boolean(Number(e.EnCurso)),
+  })),
+  experiencia: (perfil?.experiencia ?? []).map((e: any) => ({
+    id: e.ExperienciaId,
+    workplace: e.Empresa,
+    position: e.Cargo,
+    start: e.FechaInicio ? String(e.FechaInicio).slice(0, 7) : "",
+    end: e.FechaFin ? String(e.FechaFin).slice(0, 7) : "",
+    current: Boolean(Number(e.TrabajaAqui)),
+    description: e.Descripcion ?? "",
+  })),
+};
 ---
 
 <div id="mi-perfil-page" class="mp-page">
@@ -19,15 +107,19 @@ import "./MiPerfil.css";
       </button>
     </header>
 
+    {!perfil && (
+      <p class="mp-empty">No pudimos cargar tu perfil. Revisa que el servidor esté encendido y vuelve a intentar.</p>
+    )}
+
     <section class="mp-profile-card">
       <div class="mp-avatar-column">
         <img
           id="mp-avatar"
           class="mp-avatar"
-          src="https://placehold.co/160x160?text=Foto"
+          src={urlFoto ?? fotoPorDefecto}
           alt="Foto del psicólogo"
         />
-        <input id="mp-photo-input" class="mp-sr-only" type="file" accept="image/*" />
+        <input id="mp-photo-input" class="mp-sr-only" type="file" accept="image/png,image/jpeg,image/webp" />
         <button class="mp-button mp-button-outline mp-photo-button" type="button" id="mp-change-photo">
           Cambiar foto
         </button>
@@ -35,17 +127,20 @@ import "./MiPerfil.css";
 
       <div class="mp-profile-info">
         <div class="mp-name-line">
-          <h2 id="mp-name">Tu nombre profesional</h2>
-          <span class="mp-status">En revisión</span>
+          <h2 id="mp-name">{nombre}</h2>
+          <span class={`mp-status ${estado.clase}`}>{estado.texto}</span>
         </div>
         <div class="mp-meta">
-          <span class="mp-rating"><span class="mp-stars">★★★★★</span> <strong id="mp-rating">4.8</strong></span>
-          <span id="mp-review-count">124 reseñas</span>
-          <span id="mp-experience-summary">6 años de experiencia</span>
-          <span id="mp-mode-summary">Virtual y presencial</span>
+          <span class="mp-rating">
+            <span class="mp-stars">{estrellas(resenas.promedio ?? 0)}</span>
+            <strong id="mp-rating">{resenas.promedio ?? "—"}</strong>
+          </span>
+          <span id="mp-review-count">{textoResenas}</span>
+          <span id="mp-experience-summary">{textoExperiencia}</span>
+          <span id="mp-mode-summary">{textoModalidad(perfil?.Modalidad)}</span>
         </div>
         <p id="mp-bio-preview" class="mp-profile-description">
-          Aquí aparecerá tu presentación profesional para que los pacientes conozcan tu enfoque y experiencia.
+          {perfil?.Biografia || "Aquí aparecerá tu presentación profesional para que los pacientes conozcan tu enfoque y experiencia."}
         </p>
       </div>
 
@@ -67,7 +162,7 @@ import "./MiPerfil.css";
             <button class="mp-button mp-button-small mp-button-outline" type="button" data-open="mp-modal-bio">Editar</button>
           </div>
           <p id="mp-bio-display" class="mp-body-copy">
-            Completa tu biografía para que los pacientes conozcan tu formación, tu enfoque terapéutico y cómo puedes acompañarlos.
+            {perfil?.Biografia || "Completa tu biografía para que los pacientes conozcan tu formación, tu enfoque terapéutico y cómo puedes acompañarlos."}
           </p>
         </section>
 
@@ -77,9 +172,9 @@ import "./MiPerfil.css";
             <button class="mp-button mp-button-small mp-button-outline" type="button" data-open="mp-modal-specialties">Editar</button>
           </div>
           <div id="mp-specialty-tags" class="mp-tags">
-            <span class="mp-tag">Ansiedad</span>
-            <span class="mp-tag">Depresión</span>
-            <span class="mp-tag">Autoestima</span>
+            {(perfil?.especialidades ?? []).length
+              ? perfil.especialidades.map((e: any) => <span class="mp-tag">{e.NombreEspecialidad}</span>)
+              : <p class="mp-empty">Aún no has elegido especialidades.</p>}
           </div>
         </section>
 
@@ -111,9 +206,9 @@ import "./MiPerfil.css";
             <button class="mp-button mp-button-small mp-button-outline" type="button" data-open="mp-modal-attention">Editar</button>
           </div>
           <dl class="mp-details">
-            <div><dt>Modalidad</dt><dd id="mp-mode-display">Virtual y presencial</dd></div>
-            <div><dt>Precio por hora</dt><dd id="mp-price-display">Por definir</dd></div>
-            <div><dt>Dirección del consultorio</dt><dd id="mp-address-display">Por definir</dd></div>
+            <div><dt>Modalidad</dt><dd id="mp-mode-display">{textoModalidad(perfil?.Modalidad)}</dd></div>
+            <div><dt>Precio por hora</dt><dd id="mp-price-display">{precio ? pesos(precio) : "Por definir"}</dd></div>
+            <div><dt>Dirección del consultorio</dt><dd id="mp-address-display">{perfil?.Direccion || "Por definir"}</dd></div>
           </dl>
         </section>
 
@@ -123,18 +218,15 @@ import "./MiPerfil.css";
             <button class="mp-button mp-button-small mp-button-outline" type="button" data-open="mp-modal-contact">Editar</button>
           </div>
           <dl class="mp-details">
-            <div><dt>Teléfono</dt><dd id="mp-phone-display">Por definir</dd></div>
-            <div><dt>Correo</dt><dd id="mp-email-display">No configurado</dd></div>
+            <div><dt>Teléfono</dt><dd id="mp-phone-display">{perfil?.Telefono || "Por definir"}</dd></div>
+            <div><dt>Correo</dt><dd id="mp-email-display">{perfil?.Email || "No configurado"}</dd></div>
           </dl>
           <p class="mp-private-note"><i class="bi bi-eye-slash" aria-hidden="true"></i> No es visible para los pacientes.</p>
         </section>
 
         <section class="mp-card mp-public-card">
           <h2>Tu perfil, tu espacio</h2>
-          <p>Mantén tus datos actualizados para que los pacientes encuentren información clara sobre ti.</p>
-          <button class="mp-button mp-button-primary mp-button-full" type="button" id="mp-save-all">
-            Guardar cambios
-          </button>
+          <p>Cada cambio se guarda al instante. Mantén tus datos al día para que los pacientes encuentren información clara sobre ti.</p>
         </section>
       </aside>
     </div>
@@ -152,9 +244,10 @@ import "./MiPerfil.css";
       </div>
       <form id="mp-form-bio">
         <label class="mp-field">Biografía
-          <textarea id="mp-bio-input" name="bio" rows="7" maxlength="900" placeholder="Cuéntales a tus pacientes sobre tu formación y enfoque..." required></textarea>
+          <textarea id="mp-bio-input" name="bio" rows="7" maxlength="900" placeholder="Cuéntales a tus pacientes sobre tu formación y enfoque..." required>{perfil?.Biografia ?? ""}</textarea>
         </label>
-        <div class="mp-character-count"><span id="mp-bio-count">0</span>/900 caracteres</div>
+        <div class="mp-character-count"><span id="mp-bio-count">{(perfil?.Biografia ?? "").length}</span>/900 caracteres</div>
+        <p class="mp-form-message" role="alert"></p>
         <div class="mp-modal-actions">
           <button class="mp-button mp-button-outline" type="button" data-close-modal>Cancelar</button>
           <button class="mp-button mp-button-primary" type="submit">Guardar</button>
@@ -163,7 +256,7 @@ import "./MiPerfil.css";
     </div>
   </section>
 
-  <!-- 2. Editar especialidades -->
+  <!-- 2. Editar especialidades (catálogo real de la base de datos) -->
   <section class="mp-modal" id="mp-modal-specialties" role="dialog" aria-modal="true" aria-labelledby="mp-specialties-title" hidden>
     <button class="mp-backdrop" type="button" data-close-modal aria-label="Cerrar ventana"></button>
     <div class="mp-modal-box">
@@ -174,28 +267,26 @@ import "./MiPerfil.css";
       <p class="mp-muted">Selecciona hasta 15 especialidades.</p>
       <form id="mp-form-specialties">
         <div id="mp-specialty-options" class="mp-specialty-groups">
-          <fieldset>
-            <legend>Clínica</legend>
-            <label><input type="checkbox" name="specialty" value="Ansiedad" /> Ansiedad</label>
-            <label><input type="checkbox" name="specialty" value="Depresión" /> Depresión</label>
-            <label><input type="checkbox" name="specialty" value="Autoestima" /> Autoestima</label>
-            <label><input type="checkbox" name="specialty" value="Duelo" /> Duelo</label>
-            <label><input type="checkbox" name="specialty" value="Manejo del estrés" /> Manejo del estrés</label>
-          </fieldset>
-          <fieldset>
-            <legend>Familia y pareja</legend>
-            <label><input type="checkbox" name="specialty" value="Terapia de pareja" /> Terapia de pareja</label>
-            <label><input type="checkbox" name="specialty" value="Terapia familiar" /> Terapia familiar</label>
-            <label><input type="checkbox" name="specialty" value="Separación" /> Separación</label>
-          </fieldset>
-          <fieldset>
-            <legend>Infantil y adolescente</legend>
-            <label><input type="checkbox" name="specialty" value="Infancia" /> Infancia</label>
-            <label><input type="checkbox" name="specialty" value="Adolescencia" /> Adolescencia</label>
-            <label><input type="checkbox" name="specialty" value="Orientación a padres" /> Orientación a padres</label>
-          </fieldset>
+          {grupos.size === 0 && <p class="mp-empty">No hay especialidades disponibles.</p>}
+          {[...grupos.entries()].map(([categoria, lista]) => (
+            <fieldset>
+              <legend>{categoria}</legend>
+              {lista.map((e) => (
+                <label>
+                  <input
+                    type="checkbox"
+                    name="specialty"
+                    value={e.EspecialidadId}
+                    data-nombre={e.NombreEspecialidad}
+                    checked={elegidas.has(e.EspecialidadId)}
+                  /> {e.NombreEspecialidad}
+                </label>
+              ))}
+            </fieldset>
+          ))}
         </div>
-        <p id="mp-specialty-count" class="mp-muted">0/15 seleccionadas</p>
+        <p id="mp-specialty-count" class="mp-muted">{elegidas.size}/15 seleccionadas</p>
+        <p class="mp-form-message" role="alert"></p>
         <div class="mp-modal-actions">
           <button class="mp-button mp-button-outline" type="button" data-close-modal>Cancelar</button>
           <button class="mp-button mp-button-primary" type="submit">Guardar</button>
@@ -214,8 +305,8 @@ import "./MiPerfil.css";
       </div>
       <form id="mp-form-education">
         <input type="hidden" name="id" />
-        <label class="mp-field">Universidad o institución<input name="institution" required maxlength="120" /></label>
-        <label class="mp-field">Título obtenido<input name="degree" required maxlength="120" /></label>
+        <label class="mp-field">Universidad o institución<input name="institution" required minlength="2" maxlength="200" /></label>
+        <label class="mp-field">Título obtenido<input name="degree" required minlength="2" maxlength="200" /></label>
         <label class="mp-field">Nivel de estudio
           <select name="level" required>
             <option value="Pregrado">Pregrado</option>
@@ -226,6 +317,7 @@ import "./MiPerfil.css";
         </label>
         <label class="mp-field">Año de grado<input name="year" type="number" min="1950" max="2100" /></label>
         <label class="mp-check"><input name="ongoing" type="checkbox" /> En curso</label>
+        <p class="mp-form-message" role="alert"></p>
         <div class="mp-modal-actions">
           <button class="mp-button mp-button-outline" type="button" data-close-modal>Cancelar</button>
           <button class="mp-button mp-button-primary" type="submit">Guardar</button>
@@ -244,14 +336,15 @@ import "./MiPerfil.css";
       </div>
       <form id="mp-form-experience">
         <input type="hidden" name="id" />
-        <label class="mp-field">Lugar de trabajo<input name="workplace" required maxlength="120" /></label>
-        <label class="mp-field">Cargo<input name="position" required maxlength="120" /></label>
+        <label class="mp-field">Lugar de trabajo<input name="workplace" required minlength="2" maxlength="200" /></label>
+        <label class="mp-field">Cargo<input name="position" required minlength="2" maxlength="150" /></label>
         <div class="mp-form-row">
           <label class="mp-field">Fecha de inicio<input name="start" type="month" required /></label>
           <label class="mp-field">Fecha de fin<input name="end" type="month" /></label>
         </div>
         <label class="mp-check"><input name="current" type="checkbox" /> Trabajo aquí actualmente</label>
-        <label class="mp-field">Descripción corta<textarea name="description" rows="3" maxlength="300"></textarea></label>
+        <label class="mp-field">Descripción corta<textarea name="description" rows="3" maxlength="500"></textarea></label>
+        <p class="mp-form-message" role="alert"></p>
         <div class="mp-modal-actions">
           <button class="mp-button mp-button-outline" type="button" data-close-modal>Cancelar</button>
           <button class="mp-button mp-button-primary" type="submit">Guardar</button>
@@ -271,13 +364,14 @@ import "./MiPerfil.css";
       <form id="mp-form-attention">
         <label class="mp-field">Modalidad
           <select name="mode">
-            <option value="Virtual">Virtual</option>
-            <option value="Presencial">Presencial</option>
-            <option value="Virtual y presencial">Ambas</option>
+            <option value="Virtual" selected={perfil?.Modalidad === "Virtual"}>Virtual</option>
+            <option value="Presencial" selected={perfil?.Modalidad === "Presencial"}>Presencial</option>
+            <option value="Ambas" selected={perfil?.Modalidad === "Ambas"}>Virtual y presencial</option>
           </select>
         </label>
-        <label class="mp-field">Precio por hora (COP)<input name="price" type="number" min="0" step="1000" placeholder="180000" /></label>
-        <label class="mp-field">Dirección del consultorio<input name="address" maxlength="180" /></label>
+        <label class="mp-field">Precio por hora (COP)<input name="price" type="number" min="0" step="1000" placeholder="180000" value={precio || ""} /></label>
+        <label class="mp-field">Dirección del consultorio<input name="address" maxlength="300" value={perfil?.Direccion ?? ""} /></label>
+        <p class="mp-form-message" role="alert"></p>
         <div class="mp-modal-actions">
           <button class="mp-button mp-button-outline" type="button" data-close-modal>Cancelar</button>
           <button class="mp-button mp-button-primary" type="submit">Guardar</button>
@@ -295,9 +389,10 @@ import "./MiPerfil.css";
         <button class="mp-close" type="button" data-close-modal aria-label="Cerrar">×</button>
       </div>
       <form id="mp-form-contact">
-        <label class="mp-field">Teléfono<input name="phone" type="tel" maxlength="30" required /></label>
-        <label class="mp-field">Correo electrónico<input id="mp-contact-email" type="email" disabled /></label>
+        <label class="mp-field">Teléfono<input name="phone" type="tel" inputmode="numeric" pattern="[0-9 ]{7,20}" maxlength="20" required value={perfil?.Telefono ?? ""} /></label>
+        <label class="mp-field">Correo electrónico<input id="mp-contact-email" type="email" disabled value={perfil?.Email ?? ""} /></label>
         <p class="mp-muted">El correo se muestra aquí, pero no se puede editar desde esta ventana.</p>
+        <p class="mp-form-message" role="alert"></p>
         <div class="mp-modal-actions">
           <button class="mp-button mp-button-outline" type="button" data-close-modal>Cancelar</button>
           <button class="mp-button mp-button-primary" type="submit">Guardar</button>
@@ -322,7 +417,7 @@ import "./MiPerfil.css";
     </div>
   </section>
 
-  <!-- Panel lateral de reseñas -->
+  <!-- Panel lateral de reseñas (datos reales de calificacionescita) -->
   <aside id="mp-reviews-panel" class="mp-reviews-panel" aria-label="Mis reseñas" aria-hidden="true">
     <button class="mp-reviews-backdrop" type="button" id="mp-reviews-backdrop" aria-label="Cerrar reseñas"></button>
     <div class="mp-reviews-content">
@@ -331,38 +426,38 @@ import "./MiPerfil.css";
         <button class="mp-close" type="button" id="mp-close-reviews" aria-label="Cerrar reseñas">×</button>
       </div>
       <div class="mp-review-summary">
-        <strong>4.8</strong>
-        <div><span class="mp-stars">★★★★★</span><p>124 reseñas</p></div>
+        <strong>{resenas.promedio ?? "—"}</strong>
+        <div><span class="mp-stars">{estrellas(resenas.promedio ?? 0)}</span><p>{textoResenas}</p></div>
       </div>
       <div class="mp-rating-bars">
-        <div><span>5 estrellas</span><span class="mp-bar"><i style="width:71%"></i></span><b>88</b></div>
-        <div><span>4 estrellas</span><span class="mp-bar"><i style="width:18%"></i></span><b>22</b></div>
-        <div><span>3 estrellas</span><span class="mp-bar"><i style="width:7%"></i></span><b>8</b></div>
-        <div><span>2 estrellas</span><span class="mp-bar"><i style="width:3%"></i></span><b>4</b></div>
-        <div><span>1 estrella</span><span class="mp-bar"><i style="width:2%"></i></span><b>2</b></div>
+        {resenas.porEstrella.map((f: any) => (
+          <div>
+            <span>{f.estrellas} {f.estrellas === 1 ? "estrella" : "estrellas"}</span>
+            <span class="mp-bar"><i style={`width:${resenas.total ? Math.round((f.cantidad / resenas.total) * 100) : 0}%`}></i></span>
+            <b>{f.cantidad}</b>
+          </div>
+        ))}
       </div>
       <h3 class="mp-reviews-subtitle">Comentarios de pacientes</h3>
-      <article class="mp-review">
-        <div class="mp-review-top"><strong>María C.</strong><time>12 abr. 2025</time></div>
-        <span class="mp-stars">★★★★★</span>
-        <p>Me sentí muy cómoda en la sesión. La atención fue empática y profesional.</p>
-      </article>
-      <article class="mp-review">
-        <div class="mp-review-top"><strong>Jaime S.</strong><time>3 abr. 2025</time></div>
-        <span class="mp-stars">★★★★★</span>
-        <p>Excelente atención, me ayudó mucho con mi proceso personal.</p>
-      </article>
-      <article class="mp-review">
-        <div class="mp-review-top"><strong>Laura P.</strong><time>21 mar. 2025</time></div>
-        <span class="mp-stars">★★★★☆</span>
-        <p>Muy buena experiencia y un espacio en el que pude expresarme.</p>
-      </article>
-      <p class="mp-muted">Las reseñas mostradas son datos ilustrativos de la interfaz.</p>
+      {resenas.comentarios.length === 0 && (
+        <p class="mp-muted">Todavía no tienes comentarios. Aparecerán aquí cuando tus pacientes califiquen sus citas.</p>
+      )}
+      {resenas.comentarios.map((r: any) => (
+        <article class="mp-review">
+          <div class="mp-review-top"><strong>{r.nombre}</strong><time>{fechaResena(r.fecha)}</time></div>
+          <span class="mp-stars">{estrellas(r.puntaje)}</span>
+          <p>{r.comentario}</p>
+        </article>
+      ))}
     </div>
   </aside>
+
+  <script type="application/json" id="mp-datos" set:html={JSON.stringify(datos).replace(/</g, "\\u003c")}></script>
 </div>
 
 <script>
+  import { apiEnviar, textoError, pesos } from "../../lib/api";
+
   const page = document.querySelector<HTMLElement>("#mi-perfil-page");
 
   if (page && !page.dataset.initialized) {
@@ -390,18 +485,21 @@ import "./MiPerfil.css";
     const $ = <T extends Element>(selector: string) => page.querySelector<T>(selector);
     const $$ = <T extends Element>(selector: string) => Array.from(page.querySelectorAll<T>(selector));
 
-    const education: Education[] = [];
-    const experience: Experience[] = [];
+    const datos = JSON.parse($("#mp-datos")?.textContent || "{}");
+    const education: Education[] = datos.estudios ?? [];
+    const experience: Experience[] = datos.experiencia ?? [];
     let deleteTarget: { kind: "education" | "experience"; id: string } | null = null;
     let toastTimer: ReturnType<typeof setTimeout> | undefined;
 
     const toast = $("#mp-toast");
-    const money = (value: number) =>
-      new Intl.NumberFormat("es-CO", {
-        style: "currency",
-        currency: "COP",
-        maximumFractionDigits: 0,
-      }).format(value);
+
+    const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+    // "2024-03" -> "mar 2024"
+    const mesBonito = (valor: string) => {
+      const [a, m] = valor.split("-");
+      return a && m ? `${MESES[Number(m) - 1]} ${a}` : valor;
+    };
+    const textoModalidad = (m: string) => (m === "Ambas" ? "Virtual y presencial" : m);
 
     function notify(message: string) {
       if (!(toast instanceof HTMLElement)) return;
@@ -413,12 +511,31 @@ import "./MiPerfil.css";
       }, 2800);
     }
 
+    // Mensaje de error dentro de la ventana
+    function errorEn(form: Element | null, mensaje: string) {
+      const p = form?.querySelector<HTMLElement>(".mp-form-message");
+      if (p) p.textContent = mensaje;
+    }
+
+    // Bloquea el botón Guardar mientras se envía
+    async function enviando<T>(form: HTMLFormElement, tarea: () => Promise<T>): Promise<T> {
+      const boton = form.querySelector<HTMLButtonElement>("button[type=submit]");
+      if (boton) boton.disabled = true;
+      errorEn(form, "");
+      try {
+        return await tarea();
+      } finally {
+        if (boton) boton.disabled = false;
+      }
+    }
+
     function openModal(id: string) {
       $$(".mp-modal").forEach((modal) => {
         if (modal instanceof HTMLElement) modal.hidden = true;
       });
       const modal = $<HTMLElement>(`#${id}`);
       if (!modal) return;
+      modal.querySelectorAll<HTMLElement>(".mp-form-message").forEach((p) => (p.textContent = ""));
       modal.hidden = false;
       document.body.classList.add("mp-modal-open");
       modal.querySelector<HTMLElement>("input:not([type=hidden]):not([disabled]), textarea, select, button")?.focus();
@@ -453,6 +570,15 @@ import "./MiPerfil.css";
       return field instanceof HTMLInputElement && field.checked;
     }
 
+    function botonFila(texto: string, accion: () => void) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "mp-button mp-button-small mp-button-outline";
+      b.textContent = texto;
+      b.addEventListener("click", accion);
+      return b;
+    }
+
     function renderEducation() {
       const list = $("#mp-education-list");
       if (!list) return;
@@ -479,17 +605,10 @@ import "./MiPerfil.css";
 
         const actions = document.createElement("div");
         actions.className = "mp-record-actions";
-        const edit = document.createElement("button");
-        edit.type = "button";
-        edit.className = "mp-button mp-button-small mp-button-outline";
-        edit.textContent = "Editar";
-        edit.addEventListener("click", () => editEducation(item.id));
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "mp-button mp-button-small mp-button-outline";
-        remove.textContent = "Eliminar";
-        remove.addEventListener("click", () => askDelete("education", item.id, item.degree));
-        actions.append(edit, remove);
+        actions.append(
+          botonFila("Editar", () => editEducation(item.id)),
+          botonFila("Eliminar", () => askDelete("education", item.id, item.degree)),
+        );
         row.append(info, actions);
         list.append(row);
       });
@@ -516,7 +635,7 @@ import "./MiPerfil.css";
         const title = document.createElement("strong");
         title.textContent = item.workplace;
         const details = document.createElement("p");
-        details.textContent = `${item.position} · ${item.start || "Inicio no indicado"} – ${item.current ? "Actualmente" : item.end || "Fin no indicado"}`;
+        details.textContent = `${item.position} · ${item.start ? mesBonito(item.start) : "Inicio no indicado"} – ${item.current ? "Actualmente" : item.end ? mesBonito(item.end) : "Fin no indicado"}`;
         info.append(title, details);
         if (item.description) {
           const description = document.createElement("p");
@@ -526,17 +645,10 @@ import "./MiPerfil.css";
 
         const actions = document.createElement("div");
         actions.className = "mp-record-actions";
-        const edit = document.createElement("button");
-        edit.type = "button";
-        edit.className = "mp-button mp-button-small mp-button-outline";
-        edit.textContent = "Editar";
-        edit.addEventListener("click", () => editExperience(item.id));
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "mp-button mp-button-small mp-button-outline";
-        remove.textContent = "Eliminar";
-        remove.addEventListener("click", () => askDelete("experience", item.id, item.workplace));
-        actions.append(edit, remove);
+        actions.append(
+          botonFila("Editar", () => editExperience(item.id)),
+          botonFila("Eliminar", () => askDelete("experience", item.id, item.workplace)),
+        );
         row.append(info, actions);
         list.append(row);
       });
@@ -550,8 +662,15 @@ import "./MiPerfil.css";
       (form.elements.namedItem("id") as HTMLInputElement).value = item?.id || "";
       (form.elements.namedItem("institution") as HTMLInputElement).value = item?.institution || "";
       (form.elements.namedItem("degree") as HTMLInputElement).value = item?.degree || "";
-      (form.elements.namedItem("level") as HTMLSelectElement).value = item?.level || "Pregrado";
-      (form.elements.namedItem("year") as HTMLInputElement).value = item?.year || "";
+      const level = form.elements.namedItem("level") as HTMLSelectElement;
+      // Si en la base hay un nivel que no está en la lista, se agrega para no perderlo
+      if (item?.level && ![...level.options].some((o) => o.value === item.level)) {
+        level.add(new Option(item.level, item.level));
+      }
+      level.value = item?.level || "Pregrado";
+      const year = form.elements.namedItem("year") as HTMLInputElement;
+      year.value = item?.year || "";
+      year.disabled = item?.ongoing || false;
       (form.elements.namedItem("ongoing") as HTMLInputElement).checked = item?.ongoing || false;
       text("mp-education-title", item ? "Editar estudio" : "Agregar estudio");
       openModal("mp-modal-education");
@@ -566,7 +685,9 @@ import "./MiPerfil.css";
       (form.elements.namedItem("workplace") as HTMLInputElement).value = item?.workplace || "";
       (form.elements.namedItem("position") as HTMLInputElement).value = item?.position || "";
       (form.elements.namedItem("start") as HTMLInputElement).value = item?.start || "";
-      (form.elements.namedItem("end") as HTMLInputElement).value = item?.end || "";
+      const end = form.elements.namedItem("end") as HTMLInputElement;
+      end.value = item?.end || "";
+      end.disabled = item?.current || false;
       (form.elements.namedItem("current") as HTMLInputElement).checked = item?.current || false;
       (form.elements.namedItem("description") as HTMLTextAreaElement).value = item?.description || "";
       text("mp-experience-title", item ? "Editar experiencia" : "Agregar experiencia");
@@ -597,30 +718,86 @@ import "./MiPerfil.css";
       if (target.closest("[data-add-experience]")) editExperience();
     });
 
-    $("#mp-change-photo")?.addEventListener("click", () => {
-      const photoInput = $("#mp-photo-input"); 
-    
+    // ------------------------------ Foto ------------------------------
+    // Se reduce en el navegador (máx. 400 px, JPG) antes de enviarla,
+    // así la base de datos no guarda fotos de varios MB.
+    function reducirFoto(file: File): Promise<string> {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          // cambio: la foto se recorta cuadrada (sin importar su tamaño o forma)
+          // y queda de 400 × 400 px, así se ve bien en todos los círculos y tarjetas.
+          // Si es vertical se recorta un poco más abajo que arriba para no cortar la cara.
+          const lado = Math.min(img.width, img.height);
+          const x = (img.width - lado) / 2;
+          const y = (img.height - lado) * 0.3;
+          const tamano = Math.min(400, lado);
+          const canvas = document.createElement("canvas");
+          canvas.width = tamano;
+          canvas.height = tamano;
+          const ctx = canvas.getContext("2d");
+          URL.revokeObjectURL(url);
+          if (!ctx) return reject(new Error("canvas"));
+          ctx.fillStyle = "#ffffff"; // fondo blanco si la imagen tiene partes transparentes
+          ctx.fillRect(0, 0, tamano, tamano);
+          ctx.drawImage(img, x, y, lado, lado, 0, 0, tamano, tamano);
+          resolve(canvas.toDataURL("image/jpeg", 0.85));
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error("imagen"));
+        };
+        img.src = url;
+      });
+    }
 
-if (photoInput instanceof HTMLInputElement) {
-  photoInput.click();
-}
+    $("#mp-change-photo")?.addEventListener("click", () => {
+      const photoInput = $("#mp-photo-input");
+      if (photoInput instanceof HTMLInputElement) photoInput.click();
     });
 
-    $("#mp-photo-input")?.addEventListener("change", (event) => {
+    $("#mp-photo-input")?.addEventListener("change", async (event) => {
       const input = event.currentTarget;
       if (!(input instanceof HTMLInputElement) || !input.files?.[0]) return;
       const file = input.files[0];
-      if (!file.type.startsWith("image/")) {
-        notify("Selecciona un archivo de imagen válido.");
+      input.value = "";
+      if (!/^image\/(png|jpeg|webp)$/.test(file.type)) {
+        notify("Selecciona una imagen JPG, PNG o WEBP.");
         return;
       }
-      const avatar = $("#mp-avatar");
-      if (avatar instanceof HTMLImageElement) {
-        avatar.src = URL.createObjectURL(file);
+      if (file.size > 10 * 1024 * 1024) {
+        notify("La imagen es demasiado pesada (máximo 10 MB).");
+        return;
       }
-      notify("Foto actualizada en esta vista.");
+      const columna = $(".mp-avatar-column");
+      const boton = $<HTMLButtonElement>("#mp-change-photo");
+      columna?.classList.add("is-loading");
+      if (boton) boton.disabled = true;
+      try {
+        const foto = await reducirFoto(file);
+        const r = await apiEnviar("PUT", "/api/psicologo/perfil/foto", { foto });
+        if (!r.ok) {
+          notify(textoError(r.data, "No se pudo guardar la foto"));
+          return;
+        }
+        const avatar = $("#mp-avatar");
+        if (avatar instanceof HTMLImageElement) avatar.src = foto;
+        // cambio: también se actualiza la foto del menú de arriba
+        document.querySelectorAll<HTMLImageElement>(".profile-foto").forEach((img) => {
+          img.src = foto;
+          img.style.display = "";
+        });
+        notify("Foto actualizada.");
+      } catch {
+        notify("No se pudo leer la imagen.");
+      } finally {
+        columna?.classList.remove("is-loading");
+        if (boton) boton.disabled = false;
+      }
     });
 
+    // ----------------------------- Reseñas -----------------------------
     $("#mp-open-reviews")?.addEventListener("click", () => {
       const panel = $("#mp-reviews-panel");
       if (panel instanceof HTMLElement) {
@@ -640,8 +817,15 @@ if (photoInput instanceof HTMLInputElement) {
     $("#mp-close-reviews")?.addEventListener("click", closeReviews);
     $("#mp-reviews-backdrop")?.addEventListener("click", closeReviews);
 
+    // Perfil público: el mismo que ven los pacientes en Explorar
     $("#mp-public-profile")?.addEventListener("click", () => {
-      notify("Conecta aquí la ruta real de tu perfil público.");
+      if (!datos.perfilId) return notify("No pudimos cargar tu perfil.");
+      if (!datos.verificado) {
+        return notify("Tu perfil será público cuando el administrador lo verifique.");
+      }
+      // cambio: se abre en la misma pestaña y con ?propio=1, así el perfil público
+      // muestra "Volver a mi perfil" (antes se abría en otra pestaña sin forma de volver)
+      window.location.href = `/Explorar/${encodeURIComponent(datos.perfilId)}?propio=1`;
     });
 
     document.addEventListener("keydown", (event) => {
@@ -651,32 +835,31 @@ if (photoInput instanceof HTMLInputElement) {
       }
     });
 
-    const bioForm = $("#mp-form-bio");
-    const bioInput = $("#mp-bio-input");
+    // ---------------------------- Biografía ----------------------------
+    const bioForm = $<HTMLFormElement>("#mp-form-bio");
+    const bioInput = $<HTMLTextAreaElement>("#mp-bio-input");
     bioInput?.addEventListener("input", () => {
-      text("mp-bio-count", String((bioInput as HTMLTextAreaElement).value.length));
+      text("mp-bio-count", String(bioInput.value.length));
     });
 
-    bioForm?.addEventListener("submit", (event) => {
+    bioForm?.addEventListener("submit", async (event) => {
       event.preventDefault();
-      if (!(bioForm instanceof HTMLFormElement)) return;
-      const bio = fieldValue(bioForm, "bio");
-      text("mp-bio-display", bio);
-      text("mp-bio-preview", bio);
+      const biografia = fieldValue(bioForm, "bio");
+      const r = await enviando(bioForm, () => apiEnviar("PATCH", "/api/psicologo/perfil", { biografia }));
+      if (!r.ok) return errorEn(bioForm, textoError(r.data, "No se pudo guardar la biografía"));
+      text("mp-bio-display", biografia);
+      text("mp-bio-preview", biografia);
       closeModal(bioForm.closest<HTMLElement>(".mp-modal"));
-      notify("Biografía actualizada en esta vista.");
+      notify("Biografía guardada.");
     });
 
-    const specialtyOptions = $$("#mp-specialty-options input[name='specialty']");
-    const selectedSpecialties = () =>
-      specialtyOptions.filter((input): input is HTMLInputElement =>
-        input instanceof HTMLInputElement && input.checked
-      );
+    // -------------------------- Especialidades --------------------------
+    const specialtyOptions = $$<HTMLInputElement>("#mp-specialty-options input[name='specialty']");
+    const selectedSpecialties = () => specialtyOptions.filter((input) => input.checked);
 
     specialtyOptions.forEach((input) => {
       input.addEventListener("change", () => {
-        const selected = selectedSpecialties();
-        if (selected.length > 15 && input instanceof HTMLInputElement) {
+        if (selectedSpecialties().length > 15) {
           input.checked = false;
           notify("Puedes seleccionar un máximo de 15 especialidades.");
         }
@@ -684,106 +867,179 @@ if (photoInput instanceof HTMLInputElement) {
       });
     });
 
-    $("#mp-form-specialties")?.addEventListener("submit", (event) => {
+    const formEspecialidades = $<HTMLFormElement>("#mp-form-specialties");
+    formEspecialidades?.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const selected = selectedSpecialties().map((input) => input.value);
+      const selected = selectedSpecialties();
+      const r = await enviando(formEspecialidades, () =>
+        apiEnviar("PUT", "/api/psicologo/perfil/especialidades", {
+          especialidadIds: selected.map((input) => input.value),
+        }));
+      if (!r.ok) return errorEn(formEspecialidades, textoError(r.data, "No se pudieron guardar las especialidades"));
+
       const container = $("#mp-specialty-tags");
-      if (!container) return;
-      container.replaceChildren();
-      selected.forEach((specialty) => {
-        const tag = document.createElement("span");
-        tag.className = "mp-tag";
-        tag.textContent = specialty;
-        container.append(tag);
-      });
+      if (container) {
+        container.replaceChildren();
+        if (!selected.length) {
+          const vacio = document.createElement("p");
+          vacio.className = "mp-empty";
+          vacio.textContent = "Aún no has elegido especialidades.";
+          container.append(vacio);
+        }
+        selected.forEach((input) => {
+          const tag = document.createElement("span");
+          tag.className = "mp-tag";
+          tag.textContent = input.dataset.nombre || "";
+          container.append(tag);
+        });
+      }
       closeModal($("#mp-modal-specialties"));
-      notify("Especialidades actualizadas en esta vista.");
+      notify("Especialidades guardadas.");
     });
 
-    $("#mp-form-education")?.addEventListener("submit", (event) => {
+    // ----------------------------- Estudios -----------------------------
+    const formEstudio = $<HTMLFormElement>("#mp-form-education");
+    formEstudio?.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const form = event.currentTarget;
-      if (!(form instanceof HTMLFormElement) || !form.reportValidity()) return;
-      const id = fieldValue(form, "id") || crypto.randomUUID();
+      if (!formEstudio.reportValidity()) return;
+      const id = fieldValue(formEstudio, "id");
+      const ongoing = fieldChecked(formEstudio, "ongoing");
+      const year = fieldValue(formEstudio, "year");
+      const cuerpo = {
+        universidad: fieldValue(formEstudio, "institution"),
+        titulo: fieldValue(formEstudio, "degree"),
+        nivelEstudio: fieldValue(formEstudio, "level"),
+        anioGrado: ongoing || !year ? null : Number(year),
+        enCurso: ongoing,
+      };
+      const r = await enviando(formEstudio, () =>
+        id
+          ? apiEnviar("PATCH", `/api/psicologo/perfil/estudios/${id}`, cuerpo)
+          : apiEnviar("POST", "/api/psicologo/perfil/estudios", cuerpo));
+      if (!r.ok) return errorEn(formEstudio, textoError(r.data, "No se pudo guardar el estudio"));
+
       const item: Education = {
-        id,
-        institution: fieldValue(form, "institution"),
-        degree: fieldValue(form, "degree"),
-        level: fieldValue(form, "level"),
-        year: fieldValue(form, "year"),
-        ongoing: fieldChecked(form, "ongoing"),
+        id: id || r.data.estudioId,
+        institution: cuerpo.universidad,
+        degree: cuerpo.titulo,
+        level: cuerpo.nivelEstudio,
+        year: ongoing ? "" : year,
+        ongoing,
       };
-      const index = education.findIndex((entry) => entry.id === id);
+      const index = education.findIndex((entry) => entry.id === item.id);
       if (index >= 0) education[index] = item;
-      else education.push(item);
+      else education.unshift(item);
       renderEducation();
-      closeModal(form.closest<HTMLElement>(".mp-modal"));
-      notify("Estudio actualizado en esta vista.");
+      closeModal(formEstudio.closest<HTMLElement>(".mp-modal"));
+      notify(id ? "Estudio actualizado." : "Estudio agregado.");
     });
 
-    $("#mp-form-experience")?.addEventListener("submit", (event) => {
+    // Si está en curso, no se pide el año de grado
+    formEstudio?.querySelector("input[name='ongoing']")?.addEventListener("change", () => {
+      const year = formEstudio.elements.namedItem("year");
+      if (year instanceof HTMLInputElement) {
+        year.disabled = fieldChecked(formEstudio, "ongoing");
+        if (year.disabled) year.value = "";
+      }
+    });
+
+    // ---------------------------- Experiencia ----------------------------
+    const formExperiencia = $<HTMLFormElement>("#mp-form-experience");
+    formExperiencia?.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const form = event.currentTarget;
-      if (!(form instanceof HTMLFormElement) || !form.reportValidity()) return;
-      const id = fieldValue(form, "id") || crypto.randomUUID();
-      const current = fieldChecked(form, "current");
-      const item: Experience = {
-        id,
-        workplace: fieldValue(form, "workplace"),
-        position: fieldValue(form, "position"),
-        start: fieldValue(form, "start"),
-        end: current ? "" : fieldValue(form, "end"),
-        current,
-        description: fieldValue(form, "description"),
+      if (!formExperiencia.reportValidity()) return;
+      const id = fieldValue(formExperiencia, "id");
+      const current = fieldChecked(formExperiencia, "current");
+      const start = fieldValue(formExperiencia, "start");
+      const end = current ? "" : fieldValue(formExperiencia, "end");
+      if (end && end < start) {
+        return errorEn(formExperiencia, "La fecha de fin no puede ser antes del inicio.");
+      }
+      const cuerpo = {
+        empresa: fieldValue(formExperiencia, "workplace"),
+        cargo: fieldValue(formExperiencia, "position"),
+        descripcion: fieldValue(formExperiencia, "description"),
+        fechaInicio: start,
+        fechaFin: end || null,
+        trabajaAqui: current,
       };
-      const index = experience.findIndex((entry) => entry.id === id);
+      const r = await enviando(formExperiencia, () =>
+        id
+          ? apiEnviar("PATCH", `/api/psicologo/perfil/experiencia/${id}`, cuerpo)
+          : apiEnviar("POST", "/api/psicologo/perfil/experiencia", cuerpo));
+      if (!r.ok) return errorEn(formExperiencia, textoError(r.data, "No se pudo guardar la experiencia"));
+
+      const item: Experience = {
+        id: id || r.data.experienciaId,
+        workplace: cuerpo.empresa,
+        position: cuerpo.cargo,
+        start,
+        end,
+        current,
+        description: cuerpo.descripcion,
+      };
+      const index = experience.findIndex((entry) => entry.id === item.id);
       if (index >= 0) experience[index] = item;
-      else experience.push(item);
+      else experience.unshift(item);
       renderExperience();
-      closeModal(form.closest<HTMLElement>(".mp-modal"));
-      notify("Experiencia actualizada en esta vista.");
+      closeModal(formExperiencia.closest<HTMLElement>(".mp-modal"));
+      notify(id ? "Experiencia actualizada." : "Experiencia agregada.");
     });
 
-    const currentCheckbox = $("#mp-form-experience input[name='current']");
-    currentCheckbox?.addEventListener("change", () => {
-      const form = $("#mp-form-experience");
-      if (!(form instanceof HTMLFormElement)) return;
-      const end = form.elements.namedItem("end");
+    formExperiencia?.querySelector("input[name='current']")?.addEventListener("change", () => {
+      const end = formExperiencia.elements.namedItem("end");
       if (end instanceof HTMLInputElement) {
-        end.disabled = fieldChecked(form, "current");
+        end.disabled = fieldChecked(formExperiencia, "current");
         if (end.disabled) end.value = "";
       }
     });
 
-    $("#mp-form-attention")?.addEventListener("submit", (event) => {
+    // ----------------------------- Atención -----------------------------
+    const formAtencion = $<HTMLFormElement>("#mp-form-attention");
+    formAtencion?.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const form = event.currentTarget;
-      if (!(form instanceof HTMLFormElement) || !form.reportValidity()) return;
+      if (!formAtencion.reportValidity()) return;
 
-      const mode = fieldValue(form, "mode");
-      const price = Number(fieldValue(form, "price") || 0);
-      const address = fieldValue(form, "address");
+      const modalidad = fieldValue(formAtencion, "mode");
+      const precioPorHora = Number(fieldValue(formAtencion, "price") || 0);
+      const direccion = fieldValue(formAtencion, "address");
 
-      text("mp-mode-display", mode);
-      text("mp-mode-summary", mode);
-      text("mp-price-display", price ? money(price) : "Por definir");
-      text("mp-address-display", address || "Por definir");
-      closeModal(form.closest<HTMLElement>(".mp-modal"));
-      notify("Información de atención actualizada en esta vista.");
+      const r = await enviando(formAtencion, () =>
+        apiEnviar("PATCH", "/api/psicologo/perfil", { modalidad, precioPorHora, direccion }));
+      if (!r.ok) return errorEn(formAtencion, textoError(r.data, "No se pudo guardar la atención"));
+
+      text("mp-mode-display", textoModalidad(modalidad));
+      text("mp-mode-summary", textoModalidad(modalidad));
+      text("mp-price-display", precioPorHora ? pesos(precioPorHora) : "Por definir");
+      text("mp-address-display", direccion || "Por definir");
+      closeModal(formAtencion.closest<HTMLElement>(".mp-modal"));
+      notify("Información de atención guardada.");
     });
 
-    $("#mp-form-contact")?.addEventListener("submit", (event) => {
+    // ----------------------------- Contacto -----------------------------
+    const formContacto = $<HTMLFormElement>("#mp-form-contact");
+    formContacto?.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const form = event.currentTarget;
-      if (!(form instanceof HTMLFormElement) || !form.reportValidity()) return;
-      text("mp-phone-display", fieldValue(form, "phone") || "Por definir");
-      closeModal(form.closest<HTMLElement>(".mp-modal"));
-      notify("Teléfono actualizado en esta vista.");
+      if (!formContacto.reportValidity()) return;
+      const telefono = fieldValue(formContacto, "phone").replace(/\s/g, "");
+      const r = await enviando(formContacto, () => apiEnviar("PATCH", "/api/psicologo/perfil", { telefono }));
+      if (!r.ok) return errorEn(formContacto, textoError(r.data, "No se pudo guardar el teléfono"));
+      text("mp-phone-display", telefono || "Por definir");
+      closeModal(formContacto.closest<HTMLElement>(".mp-modal"));
+      notify("Teléfono guardado.");
     });
 
-    $("#mp-confirm-delete")?.addEventListener("click", () => {
+    // ----------------------------- Eliminar -----------------------------
+    $("#mp-confirm-delete")?.addEventListener("click", async (event) => {
       if (!deleteTarget) return;
+      const boton = event.currentTarget as HTMLButtonElement;
       const { kind, id } = deleteTarget;
+      const ruta = kind === "education" ? "estudios" : "experiencia";
+      boton.disabled = true;
+      const r = await apiEnviar("DELETE", `/api/psicologo/perfil/${ruta}/${id}`);
+      boton.disabled = false;
+      if (!r.ok) return notify(textoError(r.data, "No se pudo eliminar"));
+
       if (kind === "education") {
         const index = education.findIndex((item) => item.id === id);
         if (index >= 0) education.splice(index, 1);
@@ -795,21 +1051,10 @@ if (photoInput instanceof HTMLInputElement) {
       }
       deleteTarget = null;
       closeModal($("#mp-modal-delete"));
-      notify("Elemento eliminado de esta vista.");
+      notify("Eliminado.");
     });
-
-    $("#mp-save-all")?.addEventListener("click", () => {
-      notify("Los cambios están en esta vista. Conecta el backend para guardarlos permanentemente.");
-    });
-
-    const email = $("#mp-contact-email");
-    const emailDisplay = $("#mp-email-display");
-    if (email instanceof HTMLInputElement && emailDisplay) {
-      email.value = emailDisplay.textContent?.trim() || "";
-    }
 
     renderEducation();
     renderExperience();
-}
-
+  }
 </script>

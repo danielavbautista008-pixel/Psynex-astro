@@ -1,0 +1,267 @@
+---
+// =====================================================================
+// components/EmpresaBeneficio/PlanesEmpresa.astro
+// Vista de Empresa: planes empresariales para sus trabajadores.
+// La empresa elige un plan y cuántos trabajadores cubre; se genera una
+// orden de pago y sigue el proceso en "Mi beneficio".
+// =====================================================================
+import MenuE from "../empresa/menuE.astro";
+import "./beneficio.css";
+import { apiGet, pesos } from "../../lib/api";
+
+interface PlanEmpresarial {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  beneficios: string[];
+  precioPorEmpleado: number;
+  moneda: string;
+  sesiones: number;
+  duracionDias: number;
+}
+
+const cookie = Astro.request.headers.get("cookie");
+const datos = await apiGet<{
+  empresa: { nombre: string; verificada: boolean };
+  planes: PlanEmpresarial[];
+  bloqueo: string | null;
+}>(cookie, "/api/empresa/beneficio/planes");
+
+const planes = datos?.planes ?? [];
+const verificada = datos?.empresa?.verificada ?? false;
+const bloqueo = datos?.bloqueo ?? null;
+const puedeSolicitar = Boolean(datos) && verificada && !bloqueo;
+
+const textoDuracion = (dias: number) =>
+  dias % 30 === 0 ? `${dias / 30} ${dias / 30 === 1 ? "mes" : "meses"}` : `${dias} días`;
+
+const planesJson = JSON.stringify(planes);
+---
+
+<div class="bnf-page">
+  <MenuE />
+
+  <main class="bnf-main">
+    <header class="bnf-header">
+      <div>
+        <!-- <span class="bnf-eyebrow">Bienestar para tu equipo</span> -->
+        <h1>Planes empresariales</h1>
+        <p>
+          Elige un plan y cuántos trabajadores quieres cubrir. Cada trabajador podrá agendar sus
+          sesiones con el psicólogo que prefiera dentro de Psynex.
+        </p>
+      </div>
+      <a href="/Empresa/Beneficio" class="bnf-btn secundario">
+        <i class="bi bi-shield-check"></i> Mi beneficio
+      </a>
+    </header>
+
+    <ol class="bnf-pasos">
+      <li>
+        <span class="bnf-paso-num">1</span>
+        <div><strong>Elige tu plan</strong><span>Indica cuántos trabajadores quieres cubrir.</span></div>
+      </li>
+      <li>
+        <span class="bnf-paso-num">2</span>
+        <div><strong>Paga la orden</strong><span>Transfiere y sube el comprobante. Psynex confirma el pago.</span></div>
+      </li>
+      <li>
+        <span class="bnf-paso-num">3</span>
+        <div><strong>Comparte el código</strong><span>Tus trabajadores lo usan para agendar sus sesiones.</span></div>
+      </li>
+    </ol>
+
+    {!datos && (
+      <div class="bnf-aviso error">
+        <i class="bi bi-exclamation-circle"></i>
+        <div>No pudimos cargar los planes. Revisa tu conexión e intenta de nuevo.</div>
+      </div>
+    )}
+
+    {datos && !verificada && (
+      <div class="bnf-aviso alerta">
+        <i class="bi bi-hourglass-split"></i>
+        <div>Tu empresa aún no ha sido verificada por Psynex. Podrás contratar un plan cuando terminemos la revisión de tus documentos.</div>
+      </div>
+    )}
+
+    {datos && verificada && bloqueo && (
+      <div class="bnf-aviso">
+        <i class="bi bi-info-circle"></i>
+        <div>{bloqueo} <a href="/Empresa/Beneficio">Ir a Mi beneficio</a></div>
+      </div>
+    )}
+
+    {datos && planes.length === 0 && (
+      <section class="bnf-vacio">
+        <i class="bi bi-box-seam"></i>
+        <h2>Pronto tendremos planes para tu empresa</h2>
+        <p>Psynex todavía no ha publicado planes empresariales. Vuelve más tarde.</p>
+      </section>
+    )}
+
+    {planes.length > 0 && (
+      <section class="bnf-planes">
+        {planes.map((p) => (
+          <article class="bnf-plan">
+            <div>
+              <h2>{p.nombre}</h2>
+              {p.descripcion && <p class="bnf-plan-desc">{p.descripcion}</p>}
+            </div>
+
+            <div class="bnf-precio">
+              <strong>{pesos(p.precioPorEmpleado)}</strong>
+              <span>por trabajador</span>
+            </div>
+
+            <div class="bnf-datos">
+              <div class="bnf-dato">
+                <small>Sesiones</small>
+                <strong>{p.sesiones} por trabajador</strong>
+              </div>
+              <div class="bnf-dato">
+                <small>Vigencia</small>
+                <strong>{textoDuracion(p.duracionDias)}</strong>
+              </div>
+            </div>
+
+            {p.beneficios.length > 0 && (
+              <ul class="bnf-beneficios">
+                {p.beneficios.map((b) => (
+                  <li><i class="bi bi-check2-circle"></i>{b}</li>
+                ))}
+              </ul>
+            )}
+
+            <button type="button" class="bnf-btn" data-plan={p.id} disabled={!puedeSolicitar}>
+              Elegir este plan
+            </button>
+          </article>
+        ))}
+      </section>
+    )}
+
+    <p class="bnf-nota">
+      <i class="bi bi-lock"></i>
+      <span>
+        Por confidencialidad, tu empresa solo verá cifras: cuántos trabajadores se vincularon y cuántas
+        sesiones se han usado. Nunca quién se atendió, con quién ni qué se habló.
+      </span>
+    </p>
+  </main>
+
+  <!-- Solicitar plan -->
+  <div class="bnf-overlay" id="modalSolicitar" aria-hidden="true">
+    <div class="bnf-dialog" role="dialog" aria-modal="true" aria-labelledby="solicitarTitulo">
+      <div class="bnf-dialog-top">
+        <div>
+          <h3 id="solicitarTitulo">Solicitar plan</h3>
+          <p id="solicitarPlan"></p>
+        </div>
+        <button type="button" class="bnf-cerrar" data-cerrar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+      </div>
+
+      <form id="formSolicitar" novalidate>
+        <div class="bnf-campo">
+          <label for="campoEmpleados">¿Cuántos trabajadores quieres cubrir?</label>
+          <input id="campoEmpleados" type="number" min="1" max="5000" step="1" value="10" required />
+          <small>Cada trabajador usará el mismo código para vincularse.</small>
+        </div>
+
+        <div class="bnf-calculo">
+          <div><span>Valor por trabajador</span><strong id="calcPrecio"></strong></div>
+          <div><span>Sesiones en total</span><strong id="calcSesiones"></strong></div>
+          <div><span>Vigencia</span><strong id="calcVigencia"></strong></div>
+          <div class="total"><span>Total a pagar</span><strong id="calcTotal"></strong></div>
+        </div>
+
+        <p class="bnf-error" id="solicitarError" role="alert"></p>
+
+        <div class="bnf-dialog-acciones">
+          <button type="button" class="bnf-btn secundario" data-cerrar>Cancelar</button>
+          <button type="submit" class="bnf-btn" id="solicitarEnviar">Generar orden de pago</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="application/json" id="planesDatos" set:html={planesJson}></script>
+</div>
+
+<script>
+  import { apiEnviar, textoError } from "../../lib/api";
+
+  type Plan = { id: string; nombre: string; precioPorEmpleado: number; sesiones: number; duracionDias: number };
+
+  const planes: Plan[] = JSON.parse(document.getElementById("planesDatos")?.textContent || "[]");
+  const modal = document.getElementById("modalSolicitar") as HTMLDivElement;
+  const form = document.getElementById("formSolicitar") as HTMLFormElement;
+  const campo = document.getElementById("campoEmpleados") as HTMLInputElement;
+  const error = document.getElementById("solicitarError") as HTMLParagraphElement;
+  const enviar = document.getElementById("solicitarEnviar") as HTMLButtonElement;
+
+  const pesos = (v: number) =>
+    new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v).replace(/\s/g, "");
+  const duracion = (d: number) => (d % 30 === 0 ? `${d / 30} ${d / 30 === 1 ? "mes" : "meses"}` : `${d} días`);
+  const poner = (id: string, t: string) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t;
+  };
+
+  let elegido: Plan | null = null;
+
+  function calcular() {
+    if (!elegido) return;
+    const n = Math.max(0, Math.floor(Number(campo.value) || 0));
+    poner("calcPrecio", pesos(elegido.precioPorEmpleado));
+    poner("calcSesiones", `${(n * elegido.sesiones).toLocaleString("es-CO")} (${elegido.sesiones} c/u)`);
+    poner("calcVigencia", duracion(elegido.duracionDias));
+    poner("calcTotal", pesos(n * elegido.precioPorEmpleado));
+  }
+
+  function abrir(plan: Plan) {
+    elegido = plan;
+    poner("solicitarPlan", plan.nombre);
+    error.textContent = "";
+    calcular();
+    modal.classList.add("visible");
+    modal.setAttribute("aria-hidden", "false");
+    setTimeout(() => campo.focus(), 50);
+  }
+
+  function cerrar() {
+    modal.classList.remove("visible");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
+  document.querySelectorAll<HTMLButtonElement>("[data-plan]").forEach((b) => {
+    b.addEventListener("click", () => {
+      const plan = planes.find((p) => p.id === b.dataset.plan);
+      if (plan) abrir(plan);
+    });
+  });
+  modal.querySelectorAll("[data-cerrar]").forEach((b) => b.addEventListener("click", cerrar));
+  modal.addEventListener("click", (e) => { if (e.target === modal) cerrar(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") cerrar(); });
+  campo.addEventListener("input", calcular);
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!elegido) return;
+    const empleados = Number(campo.value);
+    if (!Number.isInteger(empleados) || empleados < 1 || empleados > 5000) {
+      error.textContent = "Escribe un número de trabajadores entre 1 y 5.000.";
+      return;
+    }
+    enviar.disabled = true;
+    enviar.textContent = "Generando…";
+    const r = await apiEnviar("POST", "/api/empresa/beneficio/solicitudes", { planId: elegido.id, empleados });
+    if (r.ok) {
+      location.href = "/Empresa/Beneficio";
+      return;
+    }
+    error.textContent = textoError(r.data, "No se pudo crear la solicitud");
+    enviar.disabled = false;
+    enviar.textContent = "Generar orden de pago";
+  });
+</script>

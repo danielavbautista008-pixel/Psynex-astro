@@ -2749,3 +2749,50 @@ body.modal-abierto {
 .detalle-acciones[hidden] {
     display: none !important;
 }
+
+
+/* =====================================================
+   VENTANAS EMERGENTES: tamaño justo
+   Bootstrap también usa la clase "modal" y le pone
+   height: 100%; por eso se estiraban a toda la pantalla.
+===================================================== */
+
+.modal-overlay .modal {
+    height: auto !important;
+    border-radius: 16px;
+}
+
+.modal-overlay .modal-header {
+    padding: 16px 20px !important;
+}
+
+.modal-overlay .modal-header h2 {
+    font-size: 16px !important;
+    font-weight: 600;
+}
+
+.modal-overlay .modal-header p {
+    font-size: 11.5px !important;
+}
+
+.modal-overlay .modal-body,
+.modal-overlay .modal-content {
+    padding: 16px 20px !important;
+    font-size: 12px;
+}
+
+.modal-overlay .modal-body p,
+.rechazo-alerta p,
+.confirmacion-texto {
+    font-size: 12px !important;
+    line-height: 1.55;
+}
+
+.modal-overlay .modal-footer {
+    padding: 12px 20px !important;
+}
+
+.modal-overlay .modal-footer button {
+    height: 34px;
+    font-size: 12px !important;
+}

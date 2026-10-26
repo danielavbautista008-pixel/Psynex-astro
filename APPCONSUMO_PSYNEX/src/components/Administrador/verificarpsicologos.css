@@ -2890,3 +2890,21 @@ body.modal-abierto {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* Letra un poco más legible dentro de las ventanas */
+.modal-overlay .alerta-rechazo p,
+.modal-overlay .perfil-descripcion p {
+    font-size: 11.5px;
+}
+
+.modal-overlay .perfil-dato span,
+.modal-overlay .perfil-descripcion span {
+    font-size: 10.5px;
+}
+
+.modal-overlay .btn-cancelar,
+.modal-overlay .btn-confirmar-rechazo {
+    height: 34px;
+    font-size: 12px;
+}

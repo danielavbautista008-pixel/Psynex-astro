@@ -1,369 +1,127 @@
-/* Reseteo general */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Roboto', 'Segoe UI', sans-serif;
-}
+/* Mis citas del paciente (lo común está en paciente.css) */
 
-body {
-  background: var(--bg, #f8f3ed4d);
-  overflow-x: hidden;
-}
-
-.landing-container {
-  width: 100%;
-  min-height: 100vh;
-  background: var(--bg);
-}
-
-/* CONTENEDOR PRINCIPAL IGUAL AL DE INICIO (.Bienvenida-Em) */
-.Bienvenida-Em {
-  font-family: "Roboto", sans-serif;
-  max-width: 1200px;
-  margin: 30px auto;
-  padding: 0 200px;
+.cit-lista {
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  background: var(--bg);
-}
-
-@media (max-width: 1200px) {
-  .Bienvenida-Em {
-    padding: 0 50px;
-  }
-}
-
-@media (max-width: 768px) {
-  .Bienvenida-Em {
-    padding: 0 20px;
-    margin: 20px auto;
-  }
-}
-
-/* Contenedor principal que centra la tarjeta superior */
-.empty-state-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Tarjeta central vacía */
-.empty-card {
-  background-color: #ffffff;
-  border: 1px solid var(--border, #e2e2ec);
-  border-radius: 16px;
-  padding: 40px 20px;
-  width: 100%;
-  text-align: center;
-  box-shadow: 0 4px 20px rgba(75, 52, 37, 0.05);
-}
-
-/* Contenedor del icono */
-.icon-wrapper {
-  background-color: #fcf8f4;
-  color: var(--primary, #c69a63);
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 24px auto;
-  border-radius: 12px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 24px;
-}
-
-.empty-title {
-  color: var(--text, #4b3425);
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.3;
-  margin-bottom: 12px;
-}
-
-.empty-description {
-  color: var(--text, #3d3028);
-  font-size: 14px;
-  line-height: 1.5;
-  margin-bottom: 30px;
-  max-width: 300px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.btn-primary {
-  background-color: var(--primary, #c69a63);
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-  width: 100%;
-  max-width: 320px;
-}
-
-.btn-primary:hover {
-  background-color: var(--text, #4b3425);
-}
-
-/* Tarjeta: Próxima Cita */
-.card-proxima-cita {
-  background-color: #ffffff;
-  border: 1px solid #f3ede6;
-  border-radius: 16px;
-  padding: 1.8rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  box-shadow: 0 4px 20px rgba(75, 52, 37, 0.04);
-}
-
-.proxima-cita-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 1.5rem;
-  flex-grow: 1;
-}
-
-.calendar-circle {
-  background-color: rgba(198, 154, 99, 0.12);
-  color: var(--primary, #c69a63);
-  font-size: 1.6rem;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.proxima-cita-info {
-  flex-grow: 1;
-}
-
-.proxima-cita-info h5 {
-  font-size: 0.88rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: var(--primary, #c69a63);
-  margin-bottom: 1rem;
-  margin-top: 0.2rem;
-}
-
-.cita-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 1.5rem;
-  align-items: start;
-}
-
-.cita-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-}
-
-.cita-item i {
-  color: var(--primary, #c69a63);
-  font-size: 1.1rem;
-  margin-top: 2px;
-}
-
-.cita-item small {
-  display: block;
-  opacity: 0.6;
-  font-size: 0.78rem;
-  margin-bottom: 2px;
-  color: var(--text, #3d3028);
-}
-
-.cita-item h6 {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text, #4b3425);
-  margin: 0;
-  text-transform: capitalize;
-}
-
-.cita-item span {
-  display: block;
-  font-size: 0.85rem;
-  opacity: 0.8;
-  color: var(--text, #3d3028);
-}
-
-.btn-ingresar {
-  background: var(--text, #4b3425);
-  color: #ffffff;
-  border: none;
-  padding: 0.8rem 1.6rem;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-decoration: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  white-space: nowrap;
-  transition: all 0.3s ease;
-}
-
-.btn-ingresar:hover:not([disabled]) {
-  background: var(--primary, #c69a63);
-  transform: translateY(-2px);
-}
-
-/* Historial y Tabla */
-.historial-section {
-  width: 100%;
-}
-
-.historial-section h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text, #4b3425);
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.historial-section h3 i {
-  color: var(--primary, #c69a63);
-}
-
-.table-responsive {
-  border: 1px solid #f3ede6;
-  border-radius: 16px;
-  overflow-x: auto;
-  background-color: #ffffff;
-  box-shadow: 0 4px 20px rgba(75, 52, 37, 0.03);
-}
-
-.tabla-citas {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.tabla-citas th {
-  background-color: #ffffff;
-  font-weight: 600;
-  font-size: 11px;
-  color: var(--text, #3d3028);
-  opacity: 0.6;
-  padding: 12px 16px;
-  border-bottom: 1px solid #f5ede4;
-}
-
-.tabla-citas td {
-  padding: 16px;
-  font-size: 12px;
-  border-bottom: 1px solid #fcfaf7;
-  color: var(--text, #3d3028);
-  vertical-align: middle;
-}
-
-.doctor-info {
-  display: flex;
-  align-items: center;
   gap: 12px;
 }
 
-.doctor-info img {
-  width: 36px;
-  height: 36px;
+.cit-lista[hidden] {
+  display: none;
+}
+
+.cit-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.cit-foto {
+  position: relative; /* cambio: para poner la foto encima de la inicial */
+  overflow: hidden;
+  text-decoration: none;
+  width: 52px; /* cambio: un poco más grande para que se vea la foto */
+  height: 52px;
+  display: grid;
+  place-items: center;
   border-radius: 50%;
-  object-fit: cover;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 17px;
 }
 
-.btn-detalles {
-  background: transparent;
-  border: 1px solid #e8e1da;
-  color: var(--text, #4b3425);
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-detalles:hover {
-  border-color: var(--primary, #c69a63);
-  color: var(--primary, #c69a63);
-  background-color: #fdfcfb;
-}
-
-/* Badges unificados con inicio */
-.badge-success { background-color: #e8f7ee; color: #28a745; padding: 6px 14px; border-radius: 30px; font-weight: 600; font-size: 10px; display: inline-block; }
-.badge-warning { background-color: #fdf5eb; color: #d79a4a; padding: 6px 14px; border-radius: 30px; font-weight: 600; font-size: 10px; display: inline-block; }
-.badge-danger { background-color: #f8d7da; color: #721c24; padding: 6px 14px; border-radius: 30px; font-weight: 600; font-size: 10px; display: inline-block; }
-.badge-secondary { background-color: #f5f5f5; color: #6c757d; padding: 6px 14px; border-radius: 30px; font-weight: 600; font-size: 10px; display: inline-block; }
-
-/* Aviso / Banner Inferior */
-.alerta-citas {
-  background-color: #ffffff;
-  border: 1px solid #f3ede6;
-  border-left: 4px solid var(--primary, #c69a63);
-  border-radius: 12px;
-  padding: 1.2rem 1.5rem;
-  margin-top: 1.5rem;
+.cit-info {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.cit-nombre {
+  display: flex;
   align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cit-nombre strong {
+  font-size: 14px;
+}
+
+.cit-esp {
   font-size: 12px;
-  box-shadow: 0 4px 15px rgba(75, 52, 37, 0.02);
+  color: var(--text-muted);
 }
 
-.btn-ayuda {
-  background: #ffffff;
-  border: 1px solid #e8e1da;
-  color: var(--text, #4b3425);
-  padding: 0.5rem 1.1rem;
-  border-radius: 8px;
+.cit-cuando {
+  font-size: 12.5px;
   font-weight: 600;
-  font-size: 11px;
-  cursor: pointer;
+  margin-top: 2px;
+}
+
+.cit-cuando i {
+  color: var(--primary);
+  margin-right: 2px;
+}
+
+.cit-tags {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s ease;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
 }
 
-.btn-ayuda:hover {
-  border-color: var(--primary, #c69a63);
-  color: var(--primary, #c69a63);
+.cit-acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
 }
 
-/* Responsividad */
-@media (max-width: 992px) {
-  .card-proxima-cita {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1.5rem;
+.cit-estrellas {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.cit-estrellas button {
+  border: 0;
+  background: transparent;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--border);
+  cursor: pointer;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.cit-estrellas button:hover {
+  transform: scale(1.12);
+}
+
+.cit-estrellas button.activa {
+  color: var(--primary);
+}
+
+@media (max-width: 640px) {
+  .cit-item {
+    grid-template-columns: auto minmax(0, 1fr);
   }
-  .cita-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  .cit-acciones {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    flex-wrap: wrap;
   }
 }
 
-@media (max-width: 768px) {
-  .cita-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .alerta-citas {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-  }
+/* cambio: foto del psicólogo, se acomoda sin importar el tamaño */
+.cit-foto img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 25%;
 }

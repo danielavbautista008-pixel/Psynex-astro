@@ -2042,3 +2042,379 @@
   font-size: 11px;
   line-height: 1.6;
 }
+
+
+/* =====================================================
+   HORARIOS (contenedor público, en la barra lateral)
+===================================================== */
+
+/* La barra lateral ya es alta: deja de quedarse fija
+   para que el final de Horarios siempre se pueda ver. */
+.perfil-sidebar:has(.horarios-card) {
+  position: static;
+}
+
+.horarios-publicos {
+  display: grid;
+  gap: 16px;
+}
+
+.horarios-publicos h4 {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.horarios-semana ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.horarios-semana li {
+  display: grid;
+  gap: 1px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.horarios-semana li strong {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.horarios-semana li span {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.horarios-dias {
+  display: grid;
+  gap: 10px;
+}
+
+.horarios-dia {
+  display: grid;
+  gap: 5px;
+}
+
+.horarios-fecha {
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.horarios-horas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.hora-chip {
+  height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease, color .2s ease;
+}
+
+.hora-chip:hover {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--on-primary, #fff);
+}
+
+.horarios-mas,
+.horarios-nota {
+  color: var(--text-muted);
+  font-size: 10.5px;
+}
+
+.horarios-nota {
+  display: block;
+  margin-top: 10px;
+}
+
+.horarios-vacio {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+
+
+/* =====================================================
+   RESEÑAS: calificar
+===================================================== */
+
+.resena-nueva {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--primary) 5%, transparent);
+}
+
+.resena-nueva strong {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.resena-nueva p {
+  margin: 2px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.resena-estado {
+  margin: 0;
+}
+
+.resena-form {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.resena-form[hidden] {
+  display: none;
+}
+
+.resena-estrellas {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.estrella {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--border);
+  font-size: 22px;
+  cursor: pointer;
+  transition: color .15s ease, transform .15s ease;
+}
+
+.estrella.activa {
+  color: #e2a93b;
+}
+
+.estrella:hover {
+  transform: scale(1.12);
+}
+
+.resena-valor {
+  margin-left: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.resena-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  resize: vertical;
+  outline: none;
+}
+
+.resena-form textarea:focus {
+  border-color: var(--primary);
+}
+
+.resena-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.resena-pie small {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.resena-btn {
+  height: 34px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary, #fff);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.resena-btn:hover {
+  background: var(--primary-hover, var(--primary));
+}
+
+.resena-btn:disabled {
+  opacity: .6;
+  cursor: default;
+}
+
+.resena-error {
+  margin: 0;
+  color: var(--danger-fg, #b3261e);
+  font-size: 12px;
+}
+
+@media (max-width: 560px) {
+  .resena-nueva {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+
+/* =====================================================
+   AGENDAR: solo, en pareja o en familia (paso 4)
+===================================================== */
+
+.formato-opciones {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.formato-opciones .modal-opcion {
+  padding: 10px;
+}
+
+.acompanantes {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.acompanantes-titulo {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.acompanantes-lista {
+  display: grid;
+  gap: 6px;
+}
+
+.acompanante-fila {
+  display: flex;
+  gap: 6px;
+}
+
+.acompanante-fila input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12.5px;
+}
+
+.acompanante-fila input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.acompanante-quitar {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.acompanante-quitar:hover {
+  border-color: var(--danger-fg);
+  color: var(--danger-fg);
+}
+
+.acompanantes-agregar {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px dashed var(--primary);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.acompanantes-nota {
+  display: flex;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+@media (max-width: 560px) {
+  .formato-opciones {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* cambio: aviso cuando el psicólogo ve su propio perfil público */
+.perfil-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.perfil-propio-aviso {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* cambio: la foto se acomoda sola al recuadro sin importar su tamaño o forma */
+.perfil-foto {
+  object-fit: cover;
+  object-position: center 30%;
+}

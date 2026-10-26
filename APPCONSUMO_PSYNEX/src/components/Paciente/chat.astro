@@ -1,0 +1,11 @@
+---
+// =====================================================================
+// cambio: el Chat del paciente es LA MISMA vista de Mensajes del
+// psicólogo (components/Psicologos/Mensajes.astro) con el menú del
+// paciente. Usa el chat real del backend (/api/chat/...), que ya permite
+// al paciente hablar con los psicólogos con los que tiene citas.
+// =====================================================================
+import Mensajes from "../Psicologos/Mensajes.astro";
+---
+
+<Mensajes paciente />

@@ -1,21 +1,25 @@
-.landing-container {
-  width: 100%;
-  min-height: 100vh;
-  background: var(--bg);
-}
-
 body {
   background: var(--bg);
   overflow-x: hidden;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Hace que el body ocupe toda la altura de la ventana */
+}
+
+.landing-container {
+  flex: 1; /* Hace que este contenedor crezca y ocupe el espacio disponible */
+  width: 100%;
+  background: var(--bg);
 }
 
 /* DASHBOARD SECTION */
 
 .Bienvenida-Em {
-  font-family: "Roboto", sans-serif;
+  font-family: var(--bs-body-font-family); /* cambio de fuente: la misma de las vistas de psicólogo */
   max-width: 1200px;
-  margin: 30px auto;
-  padding: 0 200px;
+  margin: 44px auto 20px; /* más espacio entre el menú y el título */
+  padding: 0 200px 40px 200px;
   display: flex;
   flex-direction: column;
   gap: 32px;
@@ -31,6 +35,8 @@ body {
 
 /* Encabezado */
 .dashboard-header h1 {
+  /* cambio de fuente: misma letra de título que Inicio, Ofertas y Favoritos */
+  font-family: var(--bs-body-font-family);
   font-size: 24px;
   font-weight: 700;
   color: var(--text, #4b3425);
@@ -38,6 +44,7 @@ body {
 }
 
 .dashboard-header p {
+   font-family: inherit;
   font-size: 13px;
   color: var(--text, #3d3028);
   opacity: 0.8;
@@ -65,7 +72,7 @@ body {
   height: 54px;
   border-radius: 50%;
   background-color: #fcf8f4;
-  color: var(--primary, #c69a63);
+  color: var(--primary, /* #c69a63*/);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -96,7 +103,7 @@ body {
 .metric-link {
   font-size: 11px;
   font-weight: 600;
-  color: var(--primary, #c69a63);
+  color: var(--primary, /* #c69a63*/);
   text-decoration: none;
   transition: 0.3s;
 }
@@ -119,7 +126,7 @@ body {
 }
 
 .action-card {
-  background: #ffffff;
+ /* background: #ffffff;*/
   border-radius: 16px;
   padding: 20px;
   display: flex;
@@ -137,8 +144,8 @@ body {
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  background-color: #fcf8f4;
-  color: var(--primary, #c69a63);
+ /* background-color: #fcf8f4;*/
+  color: var(--primary, /* #c69a63*/);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -147,6 +154,7 @@ body {
 
 .action-details {
   flex-grow: 1;
+   font-family: inherit;
 }
 
 .action-details h3 {
@@ -161,13 +169,14 @@ body {
   color: var(--text, #3d3028);
   opacity: 0.7;
   margin: 0;
+  font-family: inherit;
 }
 
 .action-btn-circle {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--primary, #c69a63);
+  background: var(--primary, /* #c69a63*/);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -213,7 +222,7 @@ body {
   color: var(--text, #3d3028);
   opacity: 0.6;
   padding: 12px 16px;
-  border-bottom: 1px solid #f5ede4;
+  border-bottom: 1px solid var(--border);
 }
 
 .custom-table td {
@@ -253,7 +262,8 @@ body {
 
 .status-badge.pending {
   background-color: #fdf5eb;
-  color: #d79a4a;
+  /*color: #d79a4a;*/
+   color: var(--text);
 }
 
 .status-badge.reviewed {
@@ -275,7 +285,7 @@ body {
 .view-more-btn {
   font-size: 12px;
   font-weight: 600;
-  color: var(--primary, #c69a63);
+  color: var(--primary,/* #c69a63*/);
   text-decoration: none;
   transition: 0.3s;
 }
@@ -300,7 +310,7 @@ body {
   left: 20px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--primary, #c69a63);
+  color: var(--primary, /*#c69a63*/);
   font-size: 16px;
 }
 
@@ -318,7 +328,7 @@ body {
 }
 
 .main-search-bar input:focus {
-  border-color: var(--primary, #c69a63);
+  border-color: var(--primary, /*#c69a63*/);
   box-shadow: 0 4px 20px rgba(198, 154, 99, 0.15);
 }
 
@@ -354,7 +364,7 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--primary, #c69a63);
+  color: var(--primary,/* #c69a63*/);
   font-size: 13px;
   font-weight: 600;
   display: flex;
@@ -421,6 +431,10 @@ body {
 }
 
 .profile-card h2 {
+  font-family:
+    "Fraunces",
+    Georgia,
+    serif;
   font-size: 17px;
   font-weight: 700;
   color: var(--text, #4b3425);
@@ -454,8 +468,8 @@ body {
 
 .view-profile-btn {
   background-color: transparent;
-  border: 1px solid var(--primary, #c69a63);
-  color: var(--primary, #c69a63);
+  border: 1px solid var(--primary, /*#c69a63*/);
+  color: var(--primary,/* #c69a63*/);
   padding: 8px 18px;
   border-radius: 20px;
   font-weight: 600;
@@ -465,7 +479,7 @@ body {
 }
 
 .view-profile-btn:hover {
-  background-color: var(--primary, #c69a63);
+  background-color: var(--primary, /*#c69a63*/);
   color: #ffffff;
 }
 
@@ -475,7 +489,7 @@ body {
   border-radius: 50%;
   border: 1px solid rgba(198, 154, 99, 0.25);
   background-color: #fcf8f4;
-  color: var(--primary, #c69a63);
+  color: var(--primary,/* #c69a63*/);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -485,7 +499,7 @@ body {
 }
 
 .action-icon-btn:hover {
-  background-color: var(--primary, #c69a63);
+  background-color: var(--primary, );
   color: #ffffff;
 }
 
@@ -508,7 +522,7 @@ body {
   border-radius: 12px;
   border: 1px solid #f5ede4;
   background-color: #ffffff;
-  color: var(--primary, #c69a63);
+  color: var(--primary, /* #c69a63*/);
   font-weight: 600;
   font-size: 13px;
   cursor: pointer;
@@ -517,8 +531,8 @@ body {
 
 .page-num.active,
 .page-num:hover {
-  background-color: var(--primary, #c69a63);
-  border-color: var(--primary, #c69a63);
+  background-color: var(--primary, /* #c69a63*/);
+  border-color: var(--primary,/* #c69a63*/);
   color: #ffffff !important;
 }
 
@@ -551,11 +565,21 @@ body {
 
 /* Estilo específico y letra más pequeña para la modalidad */
 .Subtitulo {
-  color: var(--primary, #c69a63);
+  color: var(--primary,/* #c69a63*/);
+  font-family: inherit;
   font-size: 11px;
   font-weight: 500;
   display: flex;
   text-align: left;
   gap: 6px;
   transition: color 0.3s ease;
+}
+
+/* cambio de fuente: botones, campos y listas usan la misma letra que el resto
+   (el navegador no se la pasa sola a los formularios) */
+.Bienvenida-Em button,
+.Bienvenida-Em input,
+.Bienvenida-Em select,
+.Bienvenida-Em textarea {
+  font-family: var(--bs-body-font-family); /* cambio de fuente: la misma de las vistas de psicólogo */
 }

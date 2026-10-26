@@ -1,0 +1,354 @@
+---
+// =====================================================================
+// components/Administrador/pagosempresas.astro
+// El administrador confirma los pagos de los planes empresariales.
+// Aprobar -> el plan queda Activo y se genera el código de vinculación.
+// =====================================================================
+import MenuAdmin from "../Menu/MenuAdmin.astro";
+import "../EmpresaBeneficio/beneficio.css";
+import "./pagosempresas.css";
+import { apiGet, pesos } from "../../lib/api";
+
+interface Contrato {
+  id: string;
+  numeroOrden: string | null;
+  estado: string;
+  plan: { nombre: string };
+  empleados: number;
+  sesionesPorEmpleado: number;
+  valorTotal: number;
+  tieneComprobante: boolean;
+  motivoRechazo: string | null;
+  creadoEn: string;
+  fechaFin: string | null;
+  codigo: string | null;
+  vinculados: number;
+  empresa: { nombre: string; nit: string; email: string };
+}
+interface Banco { banco: string; tipoCuenta: string; numeroCuenta: string; titular: string; nit: string }
+
+const cookie = Astro.request.headers.get("cookie");
+const datos = await apiGet<{ contratos: Contrato[]; banco: Banco | null }>(cookie, "/api/admin/contratos?estado=todos");
+const contratos = datos?.contratos ?? [];
+const banco = datos?.banco ?? null;
+
+const porRevisar = contratos.filter((c) => c.estado === "Pendiente" && c.tieneComprobante).length;
+const sinComprobante = contratos.filter((c) => c.estado === "Pendiente" && !c.tieneComprobante).length;
+const activos = contratos.filter((c) => c.estado === "Activo").length;
+const confirmado = contratos
+  .filter((c) => ["Activo", "Vencido", "Finalizado"].includes(c.estado))
+  .reduce((s, c) => s + c.valorTotal, 0);
+
+// Grupo para los filtros
+const grupo = (c: Contrato) =>
+  c.estado === "Pendiente" ? (c.tieneComprobante ? "revisar" : "espera") : c.estado.toLowerCase();
+
+const CHIP: Record<string, { clase: string; texto: string }> = {
+  revisar: { clase: "", texto: "Por revisar" },
+  espera: { clase: "neutro", texto: "Sin comprobante" },
+  rechazado: { clase: "rechazado", texto: "Rechazado" },
+  activo: { clase: "activo", texto: "Activo" },
+  vencido: { clase: "neutro", texto: "Vencido" },
+  finalizado: { clase: "neutro", texto: "Finalizado" },
+};
+
+const fecha = (f: string | null) =>
+  f ? new Date(f).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric", timeZone: "America/Bogota" }) : "—";
+---
+
+<div class="pe-page">
+  <MenuAdmin />
+
+  <main class="pe-content">
+    <header class="pe-header">
+      <div class="pe-header-left">
+        <div class="pe-header-icon"><i class="bi bi-buildings"></i></div>
+        <div>
+          <h1>Pagos de empresas</h1>
+          <p>Confirma los pagos de los planes empresariales. Al aprobar, el plan se activa y se genera el código para los trabajadores.</p>
+        </div>
+      </div>
+      <button type="button" class="bnf-btn secundario" id="abrirBanco"><i class="bi bi-bank"></i> Cuenta bancaria</button>
+    </header>
+
+    {!datos && (
+      <div class="bnf-aviso error"><i class="bi bi-exclamation-circle"></i><div>No se pudieron cargar los pagos de empresas.</div></div>
+    )}
+
+    {datos && !banco && (
+      <div class="bnf-aviso alerta">
+        <i class="bi bi-bank"></i>
+        <div>Registra la cuenta bancaria de Psynex: es la que ven las empresas en su orden de pago.</div>
+      </div>
+    )}
+
+    <section class="pe-metricas">
+      <div class="bnf-metrica"><small>Por revisar</small><strong>{porRevisar}</strong></div>
+      <div class="bnf-metrica"><small>Esperando comprobante</small><strong>{sinComprobante}</strong></div>
+      <div class="bnf-metrica"><small>Planes activos</small><strong>{activos}</strong></div>
+      <div class="bnf-metrica"><small>Pagos confirmados</small><strong style="font-size:19px">{pesos(confirmado)}</strong></div>
+    </section>
+
+    <div class="pe-filtros" role="tablist">
+      <button type="button" class="pe-filtro activo" data-filtro="todos">Todos</button>
+      <button type="button" class="pe-filtro" data-filtro="revisar">Por revisar</button>
+      <button type="button" class="pe-filtro" data-filtro="espera">Sin comprobante</button>
+      <button type="button" class="pe-filtro" data-filtro="activo">Activos</button>
+      <button type="button" class="pe-filtro" data-filtro="rechazado">Rechazados</button>
+    </div>
+
+    {contratos.length === 0 ? (
+      <section class="bnf-vacio">
+        <i class="bi bi-inbox"></i>
+        <h2>Aún no hay solicitudes</h2>
+        <p>Cuando una empresa contrate un plan empresarial, su orden de pago aparecerá aquí.</p>
+      </section>
+    ) : (
+      <section class="bnf-card" style="padding:8px 12px">
+        <div class="bnf-tabla-wrap">
+          <table class="bnf-tabla pe-tabla">
+            <thead>
+              <tr><th>Empresa</th><th>Orden</th><th>Plan</th><th>Total</th><th>Solicitada</th><th>Estado</th><th></th></tr>
+            </thead>
+            <tbody>
+              {contratos.map((c) => {
+                const g = grupo(c);
+                return (
+                  <tr data-grupo={g}>
+                    <td class="pe-empresa"><strong>{c.empresa.nombre}</strong><span>NIT {c.empresa.nit || "—"}</span></td>
+                    <td>{c.numeroOrden}</td>
+                    <td>{c.plan.nombre}<br /><span class="pe-espera">{c.empleados.toLocaleString("es-CO")} trabajadores · {c.sesionesPorEmpleado} sesiones c/u</span></td>
+                    <td>{pesos(c.valorTotal)}</td>
+                    <td>{fecha(c.creadoEn)}</td>
+                    <td>
+                      <span class={`bnf-chip ${CHIP[g]?.clase ?? "neutro"}`} title={c.motivoRechazo ?? ""}>{CHIP[g]?.texto ?? c.estado}</span>
+                      {c.codigo && <div class="pe-espera" style="margin-top:4px">Código <span class="pe-codigo">{c.codigo}</span> · {c.vinculados} vinculados</div>}
+                    </td>
+                    <td>
+                      <div class="pe-acciones">
+                        {c.tieneComprobante && (
+                          <button
+                            type="button"
+                            class="bnf-btn secundario pequeno pe-ojo"
+                            data-comprobante={c.id}
+                            title="Ver comprobante"
+                            aria-label="Ver comprobante"
+                          >
+                            <i class="bi bi-eye"></i>
+                          </button>
+                        )}
+                        {g === "revisar" && (
+                          <>
+                            <button type="button" class="bnf-btn secundario pequeno" data-rechazar={c.id} data-orden={c.numeroOrden}>Rechazar</button>
+                            <button
+                              type="button"
+                              class="bnf-btn pequeno"
+                              data-aprobar={c.id}
+                              data-orden={c.numeroOrden}
+                              data-empresa={c.empresa.nombre}
+                              data-total={pesos(c.valorTotal)}
+                            >
+                              Aprobar
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    )}
+    <p class="bnf-error" id="errorGeneral" role="alert"></p>
+  </main>
+
+  {/* Aprobar */}
+  <div class="bnf-overlay" id="modalAprobar" aria-hidden="true">
+    <div class="bnf-dialog" role="dialog" aria-modal="true" aria-labelledby="aprobarTitulo">
+      <div class="bnf-dialog-top">
+        <div><h3 id="aprobarTitulo">Aprobar pago</h3><p id="aprobarOrden"></p></div>
+        <button type="button" class="bnf-cerrar" data-cerrar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <p class="pe-confirmar" id="aprobarTexto"></p>
+      <p class="bnf-error" id="aprobarError" role="alert"></p>
+      <div class="bnf-dialog-acciones">
+        <button type="button" class="bnf-btn secundario" data-cerrar>Cancelar</button>
+        <button type="button" class="bnf-btn" id="confirmarAprobar">Sí, aprobar</button>
+      </div>
+    </div>
+  </div>
+
+  {/* Rechazar */}
+  <div class="bnf-overlay" id="modalRechazar" aria-hidden="true">
+    <div class="bnf-dialog" role="dialog" aria-modal="true" aria-labelledby="rechazarTitulo">
+      <div class="bnf-dialog-top">
+        <div><h3 id="rechazarTitulo">Rechazar pago</h3><p id="rechazarOrden"></p></div>
+        <button type="button" class="bnf-cerrar" data-cerrar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="bnf-campo">
+        <label for="motivoRechazo">Motivo (la empresa lo verá)</label>
+        <textarea id="motivoRechazo" rows="3" maxlength="300" placeholder="Ej.: el valor transferido no coincide con el total de la orden."></textarea>
+      </div>
+      <p class="bnf-error" id="rechazarError" role="alert"></p>
+      <div class="bnf-dialog-acciones">
+        <button type="button" class="bnf-btn secundario" data-cerrar>Cancelar</button>
+        <button type="button" class="bnf-btn" id="confirmarRechazar">Rechazar pago</button>
+      </div>
+    </div>
+  </div>
+
+  {/* Cuenta bancaria */}
+  <div class="bnf-overlay" id="modalBanco" aria-hidden="true">
+    <div class="bnf-dialog" role="dialog" aria-modal="true" aria-labelledby="bancoTitulo">
+      <div class="bnf-dialog-top">
+        <div><h3 id="bancoTitulo">Cuenta bancaria de Psynex</h3><p>Aparece en las órdenes de pago de las empresas.</p></div>
+        <button type="button" class="bnf-cerrar" data-cerrar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <form id="formBanco" novalidate>
+        <div class="bnf-campo"><label for="bBanco">Banco</label><input id="bBanco" value={banco?.banco ?? ""} maxlength="60" /></div>
+        <div class="bnf-campo">
+          <label for="bTipo">Tipo de cuenta</label>
+          <select id="bTipo" class="form-select form-select-sm">
+            <option value="Ahorros" selected={banco?.tipoCuenta !== "Corriente"}>Ahorros</option>
+            <option value="Corriente" selected={banco?.tipoCuenta === "Corriente"}>Corriente</option>
+          </select>
+        </div>
+        <div class="bnf-campo"><label for="bNumero">Número de cuenta</label><input id="bNumero" value={banco?.numeroCuenta ?? ""} maxlength="25" inputmode="numeric" /></div>
+        <div class="bnf-campo"><label for="bTitular">Titular</label><input id="bTitular" value={banco?.titular ?? ""} maxlength="120" /></div>
+        <div class="bnf-campo"><label for="bNit">NIT</label><input id="bNit" value={banco?.nit ?? ""} maxlength="20" /></div>
+        <p class="bnf-error" id="bancoError" role="alert"></p>
+        <div class="bnf-dialog-acciones">
+          <button type="button" class="bnf-btn secundario" data-cerrar>Cancelar</button>
+          <button type="submit" class="bnf-btn" id="guardarBanco">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { API_URL, apiEnviar, textoError } from "../../lib/api";
+
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null;
+
+  function abrirModal(id: string) {
+    $(id)?.classList.add("visible");
+    $(id)?.setAttribute("aria-hidden", "false");
+  }
+  function cerrarModales() {
+    document.querySelectorAll(".bnf-overlay.visible").forEach((m) => {
+      m.classList.remove("visible");
+      m.setAttribute("aria-hidden", "true");
+    });
+  }
+  document.querySelectorAll(".bnf-overlay").forEach((m) => {
+    m.addEventListener("click", (e) => { if (e.target === m) cerrarModales(); });
+    m.querySelectorAll("[data-cerrar]").forEach((b) => b.addEventListener("click", cerrarModales));
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") cerrarModales(); });
+
+  // Filtros
+  document.querySelectorAll<HTMLButtonElement>(".pe-filtro").forEach((b) =>
+    b.addEventListener("click", () => {
+      document.querySelectorAll(".pe-filtro").forEach((x) => x.classList.toggle("activo", x === b));
+      const f = b.dataset.filtro;
+      document.querySelectorAll<HTMLTableRowElement>("tr[data-grupo]").forEach((tr) => {
+        tr.hidden = f !== "todos" && tr.dataset.grupo !== f;
+      });
+    })
+  );
+
+  // Ver comprobante
+  document.querySelectorAll<HTMLButtonElement>("[data-comprobante]").forEach((b) =>
+    b.addEventListener("click", async () => {
+      const ventana = window.open("", "_blank");
+      try {
+        const res = await fetch(`${API_URL}/api/admin/contratos/${b.dataset.comprobante}/comprobante`, { credentials: "include" });
+        if (!res.ok) throw new Error();
+        const url = URL.createObjectURL(await res.blob());
+        if (ventana) ventana.location.href = url;
+        else window.open(url, "_blank");
+      } catch {
+        ventana?.close();
+        const e = $("errorGeneral");
+        if (e) e.textContent = "No se pudo abrir el comprobante.";
+      }
+    })
+  );
+
+  // Aprobar
+  let elegido = "";
+  document.querySelectorAll<HTMLButtonElement>("[data-aprobar]").forEach((b) =>
+    b.addEventListener("click", () => {
+      elegido = b.dataset.aprobar ?? "";
+      const o = $("aprobarOrden");
+      if (o) o.textContent = `Orden ${b.dataset.orden}`;
+      const t = $("aprobarTexto");
+      if (t) t.textContent = `¿Confirmas que recibiste ${b.dataset.total} de ${b.dataset.empresa}? El plan quedará activo y se generará el código para sus trabajadores.`;
+      const e = $("aprobarError");
+      if (e) e.textContent = "";
+      abrirModal("modalAprobar");
+    })
+  );
+  const botonAprobar = $<HTMLButtonElement>("confirmarAprobar");
+  botonAprobar?.addEventListener("click", async () => {
+    botonAprobar.disabled = true;
+    const r = await apiEnviar("PATCH", `/api/admin/contratos/${elegido}/aprobar`);
+    if (r.ok) return location.reload();
+    const e = $("aprobarError");
+    if (e) e.textContent = textoError(r.data, "No se pudo aprobar el pago");
+    botonAprobar.disabled = false;
+  });
+
+  // Rechazar
+  document.querySelectorAll<HTMLButtonElement>("[data-rechazar]").forEach((b) =>
+    b.addEventListener("click", () => {
+      elegido = b.dataset.rechazar ?? "";
+      const o = $("rechazarOrden");
+      if (o) o.textContent = `Orden ${b.dataset.orden}`;
+      const m = $<HTMLTextAreaElement>("motivoRechazo");
+      if (m) m.value = "";
+      const e = $("rechazarError");
+      if (e) e.textContent = "";
+      abrirModal("modalRechazar");
+      setTimeout(() => m?.focus(), 50);
+    })
+  );
+  const botonRechazar = $<HTMLButtonElement>("confirmarRechazar");
+  botonRechazar?.addEventListener("click", async () => {
+    const motivo = ($<HTMLTextAreaElement>("motivoRechazo")?.value ?? "").trim();
+    const e = $("rechazarError");
+    if (motivo.length < 5) {
+      if (e) e.textContent = "Escribe el motivo del rechazo (mínimo 5 caracteres).";
+      return;
+    }
+    botonRechazar.disabled = true;
+    const r = await apiEnviar("PATCH", `/api/admin/contratos/${elegido}/rechazar`, { motivo });
+    if (r.ok) return location.reload();
+    if (e) e.textContent = textoError(r.data, "No se pudo rechazar el pago");
+    botonRechazar.disabled = false;
+  });
+
+  // Cuenta bancaria
+  $("abrirBanco")?.addEventListener("click", () => abrirModal("modalBanco"));
+  $("formBanco")?.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const valor = (id: string) => ($<HTMLInputElement>(id)?.value ?? "").trim();
+    const boton = $<HTMLButtonElement>("guardarBanco");
+    if (boton) boton.disabled = true;
+    const r = await apiEnviar("PUT", "/api/admin/configuracion/banco", {
+      banco: valor("bBanco"),
+      tipoCuenta: valor("bTipo"),
+      numeroCuenta: valor("bNumero"),
+      titular: valor("bTitular"),
+      nit: valor("bNit"),
+    });
+    if (r.ok) return location.reload();
+    const e = $("bancoError");
+    if (e) e.textContent = textoError(r.data, "No se pudieron guardar los datos");
+    if (boton) boton.disabled = false;
+  });
+</script>

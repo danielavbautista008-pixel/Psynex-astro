@@ -24,7 +24,8 @@ const {
     { label: "Verificar psicólogos", href: "/Administrador/verificarpsicologos", icono: "bi-patch-check" },
     { label: "Verificar empresas", href: "/Administrador/verificarempresas", icono: "bi-building-check" },
     { label: "Publicar planes", href: "/Administrador/publicarplanes", icono: "bi-box-seam" },
-    { label: "Métodos de pago", href: "/Administrador/pagos", icono: "bi-credit-card" },
+    { label: "Pagos de empresas", href: "/Administrador/pagosempresas", icono: "bi-buildings" },
+    { label: "Métodos de pago", href: "/Administrador/MetodosdePago", icono: "bi-credit-card" },
     { label: "Blog", href: "/Administrador/blog", icono: "bi-journal-text" },
   ],
 } = Astro.props;
@@ -44,7 +45,6 @@ const ruta = Astro.url.pathname.replace(/\/$/, "") || "/admin";
   <nav>
     {items.map((item) => (
       <a href={item.href} class:list={["item", { activo: ruta === item.href }]}>
-        <i class={`bi ${item.icono}`}></i>
         <span>{item.label}</span>
       </a>
     ))}

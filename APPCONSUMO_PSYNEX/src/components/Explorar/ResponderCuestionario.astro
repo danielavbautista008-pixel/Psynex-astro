@@ -37,6 +37,18 @@ const {
 } = Astro.props;
 
 const total = preguntas.length;
+
+// cambio: si quien responde es un PACIENTE, todo lo que llevaba a Explorar
+// lo devuelve a su panel. "?volver=/Paciente/..." dice a qué vista regresar.
+const volverParam = Astro.url.searchParams.get("volver") ?? "";
+const vieneDelPanel = /^\/Paciente\/[A-Za-z]+$/.test(volverParam);
+const esPaciente = rol === "Paciente" || vieneDelPanel;
+const volverPanel = vieneDelPanel ? volverParam : "/Paciente/ParaTi";
+const urlVolver = esPaciente ? volverPanel : "/Explorar/cuestionarios";
+const textoVolver = esPaciente ? "← Volver a mi panel" : "← Volver a cuestionarios";
+const urlInicio = esPaciente ? "/Paciente/Inicio" : "/";
+const urlRecomendaciones = esPaciente ? "/Paciente/ParaTi" : "/Explorar/Articulos";
+const urlPsicologos = esPaciente ? "/Paciente/Especialistas" : "/Explorar/Psicologos";
 ---
 
 <section
@@ -48,14 +60,14 @@ const total = preguntas.length;
   <header class="responder-header">
 
     <a
-      href="/Explorar/cuestionarios"
+      href={urlVolver}
       class="volver"
     >
-      ← Volver a cuestionarios
+      {textoVolver}
     </a>
 
     <a
-      href="/"
+      href={urlInicio}
       class="logo"
     >
       PSYNEX
@@ -65,7 +77,7 @@ const total = preguntas.length;
   type="button"
   class="salir"
   id="salir"
-  data-href="/Explorar/cuestionarios"
+  data-href={urlVolver}
 >
   Salir
 </button>
@@ -403,14 +415,14 @@ const total = preguntas.length;
     <div class="result-actions">
 
       <a
-        href="/Explorar/Articulos"
+        href={urlRecomendaciones}
         class="secondary"
       >
         Ver recomendaciones
       </a>
 
       <a
-        href="/Explorar/Psicologos"
+        href={urlPsicologos}
         class="primary"
       >
         Buscar un psicólogo
@@ -462,7 +474,7 @@ const total = preguntas.length;
       </button>
 
       <a
-        href="/Explorar/cuestionarios"
+        href={urlVolver}
         class="primary"
       >
         Salir
@@ -1028,7 +1040,7 @@ const total = preguntas.length;
 
         // Si no ha respondido nada, sale directo
         if (answers.every((answer) => answer === null)) {
-          window.location.href = "/Explorar/cuestionarios";
+          window.location.href = salir?.dataset.href || "/Explorar/cuestionarios"; // cambio: vuelve al panel si es paciente
           return;
         }
 

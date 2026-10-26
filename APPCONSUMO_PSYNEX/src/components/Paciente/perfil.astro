@@ -1,13 +1,223 @@
 ---
+// =====================================================================
+// Mi perfil del paciente — con MENÚ VERTICAL (menuPacVertical.astro).
+// El nombre y el correo son los reales de la sesión; el resto del
+// formulario es de prueba (guardar todavía no llama al backend).
+// =====================================================================
+import MenuVertical from "./menuPacVertical.astro";
+import CodigoEmpresa from "./CodigoEmpresa.astro";
 import "./perfil.css";
-import Menu from "./menuPac.astro";
 
+const usuario = Astro.locals.usuario ?? {};
+const nombre = usuario.NombreCompleto ?? "";
+const correo = usuario.Email ?? "";
+const inicial = (nombre.trim().charAt(0) || "P").toUpperCase();
 ---
-<div class="page-layout">
-    <!-- 1. Menú arriba ocupando todo el ancho -->
-    <Menu />
-    <!-- 2. Contenido dividido en 2 columnas abajo -->
-    <main class="dashboard-container">
-        
-    </main>
-</div>  
+
+<MenuVertical />
+
+<main class="pac-page per-page">
+  <div class="pac-contenido per-contenido">
+
+    <header class="pac-header">
+      <div>
+        <span class="pac-etiqueta">Mi cuenta</span>
+        <h1>Mi perfil</h1>
+        <p>Tu información personal. Solo tu psicólogo puede ver los datos que compartes en tus sesiones.</p>
+      </div>
+    </header>
+
+    <!-- DATOS PERSONALES -->
+    <!-- cambio: menú dinámico.
+         · Al bajar se ve TODO (como antes) y cada sección aparece suave.
+         · Clic en el menú: queda SOLO esa sección (otro clic en la misma vuelve a todo).
+         · Mouse encima de una opción del menú: aparece/resalta esa sección. -->
+
+    <section class="pac-card per-seccion" id="datos" data-seccion="Datos personales">
+      <div class="pac-card-top">
+        <h2>Datos personales</h2>
+      </div>
+
+      <div class="per-foto">
+        <span class="per-avatar" id="perAvatar">{inicial}</span>
+        <div>
+          <strong>{nombre || "Tu nombre"}</strong>
+          <small class="pac-muted">{correo}</small>
+          <div class="per-foto-acciones">
+            <button type="button" class="pac-btn pequeno borde" id="perCambiarFoto">Cambiar foto</button>
+            <input type="file" id="perFotoInput" accept="image/png,image/jpeg,image/webp" hidden />
+          </div>
+        </div>
+      </div>
+
+      <form class="pac-form-grid" id="perForm">
+        <label class="pac-campo">Nombre completo<input name="nombre" value={nombre} required minlength="3" maxlength="150" /></label>
+        <label class="pac-campo">Correo<input value={correo} readonly /></label>
+        <label class="pac-campo">Teléfono<input name="telefono" inputmode="numeric" placeholder="3001234567" maxlength="15" /></label>
+        <label class="pac-campo">Fecha de nacimiento<input name="nacimiento" type="date" /></label>
+        <label class="pac-campo">Género
+          <select name="genero">
+            <option value="">Prefiero no decirlo</option>
+            <option>Femenino</option>
+            <option>Masculino</option>
+            <option>No binario</option>
+            <option>Otro</option>
+          </select>
+        </label>
+        <label class="pac-campo">Ocupación<input name="ocupacion" maxlength="100" placeholder="Ej: Estudiante" /></label>
+        <div class="per-acciones">
+          <button type="submit" class="pac-btn">Guardar cambios</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- BENEFICIO DE LA EMPRESA -->
+    <div class="per-seccion" id="beneficio" data-seccion="Beneficio de mi empresa">
+      <CodigoEmpresa />
+    </div>
+
+    <!-- PRIVACIDAD -->
+    <section class="pac-card per-seccion" id="privacidad" data-seccion="Privacidad">
+      <div class="pac-card-top">
+        <h2>Privacidad</h2>
+      </div>
+      <!-- cambio: se quitó la opción "Mostrarme como anónimo" (el paciente no puede ser anónimo) -->
+      <label class="per-switch">
+        <span>
+          <strong>Recordatorios por correo</strong>
+          <small class="pac-muted">Te avisamos un día antes de cada cita.</small>
+        </span>
+        <input type="checkbox" id="perRecordatorios" checked />
+        <i></i>
+      </label>
+    </section>
+
+    <!-- SEGURIDAD -->
+    <section class="pac-card per-seccion" id="seguridad" data-seccion="Seguridad">
+      <div class="pac-card-top">
+        <h2>Seguridad</h2>
+      </div>
+      <div class="per-seguridad">
+        <div>
+          <strong>Contraseña</strong>
+          <small class="pac-muted">Te enviamos un enlace a tu correo para crear una nueva.</small>
+        </div>
+        <a href="/recuperar" class="pac-btn pequeno borde">Cambiar contraseña</a>
+      </div>
+    </section>
+
+    <span class="pac-prueba"><i class="bi bi-info-circle"></i> Guardar todavía es de prueba: no cambia la base de datos</span>
+  </div>
+</main>
+
+<script>
+  import { avisar } from "./utilidades";
+
+  // cambio: menú dinámico del perfil
+  const secciones = Array.from(document.querySelectorAll<HTMLElement>(".per-seccion"));
+  const enlaces = Array.from(document.querySelectorAll<HTMLAnchorElement>('.pv-link[href^="#"]'));
+  let soloId = ""; // si hay una sección elegida con clic
+
+  const marcar = (id: string) =>
+    enlaces.forEach((a) => a.classList.toggle("activo", a.getAttribute("href") === `#${id}`));
+
+  // Muestra solo una sección (clic) o todas (id vacío)
+  function verSolo(id: string) {
+    soloId = id;
+    secciones.forEach((s) => {
+      s.hidden = Boolean(id) && s.id !== id;
+      s.classList.remove("entrando");
+      if (!id || s.id === id) {
+        void s.offsetWidth;
+        s.classList.add("entrando");
+      }
+    });
+    marcar(id || secciones[0].id);
+    history.replaceState(null, "", id ? `#${id}` : location.pathname);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // 1) Al bajar: cada sección aparece suave y el menú marca la que se ve
+  if ("IntersectionObserver" in window) {
+    const aparecer = new IntersectionObserver(
+      (entradas) =>
+        entradas.forEach((e) => {
+          if (e.isIntersecting) e.target.classList.add("visible");
+        }),
+      { threshold: 0.12 },
+    );
+    const espiar = new IntersectionObserver(
+      (entradas) => {
+        if (soloId) return;
+        const visible = entradas.find((e) => e.isIntersecting);
+        if (visible) marcar(visible.target.id);
+      },
+      { rootMargin: "-30% 0px -60% 0px" },
+    );
+    secciones.forEach((s) => {
+      s.classList.add("por-aparecer");
+      aparecer.observe(s);
+      espiar.observe(s);
+    });
+  }
+
+  enlaces.forEach((a) => {
+    const id = (a.getAttribute("href") || "#datos").slice(1);
+
+    // 2) Clic: queda solo esa sección
+    // (si ya estaba sola esa misma, vuelve a mostrar todo)
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      verSolo(soloId === id ? "" : id);
+    });
+
+    // 3) Mouse encima: aparece esa sección (si estás viendo una sola, se
+    //    cambia mientras el mouse esté encima) o se resalta (si ves todo)
+    a.addEventListener("mouseenter", () => {
+      const s = secciones.find((x) => x.id === id);
+      if (!s) return;
+      if (soloId) {
+        secciones.forEach((x) => (x.hidden = x.id !== id));
+        s.classList.remove("entrando");
+        void s.offsetWidth;
+        s.classList.add("entrando", "visible");
+      } else {
+        s.classList.add("resaltada", "visible");
+        s.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+    a.addEventListener("mouseleave", () => {
+      secciones.forEach((x) => x.classList.remove("resaltada"));
+      if (soloId) secciones.forEach((x) => (x.hidden = x.id !== soloId));
+    });
+  });
+
+
+  // Si entra con un enlace (#privacidad), se muestra solo esa
+  const inicial = location.hash.slice(1);
+  if (secciones.some((s) => s.id === inicial)) verSolo(inicial);
+
+  // Guardar (prueba)
+  document.getElementById("perForm")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
+    if (!form.reportValidity()) return;
+    avisar("Cambios guardados (prueba).");
+  });
+
+  // Foto: vista previa en esta pantalla (prueba)
+  const input = document.getElementById("perFotoInput") as HTMLInputElement | null;
+  document.getElementById("perCambiarFoto")?.addEventListener("click", () => input?.click());
+  input?.addEventListener("change", () => {
+    const archivo = input.files?.[0];
+    const avatar = document.getElementById("perAvatar");
+    if (!archivo || !avatar) return;
+    avatar.style.backgroundImage = `url(${URL.createObjectURL(archivo)})`;
+    avatar.classList.add("con-foto");
+    avisar("Vista previa de tu foto (prueba).");
+  });
+
+  ["perRecordatorios"] /* cambio: sin anónimo */.forEach((id) =>
+    document.getElementById(id)?.addEventListener("change", () => avisar("Preferencia actualizada (prueba)."))
+  );
+</script>

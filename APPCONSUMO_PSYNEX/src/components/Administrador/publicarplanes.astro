@@ -29,6 +29,7 @@ const planes = ((respuesta?.planes ?? []) as any[]).map((p: any, i: number) => {
     precio: Number(p.Precio),
     precioTexto: pesos(Number(p.Precio)),
     citas: p.CantidadSesiones ?? 0,
+    dias: p.DuracionDias ?? 0,
     beneficios,
     estado: p.Publicado ? "activo" : "inactivo",
     ...COLORES[i % COLORES.length],
@@ -196,6 +197,7 @@ const planesActivos = planes.filter((p: any) => p.estado === "activo").length;
                 data-descripcion={p.descripcion}
                 data-precio={p.precio}
                 data-citas={p.citas}
+                data-dias={p.dias}
                 data-beneficios={p.beneficios.join("\n")}
             >
 
@@ -220,19 +222,19 @@ const planesActivos = planes.filter((p: any) => p.estado === "activo").length;
 
                 <div class="plan-precio">
                     <strong>{p.precioTexto}</strong>
-                    <span>/ mes</span>
+                    <span>/ trabajador</span>
                 </div>
 
                 <div class="plan-datos">
 
                     <div>
                         <i class="bi bi-people"></i>
-                        <span>{p.citas} citas al mes</span>
+                        <span>{p.citas} sesiones por trabajador</span>
                     </div>
 
                     <div>
-                        <i class="bi bi-building"></i>
-                        <span>0 empresas</span>
+                        <i class="bi bi-calendar-range"></i>
+                        <span>{p.dias ? `${p.dias} días de vigencia` : "Sin vigencia"}</span>
                     </div>
 
                     <div>
@@ -608,7 +610,7 @@ const planesActivos = planes.filter((p: any) => p.estado === "activo").length;
                     <div class="form-group">
 
                         <label for="precioPlan">
-                            Precio mensual
+                            Precio por trabajador
                         </label>
 
                         <input
@@ -623,13 +625,30 @@ const planesActivos = planes.filter((p: any) => p.estado === "activo").length;
                     <div class="form-group">
 
                         <label for="usuariosPlan">
-                            Usuarios
+                            Sesiones por trabajador
                         </label>
 
                         <input
                             id="usuariosPlan"
                             type="number"
-                            placeholder="15"
+                            min="1"
+                            placeholder="4"
+                        />
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="vigenciaPlan">
+                            Vigencia (días)
+                        </label>
+
+                        <input
+                            id="vigenciaPlan"
+                            type="number"
+                            min="1"
+                            placeholder="90"
                         />
 
                     </div>
@@ -922,6 +941,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const descripcionPlan = document.getElementById("descripcionPlan");
     const precioPlan = document.getElementById("precioPlan");
     const usuariosPlan = document.getElementById("usuariosPlan");
+    const vigenciaPlan = document.getElementById("vigenciaPlan");
 
     const buscarPlan = document.getElementById("buscarPlan");
     const filtroEstado = document.getElementById("filtroEstado");
@@ -948,6 +968,7 @@ document.addEventListener("DOMContentLoaded", () => {
         descripcionPlan.value = "";
         precioPlan.value = "";
         usuariosPlan.value = "";
+        vigenciaPlan.value = "";
 
     });
 
@@ -1225,17 +1246,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         const citas = Number(usuariosPlan.value);
+        const dias = Number(vigenciaPlan.value);
 
 
         if (!precio || precio <= 0) {
 
 
             alert("Escribe un precio válido.");
-
-
             return;
+        }
 
+        if (!Number.isInteger(citas) || citas < 1) {
+            alert("Escribe cuántas sesiones tiene cada trabajador.");
+            return;
+        }
 
+        if (!Number.isInteger(dias) || dias < 1) {
+            alert("Escribe la vigencia del plan en días.");
+            return;
         }
 
 
@@ -1257,7 +1285,9 @@ document.addEventListener("DOMContentLoaded", () => {
             precio,
 
 
-            cantidadSesiones: citas > 0 ? citas : null,
+            cantidadSesiones: citas,
+
+            duracionDias: dias,
 
 
             beneficios: [...checksCaracteristicas]
@@ -1320,6 +1350,7 @@ document.addEventListener("DOMContentLoaded", () => {
             descripcionPlan.value = card.dataset.descripcion || "";
             precioPlan.value = card.dataset.precio || "";
             usuariosPlan.value = card.dataset.citas || "";
+            vigenciaPlan.value = card.dataset.dias && card.dataset.dias !== "0" ? card.dataset.dias : "";
 
             const beneficios = (card.dataset.beneficios || "").split("\n");
             checksCaracteristicas.forEach((check) => {

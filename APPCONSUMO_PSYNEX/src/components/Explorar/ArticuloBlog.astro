@@ -24,16 +24,26 @@ const {
   imagen,
   contenido,
   autor,
-  volverHref = "/Explorar/Articulos",
+  volverHref,
 } = Astro.props;
+
+// cambio: si quien lee es un PACIENTE, "Volver" lo lleva a su panel
+// ("?volver=/Paciente/..." o Para ti). La vista previa del admin sigue igual.
+const volverParam = Astro.url.searchParams.get("volver") ?? "";
+const vieneDelPanel = /^\/Paciente\/[A-Za-z]+$/.test(volverParam);
+const esPaciente = Astro.locals.usuario?.Rol === "Paciente" || vieneDelPanel;
+const volverPanel = vieneDelPanel ? volverParam : "/Paciente/ParaTi";
+const urlVolver = volverHref ?? (esPaciente ? volverPanel : "/Explorar/Articulos");
+const textoVolver = !volverHref && esPaciente ? "Volver a mi panel" : "Volver al blog";
+const urlCuestionarios = esPaciente ? "/Paciente/ParaTi" : "/Explorar/cuestionarios";
 ---
 
 <main class="articulo-page">
   <div class="articulo-contenedor">
 
-    <a href={volverHref} class="volver-blog">
+    <a href={urlVolver} class="volver-blog">
       <span>←</span>
-      Volver al blog
+      {textoVolver}
     </a>
 
     <header class="articulo-header">
@@ -82,7 +92,7 @@ const {
         </p>
       </div>
 
-      <a href="/Explorar/cuestionarios">
+      <a href={urlCuestionarios}>
         Explorar cuestionarios
         <span>→</span>
       </a>

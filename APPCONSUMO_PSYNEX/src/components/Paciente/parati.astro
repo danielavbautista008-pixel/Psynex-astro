@@ -1,57 +1,69 @@
 ---
 import "./parati.css";
 import Menu from "./menuPac.astro";
+import { apiGet, imagenCuestionario, minutosLectura, urlImagenBlog } from "../../lib/api";
+
+// cambio: carruseles con los tests y los artículos del blog REALES
+// (usa las rutas públicas que ya existen: no se tocó el backend)
+const cookie = Astro.request.headers.get("cookie");
+const [rTests, rBlog] = await Promise.all([
+  apiGet<{ cuestionarios: { id: string; sigla: string; descripcion: string; categoria: string; preguntas: number; minutos: number; tieneImagen: boolean }[] }>(
+    cookie, "/api/explorar/cuestionarios"),
+  apiGet<{ articulos: { ArticuloId: string; Titulo: string; Slug: string; Resumen: string; Categoria: string; ImagenPortada: string | null; LargoContenido: number }[] }>(
+    cookie, "/api/blog?porPagina=12"),
+]);
+
+const tests = (rTests?.cuestionarios ?? []).slice(0, 10).map((c) => ({
+  href: `/Explorar/cuestionarios/${c.id}?volver=/Paciente/ParaTi`, // cambio: al salir vuelve a Para ti
+  etiqueta: c.categoria,
+  titulo: c.sigla,
+  texto: c.descripcion,
+  pie: `${c.preguntas} preguntas · ${c.minutos} min`,
+  imagen: imagenCuestionario(c),
+}));
+
+const IMAGENES_BLOG = ["/Imagenes/imagenc.5.jpeg", "/Imagenes/imagenc.8.jpeg", "/Imagenes/imagenc.6.jpeg", "/Imagenes/imagenc.1.jpeg"];
+const articulos = (rBlog?.articulos ?? []).slice(0, 10).map((a, i) => ({
+  href: `/articulos/${a.Slug}?volver=/Paciente/ParaTi`, // cambio: al salir vuelve a Para ti
+  etiqueta: a.Categoria,
+  titulo: a.Titulo,
+  texto: a.Resumen,
+  pie: minutosLectura(a.LargoContenido),
+  imagen: urlImagenBlog(a.ArticuloId, a.ImagenPortada) ?? IMAGENES_BLOG[i % IMAGENES_BLOG.length],
+}));
+
+// cambio: una sola lista para las tarjetas de "Contenidos destacados":
+// se intercalan tests y artículos para que el carrusel muestre de los dos
+const destacados: { tipo: "test" | "blog"; href: string; etiqueta: string; titulo: string; texto: string; pie: string; imagen: string }[] = [];
+for (let k = 0; k < Math.max(tests.length, articulos.length); k++) {
+  if (tests[k]) destacados.push({ tipo: "test", ...tests[k] });
+  if (articulos[k]) destacados.push({ tipo: "blog", ...articulos[k] });
+}
 
 ---
+
 <div class="page-layout">
     <!-- 1. Menú arriba ocupando todo el ancho -->
     <Menu />
-<!-- Banner superior de categorías -->
+
+    <!-- Banner superior: cambio, ahora las tarjetitas filtran los contenidos -->
     <header class="top-banner">
         <div class="categories-grid">
-            
-            <!-- <div class="category-card">
-                <span class="badge-new">Nuevo</span>
-                <i class="fa-solid fa-route"></i>
-                <span>Rutas de bienestar</span>
-            </div> -->
+            <button type="button" class="category-card activa" data-filtro="todo">
+                <i class="fa-solid fa-star"></i>
+                <span>Todo</span>
+            </button>
 
-            <div class="category-card">
+            <button type="button" class="category-card" data-filtro="test">
                 <span class="badge-new">Nuevo</span>
                 <i class="fa-regular fa-clipboard"></i>
-                <span>Hábitos</span>
-            </div>
+                <span>Cuestionarios</span>
+            </button>
 
-            <div class="category-card">
-                <i class="fa-solid fa-bolt"></i>
-                <span>Estrés</span>
-            </div>
-
-            <!-- <div class="category-card">
-                <i class="fa-solid fa-people-roof"></i>
-                <span>Familia y crianza</span>
-            </div> -->
-
-            <div class="category-card">
+            <button type="button" class="category-card" data-filtro="blog">
                 <i class="fa-solid fa-book-open"></i>
-                <span>Aprende</span>
-            </div>
-
-            <!-- <div class="category-card">
-                <i class="fa-solid fa-hand-holding-heart"></i>
-                <span>Relaciones</span>
-            </div>
-
-            <div class="category-card">
-                <i class="fa-solid fa-moon"></i>
-                <span>Sleep</span>
-            </div> -->
-
-            <div class="category-card">
-                <i class="fa-solid fa-seedling"></i>
-                <span>Crecimiento personal</span>
-            </div>
-
+                <span>Blog</span>
+            </button>
         </div>
     </header>
 
@@ -72,62 +84,73 @@ import Menu from "./menuPac.astro";
             </div>
         </section>
 
-        <!-- Sección Contenidos Destacados -->
-        <section class="section-featured">
+        <!-- Sección Contenidos Destacados: cambio, centrada y las tarjetas
+             PASAN solas de lado (horizontal) como un carrusel continuo. Al dar clic abre la vista
+             pública de Explorar (cuestionario o artículo del blog) -->
+        <section class="section-featured" data-carrusel>
             <h2 class="section-heading">Contenidos destacados</h2>
 
-            <div class="cards-grid">
-
-                <!-- Tarjeta 1 -->
-                <div class="content-card card-bg-1">
-                    <div class="card-overlay"></div>
-                    <div class="card-badge">
-                        <i class="fa-solid fa-book-open"></i> Herramienta
-                    </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Volver a encontrarnos</h3>
-                        <span class="card-duration"><i class="fa-regular fa-clock"></i> 10 min</span>
-                    </div>
-                </div>
-
-                <!-- Tarjeta 2 -->
-                <div class="content-card card-bg-2">
-                    <div class="card-overlay"></div>
-                    <div class="card-badge">
-                        <i class="fa-solid fa-book-open"></i> Herramienta
-                    </div>
-                    <div class="card-body">
-                        <h3 class="card-title">ES TU PRIMERA VEZ VIVIENDO</h3>
-                        <span class="card-duration"><i class="fa-regular fa-clock"></i> 10 min</span>
-                    </div>
-                </div>
-
-                <!-- Tarjeta 3 -->
-                <div class="content-card card-bg-3">
-                    <div class="card-overlay"></div>
-                    <div class="card-badge">
-                        <i class="fa-solid fa-book-open"></i> Herramienta
-                    </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Starter Kit de Salud Mental 101</h3>
-                        <span class="card-duration"><i class="fa-regular fa-clock"></i> 10 min</span>
+            {destacados.length === 0 ? (
+                <p class="pt-vacio">Pronto habrá tests y artículos para ti.</p>
+            ) : (
+                <div class="pt-ventana">
+                    <div class="pt-pista" data-pista>
+                        {[0, 1].map((copia) => destacados.map((d) => (
+                            <a
+                                href={d.href}
+                                class="content-card"
+                                data-tipo={d.tipo}
+                                style={`background-image:url('${d.imagen}')`}
+                                aria-hidden={copia === 1 ? "true" : undefined}
+                                tabindex={copia === 1 ? -1 : undefined}
+                            >
+                                <div class="card-overlay"></div>
+                                <div class="card-badge">
+                                    <i class={d.tipo === "test" ? "fa-regular fa-clipboard" : "fa-solid fa-book-open"}></i>
+                                    {d.tipo === "test" ? "Cuestionario" : "Blog"}
+                                </div>
+                                <div class="card-body">
+                                    <h3 class="card-title">{d.titulo}</h3>
+                                    <p class="card-texto">{d.texto}</p>
+                                    <span class="card-duration"><i class="fa-regular fa-clock"></i> {d.pie}</span>
+                                </div>
+                            </a>
+                        )))}
                     </div>
                 </div>
-
-                <!-- Tarjeta 4 -->
-                <div class="content-card card-bg-4">
-                    <div class="card-overlay"></div>
-                    <div class="card-badge">
-                        <i class="fa-solid fa-headphones"></i> Meditación
-                    </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Buenas noches, suelta el día y descansa</h3>
-                        <span class="card-duration"><i class="fa-regular fa-clock"></i> 4 min</span>
-                    </div>
-                </div>
-
-            </div>
+            )}
         </section>
     </main>
-</div>  
+</div>
 
+<script>
+  // cambio: carrusel HORIZONTAL que pasa solo. Las tarjetas están dos veces
+  // seguidas y la fila se desliza a la izquierda la mitad de su ancho: así da la vuelta
+  // sin cortes. Se pausa con el mouse encima (eso lo hace el CSS).
+  // Las tarjetitas de arriba (Todo / Cuestionarios / Blog) filtran.
+  const pista = document.querySelector<HTMLElement>("[data-pista]");
+
+  const ajustarVelocidad = () => {
+    if (!pista) return;
+    const visibles = pista.querySelectorAll(".content-card:not([hidden])").length / 2;
+    // unos 4 segundos por tarjeta
+    pista.style.setProperty("--pt-duracion", `${Math.max(visibles, 1) * 4}s`);
+    // reinicia la animación para que arranque desde arriba
+    pista.style.animation = "none";
+    void pista.offsetHeight;
+    pista.style.animation = "";
+  };
+
+  ajustarVelocidad();
+
+  document.querySelectorAll<HTMLButtonElement>("[data-filtro]").forEach((boton) =>
+    boton.addEventListener("click", () => {
+      document.querySelectorAll<HTMLButtonElement>("[data-filtro]").forEach((b) => b.classList.toggle("activa", b === boton));
+      const filtro = boton.dataset.filtro;
+      pista?.querySelectorAll<HTMLElement>(".content-card").forEach((t) => {
+        t.hidden = filtro !== "todo" && t.dataset.tipo !== filtro;
+      });
+      ajustarVelocidad();
+    })
+  );
+</script>

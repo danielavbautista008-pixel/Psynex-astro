@@ -913,3 +913,111 @@ body.modal-open {
   }
 
 }
+
+/* =====================================================
+   VENTANA MÁS COMPACTA (antes 720px y título de 32px)
+===================================================== */
+
+.modal-cita {
+  width: min(540px, 100%);
+  padding: 22px 22px 18px;
+  border-radius: 18px;
+}
+
+.modal-cita .modal-header {
+  gap: 14px;
+  margin-bottom: 16px;
+  padding-right: 36px;
+}
+
+.modal-cita .modal-kicker {
+  padding-top: 5px;
+  font-size: 9.5px;
+}
+
+.modal-cita .modal-title h2 {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.modal-cita .modal-title p {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.modal-cita .modal-close {
+  top: 16px;
+  right: 16px;
+  width: 30px;
+  height: 30px;
+}
+
+.modal-cita .modal-actions {
+  padding-top: 14px;
+}
+
+.modal-cita .secondary-button,
+.modal-cita .primary-button {
+  height: 36px;
+  padding: 0 14px;
+  font-size: 12.5px;
+}
+
+/* Si la foto no carga, que no se vea el texto alternativo cortado */
+.patient-modal-photo {
+  overflow: hidden;
+  font-size: 0;
+  color: transparent;
+}
+
+
+/* =====================================================
+   CITA VIRTUAL: caja de la sala de Psynex
+===================================================== */
+
+.sala-psynex {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary) 7%, transparent);
+}
+
+.sala-psynex[hidden] {
+  display: none;
+}
+
+.sala-psynex-icono {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary, #fff);
+}
+
+.sala-psynex-icono svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sala-psynex strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sala-psynex small {
+  display: block;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+}

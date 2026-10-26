@@ -1,0 +1,35 @@
+---
+// =====================================================================
+// /Sala/<id de la cita>  ->  sala de videollamada de Psynex
+// Pueden entrar SOLO el psicólogo y el paciente de esa cita.
+// Si no tiene sesión, va al login y luego vuelve aquí (?volver=).
+// =====================================================================
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Sala from "../../components/Sala/Sala.astro";
+import { API_URL } from "../../lib/api";
+
+const citaId = Astro.params.citaId ?? "";
+const cookie = Astro.request.headers.get("cookie");
+const irAlLogin = `/Inicio/login?volver=${encodeURIComponent(Astro.url.pathname)}`;
+
+if (!cookie) return Astro.redirect(irAlLogin);
+
+let sala: any = null;
+let error = "";
+
+try {
+  const res = await fetch(`${API_URL}/api/sala/${encodeURIComponent(citaId)}`, {
+    headers: { cookie },
+  });
+  if (res.status === 401) return Astro.redirect(irAlLogin);
+  const data = await res.json().catch(() => ({}));
+  if (res.ok) sala = data.sala;
+  else error = Array.isArray(data.error) ? data.error.join(". ") : (data.error || "No pudimos abrir la sala.");
+} catch {
+  error = "No se pudo conectar con el servidor.";
+}
+---
+
+<BaseLayout title="Sala de sesión | Psynex">
+  <Sala sala={sala} error={error} />
+</BaseLayout>

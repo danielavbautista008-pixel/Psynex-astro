@@ -226,8 +226,8 @@ import "./login.css";
       } else if (rol === "empresa") {
         window.location.href = "/Empresa/Inicio";
       } else if (rol === "paciente") {
+        // cambio: aquí había un "}else {" de más que rompía la página de login
         window.location.href = "/Paciente/Inicio";
-      }else {
       } else if (rol === "psicologo") {
         window.location.href = "/Psicologos/Inicio";
       } else {

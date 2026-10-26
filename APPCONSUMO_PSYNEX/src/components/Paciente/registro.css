@@ -1,0 +1,819 @@
+/* cambio: vista NUEVA — Registro emocional diario (lo común está en paciente.css)
+   Versión compacta y con animaciones; íconos con el color del tema. */
+
+.reg-contenido {
+  max-width: 1000px;
+  gap: 16px;
+}
+
+.reg-page .pac-card {
+  padding: 16px 18px;
+}
+
+.reg-page .pac-card-top h2 {
+  font-size: 15px;
+}
+
+.reg-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 16px;
+  align-items: start;
+}
+
+.reg-page .pac-col {
+  gap: 16px;
+}
+
+.reg-form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------------- Caritas ---------------- */
+.reg-estados {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.reg-estado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 4px 7px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.reg-estado:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+}
+
+.reg-estado i {
+  font-size: 24px;
+  line-height: 1;
+  color: var(--primary); /* cambio: color del tema */
+  transition: transform 0.25s ease;
+}
+
+.reg-estado:hover i {
+  transform: scale(1.12) rotate(-6deg);
+}
+
+.reg-estado input,
+.reg-chip input,
+.reg-energia input,
+.reg-compartir input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.reg-estado:has(input:checked) {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.reg-estado:has(input:checked) i {
+  animation: reg-rebote 0.45s ease;
+}
+
+.reg-estado:has(input:focus-visible),
+.reg-chip:has(input:focus-visible),
+.reg-energia label:has(input:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Mensaje que cambia según la carita */
+.reg-mensaje {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.reg-mensaje.cambio {
+  animation: reg-aparecer 0.35s ease;
+  color: var(--primary);
+}
+
+/* ---------------- Lo demás se abre al elegir carita ---------------- */
+.reg-mas {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.4s ease, opacity 0.4s ease;
+}
+
+.reg-mas.abierto {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.reg-mas-dentro {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.reg-mas.abierto .reg-mas-dentro {
+  padding-top: 14px;
+}
+
+.reg-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.reg-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.reg-titulo i {
+  color: var(--primary);
+}
+
+.reg-titulo b {
+  margin-left: auto;
+  color: var(--primary);
+  font-size: 12px;
+}
+
+/* Chips de emociones y causas */
+.reg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reg-chip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 11.5px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.reg-chip span i {
+  color: var(--primary);
+  transition: color 0.2s ease;
+}
+
+.reg-chip span:hover {
+  border-color: var(--primary);
+}
+
+.reg-chip span:active {
+  transform: scale(0.94);
+}
+
+.reg-chip:has(input:checked) span {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--on-primary);
+  animation: reg-pop 0.25s ease;
+}
+
+.reg-chip:has(input:checked) span i {
+  color: var(--on-primary);
+}
+
+.reg-fila {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+/* Barra de horas de sueño */
+.reg-rango {
+  --relleno: 58%;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary) var(--relleno), var(--border) var(--relleno));
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+  margin: 8px 0;
+}
+
+.reg-rango::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+
+.reg-rango::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.reg-rango::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+/* Energía: tres botones */
+.reg-energia {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.reg-energia span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.reg-energia span i {
+  color: var(--primary);
+}
+
+.reg-energia label:has(input:checked) span {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Nota */
+.reg-nota textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.reg-nota textarea:focus {
+  border-color: var(--primary);
+}
+
+.reg-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Interruptor "compartir con mi psicólogo" */
+.reg-compartir {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.reg-compartir i {
+  position: relative;
+  width: 34px;
+  height: 19px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--border);
+  transition: background 0.2s ease;
+}
+
+.reg-compartir i::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.reg-compartir input:checked + i {
+  background: var(--primary);
+}
+
+.reg-compartir input:checked + i::after {
+  transform: translateX(15px);
+}
+
+.reg-compartir input:focus-visible + i {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Al guardar, la tarjeta da un pequeño brillo */
+.reg-hoy.guardado {
+  animation: reg-brillo 0.9s ease;
+}
+
+/* ---------------- Racha y semana ---------------- */
+.reg-racha-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reg-racha-top > i {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 20px;
+  animation: reg-latido 2.4s ease-in-out infinite;
+}
+
+.reg-racha-top strong {
+  display: block;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.reg-racha-top small {
+  font-size: 11px;
+}
+
+.reg-semana {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 12px;
+}
+
+.reg-dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 0;
+  border-radius: 9px;
+  background: var(--bg);
+  animation: reg-subir 0.35s ease both;
+}
+
+.reg-dia small {
+  font-size: 9.5px;
+  color: var(--text-muted);
+}
+
+.reg-dia i {
+  font-size: 15px;
+  color: var(--border);
+}
+
+.reg-dia.lleno {
+  background: var(--primary-soft);
+}
+
+.reg-dia.lleno i {
+  color: var(--primary);
+}
+
+.reg-dia.hoy {
+  outline: 2px solid var(--primary);
+}
+
+/* ---------------- Gráfica de 14 días ---------------- */
+.reg-grafica {
+  height: 110px;
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: 3px;
+  align-items: end;
+}
+
+.reg-barra {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+}
+
+.reg-barra i {
+  width: 100%;
+  max-width: 11px;
+  height: var(--alto);
+  border-radius: 6px 6px 3px 3px;
+  background: var(--primary);
+  transform-origin: bottom;
+  animation: reg-crecer 0.5s ease both;
+}
+
+.reg-barra:hover i {
+  filter: brightness(1.12);
+}
+
+.reg-barra i.vacia {
+  background: var(--border);
+}
+
+.reg-barra small {
+  font-size: 9px;
+  color: var(--text-muted);
+}
+
+/* ---------------- Lo que más sentiste / te afecta ---------------- */
+.reg-top {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.reg-top-fila {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.reg-top-fila span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.reg-top-fila span i {
+  color: var(--primary);
+}
+
+.reg-top-fila > i {
+  height: 7px;
+  border-radius: 999px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.reg-top-fila b {
+  display: block;
+  width: var(--ancho);
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary);
+  transform-origin: left;
+  animation: reg-llenar 0.6s ease both;
+}
+
+.reg-top-fila small {
+  text-align: right;
+  color: var(--text-muted);
+}
+
+/* ---------------- Historial ---------------- */
+.reg-historial {
+  display: flex;
+  flex-direction: column;
+}
+
+.reg-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  animation: reg-subir 0.35s ease both;
+}
+
+.reg-item:last-child {
+  border-bottom: 0;
+}
+
+.reg-item-icono {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 18px;
+}
+
+.reg-item strong {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.reg-item small {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.reg-item-causas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.reg-item-causas span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 10.5px;
+  color: var(--text);
+}
+
+.reg-item-causas i {
+  color: var(--primary);
+}
+
+.reg-item p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.reg-ver-mas {
+  margin-top: 8px;
+  align-self: center;
+}
+
+/* ---------------- Animaciones ---------------- */
+@keyframes reg-rebote {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.3); }
+  70% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+@keyframes reg-pop {
+  0% { transform: scale(0.9); }
+  60% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+@keyframes reg-aparecer {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes reg-subir {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes reg-crecer {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes reg-llenar {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes reg-latido {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes reg-brillo {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 45%, transparent); }
+  100% { box-shadow: 0 0 0 14px transparent; }
+}
+
+/* ---------------- Responsive ---------------- */
+@media (max-width: 900px) {
+  .reg-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .reg-estados {
+    gap: 5px;
+  }
+
+  .reg-estado {
+    padding: 8px 2px 6px;
+    font-size: 10px;
+  }
+
+  .reg-estado i {
+    font-size: 21px;
+  }
+
+  .reg-fila {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------- cambio: cuestionarios asignados por el psicólogo ---------------- */
+.reg-btn-asignados {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reg-btn-asignados i {
+  color: var(--primary);
+}
+
+.reg-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 10px;
+  animation: reg-latido 2.4s ease-in-out infinite;
+}
+
+.reg-modal {
+  width: min(560px, calc(100vw - 32px));
+}
+
+.reg-asignados {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.reg-asignado {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+  animation: reg-subir 0.35s ease both;
+}
+
+.reg-asignado:nth-child(2) { animation-delay: 60ms; }
+.reg-asignado:nth-child(3) { animation-delay: 120ms; }
+
+.reg-asignado.hecho {
+  opacity: 0.75;
+}
+
+.reg-asignado-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: var(--primary-soft) center / cover no-repeat;
+}
+
+.reg-asignado-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.reg-asignado-info strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.reg-asignado-info small {
+  font-size: 11px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reg-asignado-info small i {
+  color: var(--primary);
+}
+
+.reg-asignado-info em {
+  font-size: 11.5px;
+  color: var(--text);
+}
+
+@media (max-width: 520px) {
+  .reg-asignado {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .reg-asignado-img {
+    width: 44px;
+    height: 44px;
+  }
+
+  .reg-asignado > .pac-btn {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+}
+
+/* cambio: cuestionarios agrupados por el psicólogo que los asignó */
+.reg-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reg-grupo + .reg-grupo {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+
+.reg-grupo-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reg-grupo-letra {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.reg-grupo-top strong {
+  display: block;
+  font-size: 13px;
+}
+
+.reg-grupo-top small {
+  font-size: 11px;
+  color: var(--text-muted);
+}
