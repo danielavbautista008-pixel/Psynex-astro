@@ -13,6 +13,34 @@ const horaActual = new Date().toLocaleTimeString("es-CO", {
   hour: "2-digit",
   minute: "2-digit"
 });
+
+import { apiGet } from "../../lib/api";
+
+// ---------------------------------------------------------------
+// Datos reales para las 4 tarjetas (todas son consultas de solo Admin)
+// ---------------------------------------------------------------
+const nombreAdmin = Astro.locals.usuario?.NombreCompleto?.split(" ")[0] ?? "Admin";
+
+const cookie = Astro.request.headers.get("cookie");
+// Fecha de hoy en Colombia, en formato AAAA-MM-DD
+const hoy = new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
+
+const [citasHoy, usuarios, resumenUsuarios, cuestionarios] = await Promise.all([
+  apiGet(cookie, `/api/admin/citas?fechaDesde=${hoy}&fechaHasta=${hoy}&porPagina=1`),
+  apiGet(cookie, "/usuarios?porPagina=100"),
+  apiGet(cookie, "/usuarios/resumen"),
+  apiGet(cookie, "/cuestionarios?estadoActivo=true"),
+]);
+
+const totalCitasHoy = citasHoy?.total ?? 0;
+
+// Usuarios que se registraron en los últimos 30 días
+const hace30Dias = Date.now() - 30 * 86_400_000;
+const usuariosNuevos = (usuarios?.datos ?? [])
+  .filter((u: any) => new Date(u.CreadoEn).getTime() >= hace30Dias).length;
+
+const totalPsicologos = resumenUsuarios?.resumen?.psicologos ?? 0;
+const cuestionariosActivos = (cuestionarios?.cuestionarios ?? []).length;
 ---
 
 <div class="admin-page">
@@ -32,7 +60,7 @@ const horaActual = new Date().toLocaleTimeString("es-CO", {
 
       <div class="header-text">
 
-        <h1>Hola, Admin</h1>
+        <h1>Hola, {nombreAdmin}</h1>
 
         <p>
           Aquí está el resumen de hoy
@@ -82,7 +110,7 @@ const horaActual = new Date().toLocaleTimeString("es-CO", {
 
         <div class="stat-data">
 
-          <strong>12</strong>
+          <strong>{totalCitasHoy}</strong>
 
           <span>
             Citas hoy
@@ -103,7 +131,7 @@ const horaActual = new Date().toLocaleTimeString("es-CO", {
 
         <div class="stat-data">
 
-          <strong>8</strong>
+          <strong>{usuariosNuevos}</strong>
 
           <span>
             Usuarios nuevos
@@ -124,7 +152,7 @@ const horaActual = new Date().toLocaleTimeString("es-CO", {
 
         <div class="stat-data">
 
-          <strong>5</strong>
+          <strong>{totalPsicologos}</strong>
 
           <span>
             Psicólogos registrados
@@ -145,7 +173,7 @@ const horaActual = new Date().toLocaleTimeString("es-CO", {
 
         <div class="stat-data">
 
-          <strong>3</strong>
+          <strong>{cuestionariosActivos}</strong>
 
           <span>
             Cuestionarios activos

@@ -1,0 +1,443 @@
+---
+import "./Alertas.css";
+import NavbarPsicologo from "../Menu/NavbarPsicologo.astro";
+import { apiGet, fechaCorta, hora } from "../../lib/api";
+
+// GET /api/psicologo/alertas -> alertas de riesgo de sus pacientes
+// (se crean cuando un paciente obtiene un resultado crítico en un cuestionario)
+const datos = await apiGet(Astro.request.headers.get("cookie"), "/api/psicologo/alertas");
+
+const PRIORIDAD: Record<string, string> = {
+  Critico: "Alta",
+  Moderado: "Media",
+  Leve: "Baja",
+  "Sin riesgo": "Baja",
+};
+
+const cuando = (f: string) => {
+  const d = new Date(f);
+  const dias = Math.floor((Date.now() - d.getTime()) / 86_400_000);
+  const dia = dias <= 0 ? "Hoy" : dias === 1 ? "Ayer" : fechaCorta(f);
+  return `${dia}, ${hora(f)}`;
+};
+
+const alertas = ((datos?.alertas ?? []) as any[]).map((a) => {
+  const paciente = String(a.PacienteNombre ?? "Paciente");
+  const nivel = String(a.NivelRiesgo ?? a.Interpretacion ?? "Critico");
+  const puntaje = a.PuntajeMaximo ? `${a.PuntajeTotal}/${a.PuntajeMaximo}` : String(a.PuntajeTotal ?? "");
+  return {
+    id: String(a.AlertaId),
+    paciente,
+    iniciales: paciente.split(/\s+/).filter(Boolean).map((p) => p[0]).slice(0, 2).join("").toUpperCase(),
+    cuestionario: String(a.NombreCuestionario ?? "Cuestionario"),
+    prioridad: PRIORIDAD[nivel] ?? "Alta",
+    estado: Number(a.FueAtendida) === 1 ? "Revisada" : "Pendiente",
+    fecha: cuando(a.FechaAlerta),
+    resumen: `Resultado ${String(a.Interpretacion ?? nivel).toLowerCase()} (${puntaje} puntos).`,
+    detalle: `El paciente obtuvo un resultado ${String(a.Interpretacion ?? nivel).toLowerCase()} en ${a.NombreCuestionario} (${puntaje} puntos) el ${fechaCorta(a.FechaRespuesta ?? a.FechaAlerta)}. Revisa sus respuestas y contacta al paciente si lo consideras necesario.`,
+  };
+});
+
+const pendientes = alertas.filter((a) => a.estado === "Pendiente").length;
+const altas = alertas.filter((a) => a.prioridad === "Alta" && a.estado === "Pendiente").length;
+const revisadas = alertas.filter((a) => a.estado === "Revisada").length;
+---
+
+<NavbarPsicologo />
+
+<main class="alerts-page">
+  <header class="alerts-header">
+    <div>
+      <span class="alerts-eyebrow">SEGUIMIENTO PROFESIONAL</span>
+      <h1>Alertas</h1>
+      <p>Consulta y gestiona las alertas de tus pacientes.</p>
+    </div>
+    <span class="alerts-date">Panel de seguimiento</span>
+  </header>
+
+  <section class="alerts-summary" aria-label="Resumen de alertas">
+    <article class="alerts-stat">
+      <span class="stat-label">Total de alertas</span>
+      <strong>{alertas.length}</strong>
+      <span class="stat-note">Registros disponibles</span>
+    </article>
+    <article class="alerts-stat">
+      <span class="stat-label">Pendientes</span>
+      <strong>{pendientes}</strong>
+      <span class="stat-note">Por revisar</span>
+    </article>
+    <article class="alerts-stat">
+      <span class="stat-label">Prioridad alta</span>
+      <strong>{altas}</strong>
+      <span class="stat-note">Pendientes de revisión</span>
+    </article>
+    <article class="alerts-stat">
+      <span class="stat-label">Revisadas</span>
+      <strong>{revisadas}</strong>
+      <span class="stat-note">Marcadas como revisadas</span>
+    </article>
+  </section>
+
+  <section class="alerts-panel">
+    <div class="alerts-panel-heading">
+      <div>
+        <h2>Listado de alertas</h2>
+        <p>Filtra los registros y consulta sus detalles.</p>
+      </div>
+      <span class="alerts-total" id="alerts-total">{alertas.length} registros</span>
+    </div>
+
+    <div class="alerts-toolbar">
+      <label class="alerts-search">
+        <span class="sr-only">Buscar alertas</span>
+        <input id="alerts-search" type="search" placeholder="Buscar paciente o cuestionario..." />
+      </label>
+
+      <label class="alerts-filter">
+        <span class="sr-only">Filtrar por prioridad</span>
+        <select id="alerts-priority">
+          <option value="Todas">Todas las prioridades</option>
+          <option value="Alta">Prioridad alta</option>
+          <option value="Media">Prioridad media</option>
+          <option value="Baja">Prioridad baja</option>
+        </select>
+      </label>
+
+      <label class="alerts-filter">
+        <span class="sr-only">Filtrar por estado</span>
+        <select id="alerts-status">
+          <option value="Todas">Todos los estados</option>
+          <option value="Pendiente">Pendientes</option>
+          <option value="Revisada">Revisadas</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="alerts-list" id="alerts-list">
+      {alertas.map((alerta) => (
+        <article
+          class="alert-item"
+          data-alert-id={alerta.id}
+          data-patient={alerta.paciente.toLocaleLowerCase("es")}
+          data-questionnaire={alerta.cuestionario.toLocaleLowerCase("es")}
+          data-priority={alerta.prioridad}
+          data-status={alerta.estado}
+        >
+          <div class:list={["alert-priority-mark", `priority-${alerta.prioridad.toLowerCase()}`]}></div>
+
+          <div class="alert-avatar" aria-hidden="true">{alerta.iniciales}</div>
+
+          <div class="alert-content">
+            <div class="alert-title-row">
+              <h3>{alerta.paciente}</h3>
+              <span class:list={["alert-priority", `priority-${alerta.prioridad.toLowerCase()}`]}>
+                {alerta.prioridad}
+              </span>
+            </div>
+
+            <p class="alert-questionnaire">{alerta.cuestionario}</p>
+            <p class="alert-summary">{alerta.resumen}</p>
+
+            <div class="alert-meta">
+              <span>{alerta.fecha}</span>
+              <span class:list={["alert-status", alerta.estado === "Revisada" ? "status-reviewed" : "status-pending"]}>
+                <span class="status-dot"></span>
+                {alerta.estado}
+              </span>
+            </div>
+          </div>
+
+          <div class="alert-actions">
+            <button
+              type="button"
+              class="alert-detail-button"
+              data-action="details"
+              data-id={alerta.id}
+            >
+              Ver detalle
+            </button>
+            <button
+              type="button"
+              class="alert-review-button"
+              data-action="review"
+              data-id={alerta.id}
+              disabled={alerta.estado === "Revisada"}
+            >
+              {alerta.estado === "Revisada" ? "Revisada" : "Marcar revisada"}
+            </button>
+          </div>
+
+          <div
+            class="alert-detail-data"
+            data-detail-for={alerta.id}
+            data-patient-name={alerta.paciente}
+            data-questionnaire-name={alerta.cuestionario}
+            data-priority-value={alerta.prioridad}
+            data-status-value={alerta.estado}
+            data-date-value={alerta.fecha}
+            data-detail-text={alerta.detalle}
+            hidden
+          ></div>
+        </article>
+      ))}
+    </div>
+
+    <div class="alerts-empty" id="alerts-empty" hidden>
+      <span class="empty-symbol">⌕</span>
+      <h3>{alertas.length ? "No se encontraron alertas" : "No tienes alertas"}</h3>
+      <p>{alertas.length ? "Prueba con otra búsqueda o cambia los filtros." : "Aquí aparecerán los resultados críticos de los cuestionarios de tus pacientes."}</p>
+      <button type="button" id="alerts-reset">Limpiar filtros</button>
+    </div>
+
+    <footer class="alerts-footer">
+      <span>Alertas generadas por resultados de cuestionarios</span>
+      <span id="alerts-footer-count">{alertas.length} alertas registradas</span>
+    </footer>
+  </section>
+</main>
+
+<div class="alert-modal-backdrop" id="alert-modal" hidden>
+  <section
+    class="alert-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-title"
+    aria-describedby="modal-detail"
+  >
+    <header class="modal-header">
+      <div>
+        <span class="alerts-eyebrow">DETALLE DEL REGISTRO</span>
+        <h2 id="modal-title">Detalle de alerta</h2>
+      </div>
+      <button class="modal-close" type="button" id="modal-close" aria-label="Cerrar ventana">×</button>
+    </header>
+
+    <div class="modal-body">
+      <div class="modal-patient">
+        <span class="modal-avatar" id="modal-avatar">--</span>
+        <div>
+          <strong id="modal-patient-name"></strong>
+          <span id="modal-date"></span>
+        </div>
+      </div>
+
+      <div class="modal-divider"></div>
+
+      <div class="modal-field">
+        <span>Cuestionario</span>
+        <p id="modal-questionnaire"></p>
+      </div>
+
+      <div class="modal-fields-grid">
+        <div class="modal-field">
+          <span>Prioridad</span>
+          <p id="modal-priority"></p>
+        </div>
+        <div class="modal-field">
+          <span>Estado</span>
+          <p id="modal-status"></p>
+        </div>
+      </div>
+
+      <div class="modal-detail-box">
+        <span>Observación</span>
+        <p id="modal-detail"></p>
+      </div>
+
+      <p class="modal-disclaimer">
+        El resultado del cuestionario es orientativo y no sustituye tu valoración profesional.
+      </p>
+    </div>
+
+    <footer class="modal-footer">
+      <button class="modal-secondary" type="button" id="modal-cancel">Cerrar</button>
+      <button class="modal-primary" type="button" id="modal-review">Marcar revisada</button>
+    </footer>
+  </section>
+</div>
+
+<script>
+  import { apiEnviar, textoError } from "../../lib/api";
+
+  const searchInput = document.querySelector<HTMLInputElement>("#alerts-search")!;
+  const priorityFilter = document.querySelector<HTMLSelectElement>("#alerts-priority")!;
+  const statusFilter = document.querySelector<HTMLSelectElement>("#alerts-status")!;
+  const alertItems = Array.from(document.querySelectorAll<HTMLElement>(".alert-item"));
+  const totalLabel = document.querySelector<HTMLElement>("#alerts-total")!;
+  const footerCount = document.querySelector<HTMLElement>("#alerts-footer-count")!;
+  const emptyState = document.querySelector<HTMLElement>("#alerts-empty")!;
+  const resetButton = document.querySelector<HTMLButtonElement>("#alerts-reset")!;
+
+  const modal = document.querySelector<HTMLElement>("#alert-modal")!;
+  const modalClose = document.querySelector<HTMLButtonElement>("#modal-close")!;
+  const modalCancel = document.querySelector<HTMLButtonElement>("#modal-cancel")!;
+  const modalReview = document.querySelector<HTMLButtonElement>("#modal-review")!;
+
+  let activeAlertId: string | null = null;
+  let previousFocus: HTMLElement | null = null;
+
+  function applyFilters() {
+    const query = searchInput.value.trim().toLocaleLowerCase("es");
+    const priority = priorityFilter.value;
+    const status = statusFilter.value;
+    let visibleCount = 0;
+
+    alertItems.forEach((item) => {
+      const matchesQuery =
+        (item.dataset.patient ?? "").includes(query) ||
+        (item.dataset.questionnaire ?? "").includes(query);
+      const matchesPriority = priority === "Todas" || item.dataset.priority === priority;
+      const matchesStatus = status === "Todas" || item.dataset.status === status;
+      const visible = matchesQuery && matchesPriority && matchesStatus;
+
+      item.hidden = !visible;
+      if (visible) visibleCount++;
+    });
+
+    totalLabel.textContent = `${visibleCount} ${visibleCount === 1 ? "registro" : "registros"}`;
+    footerCount.textContent = `${visibleCount} ${visibleCount === 1 ? "alerta visible" : "alertas visibles"}`;
+    emptyState.hidden = visibleCount !== 0;
+  }
+
+  function updateSummary() {
+    const pending = alertItems.filter((item) => item.dataset.status === "Pendiente").length;
+    const high = alertItems.filter(
+      (item) => item.dataset.status === "Pendiente" && item.dataset.priority === "Alta"
+    ).length;
+    const reviewed = alertItems.filter((item) => item.dataset.status === "Revisada").length;
+
+    const values = document.querySelectorAll<HTMLElement>(".alerts-stat strong");
+    values[1].textContent = String(pending);
+    values[2].textContent = String(high);
+    values[3].textContent = String(reviewed);
+  }
+
+  function getItem(id: string) {
+    return alertItems.find((item) => item.dataset.alertId === id) ?? null;
+  }
+
+  // PATCH /api/psicologo/alertas/:id/atender
+  async function setReviewed(id: string) {
+    const item = getItem(id);
+    if (!item || item.dataset.status === "Revisada") return;
+
+    const r = await apiEnviar("PATCH", `/api/psicologo/alertas/${encodeURIComponent(id)}/atender`, {});
+    if (r.status === 401) {
+      window.location.href = "/Inicio/login";
+      return;
+    }
+    if (!r.ok) {
+      const note = document.querySelector<HTMLElement>("#modal-detail");
+      if (activeAlertId === id && note) note.textContent = textoError(r.data, "No se pudo marcar como revisada.");
+      return;
+    }
+
+    item.dataset.status = "Revisada";
+
+    const status = item.querySelector<HTMLElement>(".alert-status");
+    if (status) {
+      status.classList.remove("status-pending");
+      status.classList.add("status-reviewed");
+      status.innerHTML = '<span class="status-dot"></span>Revisada';
+    }
+
+    const reviewButton = item.querySelector<HTMLButtonElement>('[data-action="review"]');
+    if (reviewButton) {
+      reviewButton.textContent = "Revisada";
+      reviewButton.disabled = true;
+    }
+
+    const detailData = item.querySelector<HTMLElement>("[data-detail-for]");
+    if (detailData) detailData.dataset.statusValue = "Revisada";
+
+    updateSummary();
+    applyFilters();
+
+    if (activeAlertId === id) {
+      document.querySelector<HTMLElement>("#modal-status")!.textContent = "Revisada";
+      modalReview.disabled = true;
+      modalReview.textContent = "Ya revisada";
+    }
+  }
+
+  function closeModal() {
+    modal.hidden = true;
+    document.body.classList.remove("alerts-modal-open");
+    activeAlertId = null;
+    previousFocus?.focus();
+  }
+
+  function openModal(id: string, trigger: HTMLElement) {
+    const data = document.querySelector<HTMLElement>(`[data-detail-for="${id}"]`);
+    if (!data) return;
+
+    activeAlertId = id;
+    previousFocus = trigger;
+
+    const patientName = data.dataset.patientName ?? "";
+    document.querySelector<HTMLElement>("#modal-title")!.textContent = "Detalle de alerta";
+    document.querySelector<HTMLElement>("#modal-avatar")!.textContent =
+      patientName.split(/\s+/).map((part) => part[0]).slice(0, 2).join("");
+    document.querySelector<HTMLElement>("#modal-patient-name")!.textContent = patientName;
+    document.querySelector<HTMLElement>("#modal-date")!.textContent = data.dataset.dateValue ?? "";
+    document.querySelector<HTMLElement>("#modal-questionnaire")!.textContent =
+      data.dataset.questionnaireName ?? "";
+    document.querySelector<HTMLElement>("#modal-priority")!.textContent =
+      data.dataset.priorityValue ?? "";
+    document.querySelector<HTMLElement>("#modal-status")!.textContent =
+      data.dataset.statusValue ?? "";
+    document.querySelector<HTMLElement>("#modal-detail")!.textContent =
+      data.dataset.detailText ?? "";
+
+    modalReview.disabled = data.dataset.statusValue === "Revisada";
+    modalReview.textContent = modalReview.disabled ? "Ya revisada" : "Marcar revisada";
+
+    modal.hidden = false;
+    document.body.classList.add("alerts-modal-open");
+    modalClose.focus();
+  }
+
+  searchInput.addEventListener("input", applyFilters);
+  priorityFilter.addEventListener("change", applyFilters);
+  statusFilter.addEventListener("change", applyFilters);
+
+  resetButton.addEventListener("click", () => {
+    searchInput.value = "";
+    priorityFilter.value = "Todas";
+    statusFilter.value = "Todas";
+    applyFilters();
+    searchInput.focus();
+  });
+
+  document.querySelector("#alerts-list")!.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+
+    const button = target.closest<HTMLButtonElement>("button[data-action]");
+    if (!button) return;
+
+    const id = button.dataset.id;
+    if (!id) return;
+
+    if (button.dataset.action === "details") openModal(id, button);
+    if (button.dataset.action === "review") setReviewed(id);
+  });
+
+  modalClose.addEventListener("click", closeModal);
+  modalCancel.addEventListener("click", closeModal);
+
+  modalReview.addEventListener("click", () => {
+    if (activeAlertId) setReviewed(activeAlertId);
+  });
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) closeModal();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !modal.hidden) closeModal();
+  });
+
+  applyFilters();
+  updateSummary();
+</script>

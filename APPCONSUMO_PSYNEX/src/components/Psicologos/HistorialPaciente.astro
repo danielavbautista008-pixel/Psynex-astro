@@ -1,0 +1,264 @@
+---
+import "./HistorialPaciente.css";
+---
+
+<div
+  class="history-modal"
+  id="patientHistoryModal"
+  aria-hidden="true"
+>
+  <div class="history-panel">
+
+    <div class="history-header">
+
+      <div class="history-patient">
+
+        <div class="history-photo-wrapper">
+          <img
+            id="modalPatientPhoto"
+            src=""
+            alt="Paciente"
+            class="history-photo"
+          />
+        </div>
+
+        <div>
+          <span class="history-label">
+            PACIENTE
+          </span>
+
+          <h2 id="modalPatientName">
+            Paciente
+          </h2>
+
+          <p>
+            <span id="modalPatientAge"></span>
+
+            <span>·</span>
+
+            <span id="modalPatientType"></span>
+          </p>
+        </div>
+
+      </div>
+
+      <button
+        type="button"
+        class="close-history"
+        id="closePatientHistory"
+        aria-label="Cerrar historial"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div class="history-tabs">
+
+      <button
+        type="button"
+        class="history-tab active"
+        data-tab="resumen"
+      >
+        Resumen
+      </button>
+
+      <button
+        type="button"
+        class="history-tab"
+        data-tab="historial"
+      >
+        Historial
+      </button>
+
+      <button
+        type="button"
+        class="history-tab"
+        data-tab="seguimiento"
+      >
+        Seguimiento
+      </button>
+
+    </div>
+
+
+    <div class="history-content">
+
+
+      <!-- RESUMEN -->
+
+      <section
+        class="history-view active"
+        data-view="resumen"
+      >
+
+        <div class="overview-grid">
+
+          <div class="overview-item">
+            <span>Próxima sesión</span>
+            <strong id="modalNextSession">—</strong>
+            <small id="modalNextSessionType"></small>
+          </div>
+
+          <div class="overview-item">
+            <span>Última sesión</span>
+            <strong id="modalLastSession">—</strong>
+            <small id="modalLastSessionType"></small>
+          </div>
+
+          <div class="overview-item">
+            <span>Sesiones realizadas</span>
+            <strong id="modalPatientSessions">
+              0 sesiones
+            </strong>
+            <small id="modalPatientSince"></small>
+          </div>
+
+        </div>
+
+
+        <div class="history-note">
+
+          <span>ESTADO ACTUAL</span>
+
+          <p id="modalPatientState"></p>
+
+        </div>
+
+      </section>
+
+
+      <!-- HISTORIAL -->
+
+      <section
+        class="history-view"
+        data-view="historial"
+      >
+
+        <!-- Se llena con las citas reales del paciente -->
+        <div class="timeline" id="historyTimeline"></div>
+
+      </section>
+
+
+      <!-- SEGUIMIENTO -->
+
+      <section
+        class="history-view"
+        data-view="seguimiento"
+      >
+
+        <div class="follow-up">
+
+          <div class="follow-up-heading">
+            <span>SEGUIMIENTO PROFESIONAL</span>
+
+            <small id="historyUpdated"></small>
+          </div>
+
+          <div class="follow-up-block">
+
+            <span>RESULTADOS DE CUESTIONARIOS</span>
+
+            <ul id="historyResults"></ul>
+
+          </div>
+
+          <!-- Notas privadas del psicólogo (solo las ve quien las escribe) -->
+          <div id="historyNotes"></div>
+
+          <form class="follow-up-block history-note-form" id="historyNoteForm">
+
+            <label for="historyNoteText">AGREGAR NOTA</label>
+
+            <textarea
+              id="historyNoteText"
+              rows="3"
+              maxlength="5000"
+              placeholder="Observaciones de la sesión, objetivos, avances..."
+            ></textarea>
+
+            <small id="historyNoteError" class="history-note-error"></small>
+
+            <button type="submit">Guardar nota</button>
+
+          </form>
+
+          <div class="next-follow-up">
+
+            <span>PRÓXIMO SEGUIMIENTO</span>
+
+            <strong id="historyNextFollowUp">
+              —
+            </strong>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </div>
+</div>
+
+
+<script>
+  const tabs =
+    document.querySelectorAll<HTMLButtonElement>(
+      ".history-tab"
+    );
+
+  const views =
+    document.querySelectorAll<HTMLElement>(
+      ".history-view"
+    );
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+
+      const selectedTab =
+        tab.dataset.tab;
+
+      tabs.forEach((item) => {
+        item.classList.remove("active");
+      });
+
+      views.forEach((view) => {
+        view.classList.remove("active");
+      });
+
+      tab.classList.add("active");
+
+      const selectedView =
+        document.querySelector<HTMLElement>(
+          `[data-view="${selectedTab}"]`
+        );
+
+      selectedView?.classList.add("active");
+    });
+  });
+
+
+  const modal =
+    document.querySelector<HTMLElement>(
+      "#patientHistoryModal"
+    );
+
+  const closeButton =
+    document.querySelector<HTMLButtonElement>(
+      "#closePatientHistory"
+    );
+
+  const closeModal = () => {
+    modal?.classList.remove("is-open");
+    document.body.classList.remove("modal-open");
+  };
+
+  closeButton?.addEventListener(
+    "click",
+    closeModal
+  );
+</script>

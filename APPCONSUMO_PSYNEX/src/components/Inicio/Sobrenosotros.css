@@ -9,64 +9,100 @@
 
 
 /* -------------------------------------------------------------------------
-   1. HERO CON VIDEO (reemplaza tu .hero-carousel de fotos)
+   1. HERO CON CARRUSEL DE FOTOS (Bootstrap, igual patrón que login.css)
    ------------------------------------------------------------------------- */
 .sn-hero {
   position: relative;
   width: 100%;
-  height: 340px; /* antes 500px */
+  height: 425px;
   overflow: hidden;
-
-  /* container-type: size habilita las unidades cqw/cqh de abajo, que
-     miden el ANCHO/ALTO de este mismo contenedor en vez del de toda la
-     ventana — así el truco de "cubrir" funciona aunque el hero no mida
-     lo mismo que la pantalla completa. */
-  container-type: size;
 }
 
-/* Imagen de respaldo, debajo del iframe. Se ve mientras YouTube carga
-   o si "reducir movimiento" quitó el iframe por completo. */
-.sn-hero-poster {
-  position: absolute;
-  inset: 0;
+.sn-hero-carousel,
+.sn-hero-carousel .carousel-inner,
+.sn-hero-carousel .carousel-item {
+  height: 100%;
+}
+
+.sn-hero-carousel .carousel-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 1;
 }
 
-.sn-hero-video-wrap {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  z-index: 2;
-}
-
-/* El iframe de YouTube no tiene "object-fit: cover" (eso solo existe
-   para <img>/<video>), así que lo agrandamos a propósito y lo
-   centramos, para que siempre sobre contenido por los bordes en vez
-   de dejar franjas negras — el mismo truco que usan los sitios que
-   ponen videos de YouTube como fondo. */
-.sn-hero-iframe {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border: 0;
-
-  width: 177.78cqh;  /* ancho de un video 16:9 según la altura del hero */
-  height: 100cqh;
-  min-width: 100cqw;
-  min-height: 56.25cqw; /* alto de un video 16:9 según el ancho del hero */
-
-  pointer-events: none; /* decorativo: no se puede pausar/clickear */
-}
-
+/* Degradado semi-transparente sobre las fotos (sin blur): mezcla negro
+   suave con tu color de tema (--primary), solo para que el texto
+   blanco se lea bien encima de cualquier foto. */
 .sn-hero-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-  z-index: 3;
+  z-index: 2;
+
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.22),
+    color-mix(in srgb, var(--primary) 22%, transparent)
+  );
+}
+
+/* Flechas: circulitos discretos semi-transparentes, no las flechas
+   grandes por defecto de Bootstrap. */
+.sn-hero-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(6px);
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+.sn-hero-arrow:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.sn-hero-arrow-prev {
+  left: 16px;
+}
+
+.sn-hero-arrow-next {
+  right: 16px;
+}
+
+/* Puntos circulares — pequeños y discretos. */
+.sn-hero-dots.carousel-indicators {
+  bottom: 18px;
+  margin: 0;
+}
+
+.sn-hero-dots.carousel-indicators button {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin: 0 4px;
+  padding: 0;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.5);
+  opacity: 1;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.sn-hero-dots.carousel-indicators button.active {
+  background-color: var(--primary);
+  transform: scale(1.2);
 }
 
 .sn-hero-content {
@@ -79,19 +115,23 @@
   text-align: center;
   color: white;
   width: 90%;
-  max-width: 800px;
+  max-width: 600px;
 }
 
 .sn-hero-content h1 {
-  font-family: "Gravitas One", serif;
-  font-size: 2rem; /* antes 3rem */
-  font-weight: 400;
-  margin-bottom: 10px;
+  font-family: "Playfair Display", serif;
+  font-size: 2.6rem;
+  font-weight: 600;
+  /* Antes 30px -> ese era el hueco grande que viste entre el título
+     y el párrafo. */
+  margin-bottom: 12px;
 }
 
 .sn-hero-content p {
   font-family: "Lora", serif;
-  font-size: 1rem; /* antes 1.4rem */
+  /* Antes 4rem (¡64px!) -> ahí estaba el otro problema: el párrafo
+     quedaba casi tan grande como el título. */
+  font-size: 1.05rem;
   line-height: 1.5;
   max-width: 480px;
   margin: 0 auto;
@@ -103,9 +143,6 @@
    ------------------------------------------------------------------------- */
 .sn-container {
   width: 100%;
-  /* Antes: var(--color-primary) — pintaba toda la sección del color
-     fuerte del tema. Esto parece un error (ninguna otra página hace
-     esto), así que lo dejé como el fondo normal de la página. */
   background: var(--bg);
   padding: 40px 0;
 }
@@ -117,24 +154,24 @@
 .sn-mision-vision {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px; /* antes 25px */
-  max-width: 900px; /* antes 1100px */
+  gap: 16px;
+  max-width: 900px;
   margin: 24px auto;
   padding: 0 20px;
 }
 
 .sn-info-card {
   background: var(--surface);
-  border-radius: 16px; /* antes 20px */
-  padding: 22px; /* antes 35px */
+  border-radius: 16px;
+  padding: 22px;
   display: flex;
   align-items: center;
-  gap: 16px; /* antes 25px */
+  gap: 16px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
 }
 
 .sn-icon-circle {
-  width: 56px; /* antes 90px */
+  width: 56px;
   height: 56px;
   min-width: 56px;
   border-radius: 50%;
@@ -145,7 +182,7 @@
 }
 
 .sn-icon-circle i {
-  font-size: 1.5rem; /* antes 2.8rem */
+  font-size: 1.5rem;
   color: var(--primary);
 }
 
@@ -156,16 +193,16 @@
 }
 
 .sn-card-content h2 {
-  margin-bottom: 6px; /* antes 15px */
+  margin-bottom: 6px;
   color: var(--primary);
-  font-size: 1.15rem; /* antes 2rem */
+  font-size: 1.15rem;
   font-weight: 700;
 }
 
 .sn-card-content p {
   margin: 0;
   line-height: 1.6;
-  font-size: 0.85rem; /* antes 1.05rem */
+  font-size: 0.85rem;
   color: var(--text);
 }
 
@@ -174,25 +211,25 @@
    4. VALORES
    ------------------------------------------------------------------------- */
 .sn-valores {
-  max-width: 900px; /* antes 1100px */
-  margin: 36px auto; /* antes 50px */
+  max-width: 900px;
+  margin: 36px auto;
   padding: 0 20px;
 }
 
 .sn-section-title {
   text-align: center;
-  margin-bottom: 24px; /* antes 40px */
+  margin-bottom: 24px;
 }
 
 .sn-section-title h2 {
-  font-size: 1.5rem; /* antes 2.6rem */
+  font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 8px;
   color: var(--text);
 }
 
 .sn-title-line {
-  width: 44px; /* antes 60px */
+  width: 44px;
   height: 3px;
   margin: auto;
   border-radius: 10px;
@@ -202,13 +239,13 @@
 .sn-valores-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px; /* antes 25px */
+  gap: 14px;
 }
 
 .sn-valor-card {
   background: var(--surface);
-  border-radius: 14px; /* antes 20px */
-  padding: 20px 14px; /* antes 35px 25px */
+  border-radius: 14px;
+  padding: 20px 14px;
   text-align: center;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s ease;
@@ -219,7 +256,7 @@
 }
 
 .sn-valor-icon {
-  width: 46px; /* antes 70px */
+  width: 46px;
   height: 46px;
   margin: 0 auto 12px;
   border-radius: 50%;
@@ -230,12 +267,12 @@
 }
 
 .sn-valor-icon i {
-  font-size: 1.2rem; /* antes 2rem */
+  font-size: 1.2rem;
   color: var(--primary);
 }
 
 .sn-valor-card h3 {
-  font-size: 0.95rem; /* antes 1.5rem */
+  font-size: 0.95rem;
   font-weight: 700;
   margin-bottom: 8px;
   color: var(--text);
@@ -252,8 +289,8 @@
    5. CONTACTO
    ------------------------------------------------------------------------- */
 .sn-contacto {
-  max-width: 900px; /* antes 1100px */
-  margin: 40px auto; /* antes 60px */
+  max-width: 900px;
+  margin: 40px auto;
   padding: 0 20px 30px;
 }
 
@@ -261,12 +298,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 18px; /* antes 30px */
+  gap: 18px;
   flex-wrap: wrap;
 }
 
 .sn-contact-btn {
-  width: 42px; /* antes 64px */
+  width: 42px;
   height: 42px;
   border-radius: 50%;
   border: 1.5px solid var(--text);
@@ -278,7 +315,7 @@
 }
 
 .sn-contact-btn i {
-  font-size: 1.1rem; /* antes 1.7rem */
+  font-size: 1.1rem;
   color: var(--text);
   transition: 0.3s;
 }
@@ -324,10 +361,10 @@
   }
 
   .sn-hero-content h1 {
-    font-size: 2.2rem;
+    font-size: 1.9rem;
   }
 
   .sn-hero-content p {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
   }
 }

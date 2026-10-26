@@ -1,6 +1,49 @@
 ---
 import MenuAdmin from "../Menu/MenuAdmin.astro";
 import "./usuarios.css";
+import { apiGet } from "../../lib/api";
+
+// ---------------------------------------------------------------
+// Datos reales: GET /usuarios y GET /usuarios/resumen (solo Admin).
+// Se traen hasta 100 usuarios; los filtros de arriba siguen
+// funcionando igual que antes, en el navegador.
+// ---------------------------------------------------------------
+const cookie = Astro.request.headers.get("cookie");
+const [lista, datosResumen] = await Promise.all([
+  apiGet(cookie, "/usuarios?porPagina=100"),
+  apiGet(cookie, "/usuarios/resumen"),
+]);
+
+// Rol de la base de datos -> texto y clase de color del diseño
+const ROLES: Record<string, { tipo: string; clase: string }> = {
+  Paciente: { tipo: "Paciente", clase: "tipo-paciente" },
+  Psicologo: { tipo: "Psicólogo", clase: "tipo-psicologo" },
+  Empresa: { tipo: "Empresa", clase: "tipo-empresa" },
+};
+
+const iniciales = (nombre: string) =>
+  nombre.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join("");
+
+const usuarios = ((lista?.datos ?? []) as any[]).map((u: any) => {
+  const rol = ROLES[u.Rol] ?? { tipo: u.Rol, clase: "" };
+  return {
+    id: u.UsuarioId,
+    nombre: u.NombreCompleto,
+    tipo: rol.tipo,
+    tipoClass: rol.clase,
+    documento: u.Documento ?? "—",
+    correo: u.Email,
+    telefono: u.Telefono ?? "—",
+    iniciales: iniciales(u.NombreCompleto),
+    estado: u.EstadoActivo ? "Activo" : "Inactivo",
+  };
+});
+
+const totalUsuarios: number = lista?.total ?? usuarios.length;
+
+const resumen = datosResumen?.resumen ?? {
+  total: 0, pacientes: 0, psicologos: 0, empresas: 0, activos: 0, inactivos: 0,
+};
 ---
 
 <div class="usuarios-page">
@@ -126,7 +169,7 @@ import "./usuarios.css";
         </div>
 
         <span class="total-usuarios">
-          8 usuarios
+          {totalUsuarios} usuarios
         </span>
 
       </div>
@@ -147,59 +190,57 @@ import "./usuarios.css";
         </div>
 
 
-        <!-- =================================================
-             USUARIO 1
-        ================================================== -->
+        {usuarios.map((u) => (
 
         <article
           class="usuario-row"
-          data-id="1"
-          data-nombre="Laura Gómez"
-          data-tipo="Paciente"
-          data-tipo-class="tipo-paciente"
-          data-documento="1.025.456.789"
-          data-correo="laura@gmail.com"
-          data-telefono="300 456 7890"
-          data-iniciales="LG"
-          data-estado="Activo"
+          data-id={u.id}
+          data-nombre={u.nombre}
+          data-tipo={u.tipo}
+          data-tipo-class={u.tipoClass}
+          data-documento={u.documento}
+          data-correo={u.correo}
+          data-telefono={u.telefono}
+          data-iniciales={u.iniciales}
+          data-estado={u.estado}
         >
 
           <div class="usuario-principal">
 
-            <div class="usuario-avatar tipo-paciente">
-              LG
+            <div class={`usuario-avatar ${u.tipoClass}`}>
+              {u.iniciales}
             </div>
 
             <div>
-              <strong>Laura Gómez</strong>
+              <strong>{u.nombre}</strong>
               <small>
-                laura@gmail.com
+                {u.correo}
               </small>
             </div>
 
           </div>
 
 
-          <span class="tipo-badge tipo-paciente">
-            Paciente
+          <span class={`tipo-badge ${u.tipoClass}`}>
+            {u.tipo}
           </span>
 
 
           <div class="contacto-usuario">
 
             <span>
-              300 456 7890
+              {u.telefono}
             </span>
 
             <small>
-              1.025.456.789
+              {u.documento}
             </small>
 
           </div>
 
 
-          <span class="estado-badge estado-activo">
-            Activo
+          <span class={`estado-badge ${u.estado === "Activo" ? "estado-activo" : "estado-inactivo"}`}>
+            {u.estado}
           </span>
 
 
@@ -209,7 +250,7 @@ import "./usuarios.css";
               type="button"
               title="Ver detalle"
               data-action="detalle"
-              data-id="1"
+              data-id={u.id}
             >
               <i class="bi bi-eye"></i>
             </button>
@@ -218,9 +259,9 @@ import "./usuarios.css";
               type="button"
               title="Cambiar estado"
               data-action="estado"
-              data-id="1"
-              data-nombre="Laura Gómez"
-              data-estado="Activo"
+              data-id={u.id}
+              data-nombre={u.nombre}
+              data-estado={u.estado}
             >
               <i class="bi bi-power"></i>
             </button>
@@ -229,260 +270,7 @@ import "./usuarios.css";
 
         </article>
 
-
-        <!-- =================================================
-             USUARIO 2
-        ================================================== -->
-
-        <article
-          class="usuario-row"
-          data-id="2"
-          data-nombre="Andrés Ramírez"
-          data-tipo="Psicólogo"
-          data-tipo-class="tipo-psicologo"
-          data-documento="79.456.123"
-          data-correo="andres@psynex.com"
-          data-telefono="301 222 4567"
-          data-iniciales="AR"
-          data-estado="Activo"
-        >
-
-          <div class="usuario-principal">
-
-            <div class="usuario-avatar tipo-psicologo">
-              AR
-            </div>
-
-            <div>
-              <strong>Andrés Ramírez</strong>
-              <small>
-                andres@psynex.com
-              </small>
-            </div>
-
-          </div>
-
-
-          <span class="tipo-badge tipo-psicologo">
-            Psicólogo
-          </span>
-
-
-          <div class="contacto-usuario">
-
-            <span>
-              301 222 4567
-            </span>
-
-            <small>
-              79.456.123
-            </small>
-
-          </div>
-
-
-          <span class="estado-badge estado-activo">
-            Activo
-          </span>
-
-
-          <div class="usuario-actions">
-
-            <button
-              type="button"
-              title="Ver detalle"
-              data-action="detalle"
-              data-id="2"
-            >
-              <i class="bi bi-eye"></i>
-            </button>
-
-            <button
-              type="button"
-              title="Cambiar estado"
-              data-action="estado"
-              data-id="2"
-              data-nombre="Andrés Ramírez"
-              data-estado="Activo"
-            >
-              <i class="bi bi-power"></i>
-            </button>
-
-          </div>
-
-        </article>
-
-
-        <!-- =================================================
-             USUARIO 3
-        ================================================== -->
-
-        <article
-          class="usuario-row"
-          data-id="3"
-          data-nombre="Bienestar Laboral S.A.S."
-          data-tipo="Empresa"
-          data-tipo-class="tipo-empresa"
-          data-documento="900.456.789-1"
-          data-correo="contacto@bienestarlaboral.com"
-          data-telefono="601 456 7890"
-          data-iniciales="BL"
-          data-estado="Activo"
-        >
-
-          <div class="usuario-principal">
-
-            <div class="usuario-avatar tipo-empresa">
-              BL
-            </div>
-
-            <div>
-              <strong>
-                Bienestar Laboral S.A.S.
-              </strong>
-
-              <small>
-                contacto@bienestarlaboral.com
-              </small>
-            </div>
-
-          </div>
-
-
-          <span class="tipo-badge tipo-empresa">
-            Empresa
-          </span>
-
-
-          <div class="contacto-usuario">
-
-            <span>
-              601 456 7890
-            </span>
-
-            <small>
-              900.456.789-1
-            </small>
-
-          </div>
-
-
-          <span class="estado-badge estado-activo">
-            Activo
-          </span>
-
-
-          <div class="usuario-actions">
-
-            <button
-              type="button"
-              title="Ver detalle"
-              data-action="detalle"
-              data-id="3"
-            >
-              <i class="bi bi-eye"></i>
-            </button>
-
-            <button
-              type="button"
-              title="Cambiar estado"
-              data-action="estado"
-              data-id="3"
-              data-nombre="Bienestar Laboral S.A.S."
-              data-estado="Activo"
-            >
-              <i class="bi bi-power"></i>
-            </button>
-
-          </div>
-
-        </article>
-
-
-        <!-- =================================================
-             USUARIO 4
-        ================================================== -->
-
-        <article
-          class="usuario-row"
-          data-id="4"
-          data-nombre="Carlos Méndez"
-          data-tipo="Paciente"
-          data-tipo-class="tipo-paciente"
-          data-documento="1.014.785.632"
-          data-correo="carlos@gmail.com"
-          data-telefono="315 654 7890"
-          data-iniciales="CM"
-          data-estado="Inactivo"
-        >
-
-          <div class="usuario-principal">
-
-            <div class="usuario-avatar tipo-paciente">
-              CM
-            </div>
-
-            <div>
-              <strong>
-                Carlos Méndez
-              </strong>
-
-              <small>
-                carlos@gmail.com
-              </small>
-            </div>
-
-          </div>
-
-
-          <span class="tipo-badge tipo-paciente">
-            Paciente
-          </span>
-
-
-          <div class="contacto-usuario">
-
-            <span>
-              315 654 7890
-            </span>
-
-            <small>
-              1.014.785.632
-            </small>
-
-          </div>
-
-
-          <span class="estado-badge estado-inactivo">
-            Inactivo
-          </span>
-
-
-          <div class="usuario-actions">
-
-            <button
-              type="button"
-              title="Ver detalle"
-              data-action="detalle"
-              data-id="4"
-            >
-              <i class="bi bi-eye"></i>
-            </button>
-
-            <button
-              type="button"
-              title="Cambiar estado"
-              data-action="estado"
-              data-id="4"
-              data-nombre="Carlos Méndez"
-              data-estado="Inactivo"
-            >
-              <i class="bi bi-power"></i>
-            </button>
-
-          </div>
-
-        </article>
+        ))}
 
 
       </div>
@@ -493,7 +281,7 @@ import "./usuarios.css";
       <div class="usuarios-pagination">
 
         <span>
-          Mostrando 1–4 de 8 usuarios
+          Mostrando {usuarios.length} de {totalUsuarios} usuarios
         </span>
 
         <div>
@@ -574,7 +362,7 @@ import "./usuarios.css";
           </div>
 
           <div>
-            <strong>8</strong>
+            <strong>{resumen.total}</strong>
             <span>Total usuarios</span>
           </div>
 
@@ -588,7 +376,7 @@ import "./usuarios.css";
           </div>
 
           <div>
-            <strong>4</strong>
+            <strong>{resumen.pacientes}</strong>
             <span>Pacientes</span>
           </div>
 
@@ -602,7 +390,7 @@ import "./usuarios.css";
           </div>
 
           <div>
-            <strong>2</strong>
+            <strong>{resumen.psicologos}</strong>
             <span>Psicólogos</span>
           </div>
 
@@ -616,7 +404,7 @@ import "./usuarios.css";
           </div>
 
           <div>
-            <strong>2</strong>
+            <strong>{resumen.empresas}</strong>
             <span>Empresas</span>
           </div>
 
@@ -630,7 +418,7 @@ import "./usuarios.css";
           </div>
 
           <div>
-            <strong>7</strong>
+            <strong>{resumen.activos}</strong>
             <span>Activos</span>
           </div>
 
@@ -644,7 +432,7 @@ import "./usuarios.css";
           </div>
 
           <div>
-            <strong>1</strong>
+            <strong>{resumen.inactivos}</strong>
             <span>Inactivos</span>
           </div>
 
@@ -1017,6 +805,8 @@ import "./usuarios.css";
 
 
 <script>
+
+  import { API_URL } from "../../lib/api";
 
   /* =========================================================
      MODALES
@@ -1654,6 +1444,71 @@ import "./usuarios.css";
 
       }
     );
+
+
+  /* =========================================================
+     CONFIRMAR CAMBIO DE ESTADO (backend)
+     PATCH /usuarios/:id/estado  { estadoActivo, motivo }
+  ========================================================= */
+
+  const btnConfirmarEstado =
+    document.getElementById(
+      "btnConfirmarEstado"
+    ) as HTMLButtonElement | null;
+
+  btnConfirmarEstado?.addEventListener(
+    "click",
+    async () => {
+
+      const modalEstado =
+        document.getElementById("modalEstado");
+
+      const id = modalEstado?.dataset.usuarioId ?? "";
+      const estaActivo = modalEstado?.dataset.usuarioEstado === "Activo";
+      if (!id) return;
+
+      // Para desactivar, el backend exige un motivo (mínimo 5 letras).
+      // Si agregas al modal un <textarea id="estadoMotivo">, se usa ese campo;
+      // si no existe, se le pregunta al admin con una ventanita del navegador.
+      let motivo: string | undefined;
+      if (estaActivo) {
+        const campo = document.getElementById("estadoMotivo") as HTMLTextAreaElement | null;
+        motivo = (campo ? campo.value : window.prompt("Motivo de la desactivación:") ?? "").trim();
+        if (motivo.length < 5) {
+          if (campo) {
+            campo.setCustomValidity("Escribe un motivo de al menos 5 caracteres");
+            campo.reportValidity();
+          }
+          return;
+        }
+      }
+
+      btnConfirmarEstado.disabled = true;
+      try {
+        const res = await fetch(`${API_URL}/usuarios/${id}/estado`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ estadoActivo: !estaActivo, motivo }),
+        });
+
+        if (res.status === 401) {
+          window.location.href = "/Inicio/login";
+          return;
+        }
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.mensaje ?? `Respuesta ${res.status}`);
+        }
+
+        window.location.reload(); // vuelve a pedir la lista al backend
+      } catch (error) {
+        console.error("No se pudo cambiar el estado:", error);
+        btnConfirmarEstado.disabled = false;
+      }
+
+    }
+  );
 
 
   /* =========================================================

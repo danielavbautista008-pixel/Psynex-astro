@@ -1,0 +1,779 @@
+
+---
+import NavbarPsicologo from "../Menu/NavbarPsicologo.astro";
+import "./Finanzas.css";
+---
+
+<div class="finanzas-shell">
+  <NavbarPsicologo />
+
+  <main class="finanzas" id="finanzas">
+    <header class="fin-header">
+      <div>
+        <span class="fin-kicker">Mi cuenta</span>
+        <h1>Finanzas</h1>
+        <p>Consulta tus ingresos, movimientos y próximos pagos.</p>
+      </div>
+      <button class="fin-btn fin-btn-primary" data-open="modal-cuentas">
+        <span>＋</span> Gestionar cuenta
+      </button>
+    </header>
+
+    <section class="fin-stats">
+      <article class="fin-card fin-stat">
+        <span>Saldo disponible</span>
+        <strong id="saldo-disponible">$ 187.000</strong>
+        <small>Saldo de demostración</small>
+      </article>
+      <article class="fin-card fin-stat">
+        <span>Ingresos del mes</span>
+        <strong>$ 220.000</strong>
+        <small>Ingresos registrados</small>
+      </article>
+      <article class="fin-card fin-stat">
+        <span>Citas gratuitas</span>
+        <strong>1</strong>
+        <small>Este mes</small>
+      </article>
+      <article class="fin-card fin-stat">
+        <span>Total de citas</span>
+        <strong>2</strong>
+        <small>Este mes</small>
+      </article>
+      <article class="fin-card fin-stat fin-stat-bank">
+        <span>Cuenta bancaria</span>
+        <strong class="fin-bank-name" id="banco-resumen">Banco de Bogotá</strong>
+        <div class="fin-bank-row">
+          <small id="cuenta-resumen">•••• 4587</small>
+          <button class="fin-btn fin-btn-outline fin-btn-sm" data-open="modal-cuentas">Ver detalles</button>
+        </div>
+      </article>
+    </section>
+
+    <section class="fin-main-grid">
+      <article class="fin-card fin-movements">
+        <div class="fin-panel-heading">
+          <div>
+            <span class="fin-kicker">ACTIVIDAD</span>
+            <h2>Movimientos recientes</h2>
+          </div>
+          <label class="fin-period">
+            <span>Periodo</span>
+            <select id="filtro-periodo">
+              <option value="actual">Mes actual</option>
+              <option value="todos">Todos</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="fin-table-wrap">
+          <table class="fin-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Descripción</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th class="fin-right">Monto</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="lista-movimientos">
+              <tr data-movement data-type="Ingreso" data-status="Completado"
+                  data-description="Consulta psicológica" data-date="15/10/2026"
+                  data-amount="120000" data-destination="Camila Rojas"
+                  data-category="Consulta">
+                <td>15/10/2026</td><td class="fin-description">Consulta psicológica</td>
+                <td>Ingreso</td><td><span class="fin-status">Completado</span></td>
+                <td class="fin-right fin-income">+ $ 120.000</td>
+                <td><button class="fin-mini-action" data-payment="this">Ver</button></td>
+              </tr>
+              <tr data-movement data-type="Ingreso" data-status="Completado"
+                  data-description="Consulta de seguimiento" data-date="14/10/2026"
+                  data-amount="100000" data-destination="Paciente de seguimiento"
+                  data-category="Consulta">
+                <td>14/10/2026</td><td class="fin-description">Consulta de seguimiento</td>
+                <td>Ingreso</td><td><span class="fin-status">Completado</span></td>
+                <td class="fin-right fin-income">+ $ 100.000</td>
+                <td><button class="fin-mini-action" data-payment="this">Ver</button></td>
+              </tr>
+              <tr data-movement data-type="Egreso" data-status="Completado"
+                  data-description="Gastos administrativos" data-date="13/10/2026"
+                  data-amount="25000" data-destination="Administración"
+                  data-category="Gasto administrativo">
+                <td>13/10/2026</td><td class="fin-description">Gastos administrativos</td>
+                <td>Egreso</td><td><span class="fin-status">Completado</span></td>
+                <td class="fin-right fin-expense">− $ 25.000</td>
+                <td><button class="fin-mini-action" data-payment="this">Ver</button></td>
+              </tr>
+              <tr data-movement data-type="Egreso" data-status="Completado"
+                  data-description="Comisión de plataforma" data-date="11/10/2026"
+                  data-amount="8000" data-destination="Plataforma"
+                  data-category="Comisión">
+                <td>11/10/2026</td><td class="fin-description">Comisión de plataforma</td>
+                <td>Egreso</td><td><span class="fin-status">Completado</span></td>
+                <td class="fin-right fin-expense">− $ 8.000</td>
+                <td><button class="fin-mini-action" data-payment="this">Ver</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="fin-empty" id="sin-movimientos" hidden>No hay movimientos para este periodo.</p>
+        <footer class="fin-table-footer">
+          <span id="total-movimientos">4 movimientos</span>
+          <button class="fin-link" id="ver-todos">Ver todos →</button>
+        </footer>
+      </article>
+
+      <article class="fin-card fin-summary">
+        <div class="fin-panel-heading">
+          <div>
+            <span class="fin-kicker">ESTADÍSTICAS</span>
+            <h2>Resumen del mes</h2>
+          </div>
+          <label class="fin-month">
+            <span class="fin-sr-only">Mes</span>
+            <select id="mes-resumen">
+              <option>Octubre 2026</option>
+              <option>Septiembre 2026</option>
+              <option>Agosto 2026</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="fin-chart-layout">
+          <div class="fin-donut" role="img" aria-label="Distribución de ingresos, citas gratuitas y descuentos">
+            <div class="fin-donut-center">
+              <strong>$ 220.000</strong>
+              <span>Ingresos totales</span>
+            </div>
+          </div>
+          <div class="fin-legend">
+            <div class="fin-legend-item">
+              <i class="fin-dot fin-dot-paid"></i>
+              <div><span>Citas pagadas</span><strong>$ 220.000</strong></div>
+              <small>100%</small>
+            </div>
+            <div class="fin-legend-item">
+              <i class="fin-dot fin-dot-free"></i>
+              <div><span>Citas gratuitas</span><strong>$ 0</strong></div>
+              <small>0%</small>
+            </div>
+            <div class="fin-legend-item">
+              <i class="fin-dot fin-dot-fees"></i>
+              <div><span>Comisiones / descuentos</span><strong>− $ 33.000</strong></div>
+              <small>15%</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="fin-note">
+          <span aria-hidden="true">ⓘ</span>
+          <p>Las citas gratuitas son una forma de apoyo a quienes más lo necesitan. Su valor no se descuenta de tu saldo.</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="fin-bottom-grid">
+      <article class="fin-card fin-transfer">
+        <div class="fin-icon-heading">
+          <span class="fin-round-icon"><i class="bi bi-bank" aria-hidden="true"></i></span>
+          <div><span class="fin-kicker">PRÓXIMA TRANSFERENCIA</span><h2>Próxima transferencia</h2></div>
+        </div>
+        <div class="fin-transfer-info">
+          <div><small>Fecha estimada de pago</small><strong><i class="bi bi-calendar3" aria-hidden="true"></i> &nbsp;25 oct 2026</strong></div>
+          <div><small>Cuenta de destino</small><strong id="transfer-banco">Banco de Bogotá · Ahorros</strong><small id="transfer-cuenta">•••• 4587</small></div>
+          <div><small>Saldo disponible</small><strong>$ 187.000</strong></div>
+        </div>
+        <div class="fin-action-row">
+          <button class="fin-btn fin-btn-outline" data-open="modal-pago">Ver detalle del pago →</button>
+        </div>
+      </article>
+
+      <article class="fin-card fin-claims">
+        <div class="fin-icon-heading">
+          <span class="fin-round-icon"><i class="bi bi-chat-left-text" aria-hidden="true"></i></span>
+          <div><span class="fin-kicker">SOPORTE FINANCIERO</span><h2>Reclamos</h2></div>
+        </div>
+        <p>Registra una duda sobre un movimiento o pago.</p>
+        <div class="fin-action-row">
+          <button class="fin-btn fin-btn-outline" data-open="modal-reclamo">Crear reclamo</button>
+        </div>
+      </article>
+
+      <article class="fin-card fin-appointments">
+        <div class="fin-icon-heading">
+          <span class="fin-round-icon"><i class="bi bi-calendar-check" aria-hidden="true"></i></span>
+          <div><span class="fin-kicker">AGENDA</span><h2>Citas asignadas</h2></div>
+          <span class="fin-pending" id="citas-pendientes">1 pendiente</span>
+        </div>
+
+        <div class="fin-appointment" id="cita-pendiente">
+          <span class="fin-round-icon fin-appointment-icon"><i class="bi bi-calendar-event" aria-hidden="true"></i></span>
+          <div class="fin-appointment-details">
+            <strong>Consulta psicológica</strong>
+            <span>Paciente: Camila Rojas</span>
+            <span>18 oct 2026 · 10:00 a. m.</span>
+            <span>Modalidad: Presencial · Duración: 50 min</span>
+            <span>Remuneración: $ 160.000</span>
+          </div>
+          <div class="fin-appointment-buttons">
+            <button class="fin-btn fin-btn-primary" data-appointment="aceptar">Aceptar cita</button>
+            <button class="fin-btn fin-btn-outline" data-appointment="rechazar">Rechazar</button>
+          </div>
+        </div>
+        <button class="fin-link fin-all-appointments" id="ver-citas">Ver todas las citas →</button>
+      </article>
+    </section>
+  </main>
+</div>
+
+<!-- 1. DETALLE DEL PAGO -->
+<div class="fin-modal" id="modal-pago" hidden>
+  <button class="fin-backdrop" data-close aria-label="Cerrar"></button>
+  <section class="fin-modal-card fin-modal-payment" role="dialog" aria-modal="true" aria-labelledby="titulo-pago">
+    <header class="fin-modal-heading">
+      <h2 id="titulo-pago">Detalle del pago</h2>
+      <button class="fin-close" data-close aria-label="Cerrar">×</button>
+    </header>
+    <div class="fin-payment-title">
+      <strong id="pago-descripcion">Consulta psicológica</strong>
+      <span class="fin-status">Completado</span>
+    </div>
+    <div class="fin-payment-grid">
+      <div><small>Fecha</small><strong id="pago-fecha">15 oct 2026 · 10:00 a. m.</strong></div>
+      <div><small>Cuenta de destino</small><strong id="pago-destino">Camila Rojas</strong></div>
+      <div><small>Modalidad</small><strong>Presencial</strong></div>
+      <div><small>Monto</small><strong id="pago-monto">$ 120.000</strong></div>
+    </div>
+    <hr />
+    <h3>Detalle de ingresos y descuentos</h3>
+    <div class="fin-breakdown"><span>Pago de la cita</span><span id="pago-bruto">$ 120.000</span></div>
+    <div class="fin-breakdown"><span>Comisión de plataforma (8%)</span><span id="pago-comision">− $ 8.000</span></div>
+    <div class="fin-breakdown fin-breakdown-total"><strong>Total recibido</strong><strong id="pago-neto">$ 112.000</strong></div>
+    <footer class="fin-modal-actions">
+      <button class="fin-btn fin-btn-outline" data-close>Cerrar</button>
+    </footer>
+  </section>
+</div>
+
+<!-- 2. CREAR RECLAMO -->
+<div class="fin-modal" id="modal-reclamo" hidden>
+  <button class="fin-backdrop" data-close aria-label="Cerrar"></button>
+  <section class="fin-modal-card" role="dialog" aria-modal="true" aria-labelledby="titulo-reclamo">
+    <header class="fin-modal-heading">
+      <div><h2 id="titulo-reclamo">Crear reclamo</h2><p>Cuéntanos qué ocurrió con tu movimiento o pago.</p></div>
+      <button class="fin-close" data-close aria-label="Cerrar">×</button>
+    </header>
+    <form id="form-reclamo" class="fin-form">
+      <label>Motivo
+        <select name="motivo" required>
+          <option value="">Selecciona un motivo</option>
+          <option>Pago no recibido</option>
+          <option>Valor incorrecto</option>
+          <option>Comisión o descuento</option>
+          <option>Movimiento desconocido</option>
+          <option>Otro motivo</option>
+        </select>
+      </label>
+      <label>Movimiento relacionado
+        <select name="movimiento" required>
+          <option value="">Selecciona un movimiento</option>
+          <option>Consulta psicológica · $ 120.000</option>
+          <option>Consulta de seguimiento · $ 100.000</option>
+          <option>Gastos administrativos · $ 25.000</option>
+          <option>Comisión de plataforma · $ 8.000</option>
+        </select>
+      </label>
+      <label>Descripción
+        <textarea name="descripcion" rows="4" required maxlength="1000" placeholder="Describe aquí tu reclamo..."></textarea>
+      </label>
+      <p class="fin-form-message" id="reclamo-mensaje" role="status"></p>
+      <footer class="fin-modal-actions">
+        <button type="button" class="fin-btn fin-btn-outline" data-close>Cancelar</button>
+        <button type="submit" class="fin-btn fin-btn-primary">Enviar reclamo</button>
+      </footer>
+    </form>
+  </section>
+</div>
+
+<!-- 3. CUENTA OFICIAL -->
+<div class="fin-modal" id="modal-oficial" hidden>
+  <button class="fin-backdrop" data-close aria-label="Cerrar"></button>
+  <section class="fin-modal-card" role="dialog" aria-modal="true" aria-labelledby="titulo-oficial">
+    <header class="fin-modal-heading">
+      <div><h2 id="titulo-oficial">Cuenta oficial</h2><p>Tu cuenta bancaria principal.</p></div>
+      <button class="fin-close" data-close aria-label="Cerrar">×</button>
+    </header>
+    <form class="fin-form" data-bank-form="official">
+      <label>Banco
+        <select name="banco" required>
+          <option value="">Selecciona un banco</option>
+          <option>Banco de Bogotá</option><option>Bancolombia</option>
+          <option>Davivienda</option><option>BBVA Colombia</option>
+          <option>Banco Caja Social</option><option>Nequi</option><option>Otro</option>
+        </select>
+      </label>
+      <label>Número de cuenta
+        <input name="numero" inputmode="numeric" required minlength="4" maxlength="24" placeholder="Ingresa el número de cuenta" />
+      </label>
+      <label>Tipo de cuenta
+        <select name="tipo" required><option value="">Selecciona el tipo</option><option>Ahorros</option><option>Corriente</option></select>
+      </label>
+      <p class="fin-form-message" role="status"></p>
+      <footer class="fin-modal-actions">
+        <button type="button" class="fin-btn fin-btn-outline" data-close>Cancelar</button>
+        <button type="submit" class="fin-btn fin-btn-primary">Guardar</button>
+      </footer>
+    </form>
+  </section>
+</div>
+
+<!-- 4. CUENTA SECUNDARIA -->
+<div class="fin-modal" id="modal-secundaria" hidden>
+  <button class="fin-backdrop" data-close aria-label="Cerrar"></button>
+  <section class="fin-modal-card" role="dialog" aria-modal="true" aria-labelledby="titulo-secundaria">
+    <header class="fin-modal-heading">
+      <div><h2 id="titulo-secundaria">Cuenta secundaria</h2><p>Agrega una cuenta bancaria adicional.</p></div>
+      <button class="fin-close" data-close aria-label="Cerrar">×</button>
+    </header>
+    <form class="fin-form" data-bank-form="secondary">
+      <label>Banco
+        <select name="banco" required>
+          <option value="">Selecciona un banco</option>
+          <option>Banco de Bogotá</option><option>Bancolombia</option>
+          <option>Davivienda</option><option>BBVA Colombia</option>
+          <option>Banco Caja Social</option><option>Nequi</option><option>Otro</option>
+        </select>
+      </label>
+      <label>Número de cuenta
+        <input name="numero" inputmode="numeric" required minlength="4" maxlength="24" placeholder="Ingresa el número de cuenta" />
+      </label>
+      <label>Tipo de cuenta
+        <select name="tipo" required><option value="">Selecciona el tipo</option><option>Ahorros</option><option>Corriente</option></select>
+      </label>
+      <p class="fin-form-message" role="status"></p>
+      <footer class="fin-modal-actions">
+        <button type="button" class="fin-btn fin-btn-outline" data-close>Cancelar</button>
+        <button type="submit" class="fin-btn fin-btn-primary">Guardar</button>
+      </footer>
+    </form>
+  </section>
+</div>
+
+<!-- 5. SELECCIONAR TIPO DE CUENTA -->
+<div class="fin-modal" id="modal-cuentas" hidden>
+  <button class="fin-backdrop" data-close aria-label="Cerrar"></button>
+  <section class="fin-modal-card" role="dialog" aria-modal="true" aria-labelledby="titulo-cuentas">
+    <header class="fin-modal-heading">
+      <div><h2 id="titulo-cuentas">Gestionar cuenta bancaria</h2><p>Elige qué tipo de cuenta deseas administrar.</p></div>
+      <button class="fin-close" data-close aria-label="Cerrar">×</button>
+    </header>
+    <div class="fin-account-options">
+      <button class="fin-account-option" data-account-open="official">
+        <span class="fin-radio"></span>
+        <span><strong>Cuenta oficial</strong><small>Para recibir pagos principales.</small></span>
+      </button>
+      <button class="fin-account-option" data-account-open="secondary">
+        <span class="fin-radio"></span>
+        <span><strong>Cuenta secundaria</strong><small>Para respaldo o transferencias adicionales.</small></span>
+      </button>
+    </div>
+    <footer class="fin-modal-actions">
+      <button class="fin-btn fin-btn-outline" data-close>Cancelar</button>
+      <button class="fin-btn fin-btn-primary" id="continuar-cuenta">Continuar</button>
+    </footer>
+  </section>
+</div>
+
+<div class="fin-toast" id="fin-toast" role="status" aria-live="polite"></div>
+
+
+<script>
+  const root = document.querySelector<HTMLElement>("#finanzas");
+  const toast = document.querySelector<HTMLDivElement>("#fin-toast");
+
+  let selectedAccount: string = "official";
+  let activeMovement: HTMLElement | null = null;
+  let toastTimer: ReturnType<typeof window.setTimeout> | undefined;
+
+  const money = (value: number): string =>
+    new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      maximumFractionDigits: 0,
+    }).format(value);
+
+  function notify(message: string): void {
+    if (!toast) return;
+
+    toast.textContent = message;
+    toast.classList.add("is-visible");
+
+    if (toastTimer !== undefined) {
+      window.clearTimeout(toastTimer);
+    }
+
+    toastTimer = window.setTimeout(() => {
+      toast.classList.remove("is-visible");
+      toastTimer = undefined;
+    }, 3000);
+  }
+
+  function openModal(id: string | null): void {
+    if (!id) return;
+
+    const modal = document.getElementById(id);
+
+    if (!(modal instanceof HTMLElement)) {
+      notify("No se encontró la ventana solicitada.");
+      return;
+    }
+
+    document
+      .querySelectorAll<HTMLElement>(".fin-modal:not([hidden])")
+      .forEach((item) => {
+        item.hidden = true;
+      });
+
+    modal.hidden = false;
+    document.body.classList.add("fin-modal-open");
+
+    modal
+      .querySelector<HTMLElement>(
+        "input, select, textarea, button:not(.fin-backdrop)"
+      )
+      ?.focus();
+  }
+
+  function closeModal(modal: HTMLElement | null): void {
+    if (!modal) return;
+
+    modal.hidden = true;
+
+    const openModals = document.querySelectorAll<HTMLElement>(
+      ".fin-modal:not([hidden])"
+    );
+
+    if (openModals.length === 0) {
+      document.body.classList.remove("fin-modal-open");
+    }
+  }
+
+  document.addEventListener("click", (event: MouseEvent) => {
+    const target = event.target;
+
+    if (!(target instanceof Element)) return;
+
+    const openButton = target.closest<HTMLElement>("[data-open]");
+
+    if (openButton) {
+      openModal(openButton.getAttribute("data-open"));
+      return;
+    }
+
+    const closeButton = target.closest<HTMLElement>("[data-close]");
+
+    if (closeButton) {
+      const modal = closeButton.closest<HTMLElement>(".fin-modal");
+      closeModal(modal);
+    }
+  });
+
+  document.addEventListener("keydown", (event: KeyboardEvent) => {
+    if (event.key !== "Escape") return;
+
+    document
+      .querySelectorAll<HTMLElement>(".fin-modal:not([hidden])")
+      .forEach((modal) => closeModal(modal));
+  });
+
+  document
+    .querySelectorAll<HTMLElement>("[data-account-open]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedAccount =
+          button.getAttribute("data-account-open") || "official";
+
+        document
+          .querySelectorAll<HTMLElement>("[data-account-open]")
+          .forEach((option) => {
+            option.classList.toggle("is-selected", option === button);
+          });
+      });
+    });
+
+  document
+    .querySelector<HTMLButtonElement>("#continuar-cuenta")
+    ?.addEventListener("click", () => {
+      closeModal(document.querySelector<HTMLElement>("#modal-cuentas"));
+
+      openModal(
+        selectedAccount === "official"
+          ? "modal-oficial"
+          : "modal-secundaria"
+      );
+    });
+
+  document
+    .querySelectorAll<HTMLFormElement>("[data-bank-form]")
+    .forEach((form) => {
+      form.addEventListener("submit", (event: SubmitEvent) => {
+        event.preventDefault();
+
+        if (!form.reportValidity()) return;
+
+        const data = new FormData(form);
+        const bank = String(data.get("banco") || "");
+        const accountNumber = String(data.get("numero") || "");
+        const type = String(data.get("tipo") || "");
+        const suffix = accountNumber.slice(-4);
+
+        const message =
+          form.querySelector<HTMLElement>(".fin-form-message");
+
+        if (form.getAttribute("data-bank-form") === "official") {
+          const bankSummary =
+            document.querySelector<HTMLElement>("#banco-resumen");
+
+          const accountSummary =
+            document.querySelector<HTMLElement>("#cuenta-resumen");
+
+          const transferBank =
+            document.querySelector<HTMLElement>("#transfer-banco");
+
+          const transferNumber =
+            document.querySelector<HTMLElement>("#transfer-cuenta");
+
+          if (bankSummary) bankSummary.textContent = bank;
+
+          if (accountSummary) {
+            accountSummary.textContent = `•••• ${suffix}`;
+          }
+
+          if (transferBank) {
+            transferBank.textContent = `${bank} · ${type}`;
+          }
+
+          if (transferNumber) {
+            transferNumber.textContent = `•••• ${suffix}`;
+          }
+        }
+
+        if (message) {
+          message.textContent =
+            "Cuenta guardada en esta vista de demostración.";
+        }
+
+        notify("Cuenta guardada en la vista de demostración.");
+
+        window.setTimeout(() => {
+          const modal = form.closest<HTMLElement>(".fin-modal");
+
+          if (modal) closeModal(modal);
+
+          form.reset();
+
+          if (message) message.textContent = "";
+        }, 900);
+      });
+    });
+
+  document
+    .querySelectorAll<HTMLElement>("[data-movement]")
+    .forEach((row) => {
+      const paymentButton =
+        row.querySelector<HTMLButtonElement>("[data-payment]");
+
+      paymentButton?.addEventListener("click", () => {
+        activeMovement = row;
+
+        const description = row.dataset.description || "Movimiento";
+        const date = row.dataset.date || "—";
+        const amount = Number(row.dataset.amount || 0);
+        const type = row.dataset.type || "Ingreso";
+        const destination = row.dataset.destination || "—";
+
+        const commission =
+          type === "Ingreso" ? Math.round(amount * 0.08) : 0;
+
+        const descriptionEl =
+          document.querySelector<HTMLElement>("#pago-descripcion");
+
+        const dateEl =
+          document.querySelector<HTMLElement>("#pago-fecha");
+
+        const destinationEl =
+          document.querySelector<HTMLElement>("#pago-destino");
+
+        const amountEl =
+          document.querySelector<HTMLElement>("#pago-monto");
+
+        const grossEl =
+          document.querySelector<HTMLElement>("#pago-bruto");
+
+        const commissionEl =
+          document.querySelector<HTMLElement>("#pago-comision");
+
+        const netEl =
+          document.querySelector<HTMLElement>("#pago-neto");
+
+        if (descriptionEl) descriptionEl.textContent = description;
+        if (dateEl) dateEl.textContent = date;
+        if (destinationEl) destinationEl.textContent = destination;
+        if (amountEl) amountEl.textContent = money(amount);
+        if (grossEl) grossEl.textContent = money(amount);
+
+        if (commissionEl) {
+          commissionEl.textContent = `− ${money(commission)}`;
+        }
+
+        if (netEl) {
+          netEl.textContent = money(amount - commission);
+        }
+
+        openModal("modal-pago");
+      });
+    });
+
+  document
+    .querySelector<HTMLFormElement>("#form-reclamo")
+    ?.addEventListener("submit", (event: SubmitEvent) => {
+      event.preventDefault();
+
+      const form = event.currentTarget;
+
+      if (!(form instanceof HTMLFormElement)) return;
+      if (!form.reportValidity()) return;
+
+      const message =
+        document.querySelector<HTMLElement>("#reclamo-mensaje");
+
+      if (message) {
+        message.textContent =
+          "Reclamo registrado en esta vista de demostración.";
+      }
+
+      notify("Reclamo enviado en la vista de demostración.");
+
+      window.setTimeout(() => {
+        closeModal(
+          document.querySelector<HTMLElement>("#modal-reclamo")
+        );
+
+        form.reset();
+
+        if (message) message.textContent = "";
+      }, 1200);
+    });
+
+  const periodFilter =
+    document.querySelector<HTMLSelectElement>("#filtro-periodo");
+
+  const movementRows = Array.from(
+    document.querySelectorAll<HTMLElement>("[data-movement]")
+  );
+
+  const count =
+    document.querySelector<HTMLElement>("#total-movimientos");
+
+  const empty =
+    document.querySelector<HTMLElement>("#sin-movimientos");
+
+  const showAllButton =
+    document.querySelector<HTMLButtonElement>("#ver-todos");
+
+  function filterMovements(showAll: boolean = false): void {
+    let visibleCount = 0;
+
+    const showEveryMovement =
+      showAll || periodFilter?.value === "todos";
+
+    movementRows.forEach((row) => {
+      const show = Boolean(showEveryMovement) || visibleCount < 4;
+
+      row.hidden = !show;
+
+      if (show) visibleCount++;
+    });
+
+    if (count) {
+      count.textContent = `${visibleCount} movimiento${
+        visibleCount === 1 ? "" : "s"
+      }`;
+    }
+
+    if (empty) {
+      empty.hidden = visibleCount !== 0;
+    }
+
+    if (showAllButton) {
+      showAllButton.textContent = showAll
+        ? "Mostrar menos ↑"
+        : "Ver todos →";
+    }
+  }
+
+  periodFilter?.addEventListener("change", () => {
+    filterMovements(periodFilter.value === "todos");
+  });
+
+  showAllButton?.addEventListener("click", () => {
+    const isShowingAll =
+      showAllButton.textContent?.includes("Mostrar menos") ?? false;
+
+    filterMovements(!isShowingAll);
+  });
+
+  document
+    .querySelectorAll<HTMLButtonElement>("[data-appointment]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        const action = button.getAttribute("data-appointment");
+
+        const appointment =
+          document.querySelector<HTMLElement>("#cita-pendiente");
+
+        if (!appointment) return;
+
+        const status = document.createElement("span");
+
+        status.className = "fin-appointment-result";
+        status.textContent =
+          action === "aceptar" ? "Cita aceptada" : "Cita rechazada";
+
+        appointment
+          .querySelector(".fin-appointment-result")
+          ?.remove();
+
+        appointment.append(status);
+
+        appointment
+          .querySelectorAll<HTMLButtonElement>("button")
+          .forEach((item) => {
+            item.disabled = true;
+          });
+
+        const pending =
+          document.querySelector<HTMLElement>("#citas-pendientes");
+
+        if (pending) pending.textContent = "0 pendientes";
+
+        notify(
+          action === "aceptar"
+            ? "Cita aceptada en la vista de demostración."
+            : "Cita rechazada en la vista de demostración."
+        );
+      });
+    });
+
+  document
+    .querySelector<HTMLButtonElement>("#ver-citas")
+    ?.addEventListener("click", () => {
+      notify("La agenda completa debe conectarse con el módulo de Citas.");
+    });
+
+  // Los datos iniciales son ilustrativos.
+  // No representan operaciones bancarias reales.
+</script>
+

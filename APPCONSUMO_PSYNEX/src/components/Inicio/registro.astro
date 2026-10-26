@@ -1,26 +1,4 @@
 ---
-/**
- * registro.astro
- * -------------------------------------------------------------------------
- * Página de registro de Psynex. Reemplaza tu @page "/registro" de Blazor.
- *
- * CAMBIOS DE FONDO respecto a tu C#:
- * 1. Se quitó por completo la verificación automática con ReTHUS (los 2
- *    checkboxes y el info-box que la mencionaban). En su lugar, el
- *    Psicólogo sube 4 documentos (Tarjeta profesional, Cédula, Diploma,
- *    Certificado de vigencia) a través de una ventana modal reutilizable,
- *    y la cuenta queda "pendiente" hasta que el ADMINISTRADOR la revise
- *    manualmente en un panel aparte (eso se arma después).
- * 2. La Empresa ahora también sube un documento: el RUT (obligatorio) y,
- *    opcionalmente, el Certificado de Cámara de Comercio — usando el
- *    mismo modal reutilizable que el Psicólogo.
- * 3. Como no hay Blazor ni @code, el cambio de rol, el mostrar/ocultar
- *    contraseña y el modal de subida se manejan con JS normal al final
- *    del archivo (nada de esto llama todavía a tu backend real: eso se
- *    conecta cuando migres AuthService a Deno — quedan marcados los TODO).
- * 4. Todo el tamaño se redujo bastante (títulos, tarjetas de rol, inputs)
- *    para que no se vea tan "basto" como en la versión de C#.
- */
 
 export interface Props {
   // Imagen del panel izquierdo. OJO: en tu C# original decía
@@ -511,7 +489,7 @@ const documentosEmpresa = [
     passwordId: string,
     confirmarId: string,
     fechaId: string | null,
-    rol: "Paciente" | "Psicologo" | "Empresa",
+    rol: "Paciente",
     errorId: string
   ) {
     const form = document.getElementById(formId) as HTMLFormElement | null;
@@ -535,9 +513,9 @@ const documentosEmpresa = [
         }
         return;
       }
-      if (password.length < 6) {
+      if (password.length < 8) {
         if (errorBox) {
-          errorBox.textContent = "La contraseña debe tener al menos 6 caracteres.";
+          errorBox.textContent = "La contraseña debe tener al menos 8 caracteres.";
           errorBox.hidden = false;
         }
         return;
@@ -592,6 +570,136 @@ const documentosEmpresa = [
   }
 
   conectarFormularioRegistro("formPaciente", "pacienteNombre", "pacienteCorreo", "pacientePassword", "pacienteConfirmar", "pacienteFecha", "Paciente", "pacienteError");
-  conectarFormularioRegistro("formPsicologo", "psicoNombre", "psicoCorreo", "psicoPassword", "psicoConfirmar", "psicoFecha", "Psicologo", "psicologoError");
-  conectarFormularioRegistro("formEmpresa", "empresaNombre", "empresaCorreo", "empresaPassword", "empresaConfirmar", null, "Empresa", "empresaError");
+  // El psicólogo NO usa /api/auth/register: se registra con sus documentos
+  // en /api/auth/registro/psicologo (ver la función de abajo).
+  // La empresa tampoco usa /api/auth/register: se registra con sus documentos
+  // en /api/auth/registro/empresa (ver la función del final).
+
+  // =========================================================================
+  // 6. REGISTRO DEL PSICÓLOGO: POST /api/auth/registro/psicologo
+  //    Se envía como multipart/form-data: los datos + los 4 documentos
+  //    (tarjetaProfesional, cedula, diploma, certificadoVigencia; PDF, JPG
+  //    o PNG de máximo 5 MB). La cuenta queda pendiente de verificación.
+  // =========================================================================
+  const formPsicologo = document.getElementById("formPsicologo") as HTMLFormElement | null;
+
+  formPsicologo?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errorBox = document.getElementById("psicologoError") as HTMLElement | null;
+    const mostrarError = (texto: string) => {
+      if (!errorBox) return;
+      errorBox.textContent = texto;
+      errorBox.hidden = false;
+      errorBox.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+    if (errorBox) { errorBox.hidden = true; errorBox.textContent = ""; }
+
+    const valor = (id: string) => (document.getElementById(id) as HTMLInputElement | null)?.value ?? "";
+    const password = valor("psicoPassword");
+
+    if (password !== valor("psicoConfirmar")) return mostrarError("Las contraseñas no coinciden.");
+    if (password.length < 6) return mostrarError("La contraseña debe tener al menos 6 caracteres.");
+
+    // Los 4 documentos son obligatorios
+    const faltan = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-doc-list="psicologo"] .reg-doc-upload-btn'))
+      .filter((b) => !docFiles[b.dataset.docTarget ?? ""])
+      .map((b) => b.dataset.docLabel);
+    if (faltan.length) return mostrarError(`Falta subir: ${faltan.join(", ")}.`);
+
+    const datos = new FormData();
+    datos.append("nombreCompleto", valor("psicoNombre").trim());
+    datos.append("email", valor("psicoCorreo").trim());
+    datos.append("password", password);
+    datos.append("fechaNacimiento", valor("psicoFecha"));
+    datos.append("numeroDocumento", valor("psicoDocumento").trim());
+    ["tarjetaProfesional", "cedula", "diploma", "certificadoVigencia"].forEach((campo) => {
+      if (docFiles[campo]) datos.append(campo, docFiles[campo]);
+    });
+
+    const boton = formPsicologo.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+    if (boton) { boton.disabled = true; boton.textContent = "Creando cuenta..."; }
+
+    try {
+      const res = await fetch("http://localhost:8001/api/auth/registro/psicologo", {
+        method: "POST",
+        credentials: "include", // recibe la cookie de sesión
+        body: datos,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        return mostrarError(Array.isArray(data.error) ? data.error.join(". ") : (data.error || "Error al crear la cuenta"));
+      }
+      // Cuenta creada (pendiente de verificación): entra a su panel
+      window.location.href = "/Psicologos/Inicio";
+    } catch {
+      mostrarError("No se pudo conectar con el servidor backend");
+    } finally {
+      if (boton) { boton.disabled = false; boton.textContent = "Crear cuenta"; }
+    }
+  });
+
+  // =========================================================================
+  // 7. REGISTRO DE LA EMPRESA: POST /api/auth/registro/empresa
+  //    multipart/form-data: datos + rut (obligatorio) y camaraComercio
+  //    (opcional). La empresa queda pendiente hasta que el admin la verifique.
+  // =========================================================================
+  const formEmpresa = document.getElementById("formEmpresa") as HTMLFormElement | null;
+
+  formEmpresa?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errorBox = document.getElementById("empresaError") as HTMLElement | null;
+    const exitoBox = document.getElementById("empresaExito") as HTMLElement | null;
+    const mostrarError = (texto: string) => {
+      if (!errorBox) return;
+      errorBox.textContent = texto;
+      errorBox.hidden = false;
+      errorBox.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+    if (errorBox) { errorBox.hidden = true; errorBox.textContent = ""; }
+    if (exitoBox) { exitoBox.hidden = true; exitoBox.textContent = ""; }
+
+    const valor = (id: string) =>
+      (document.getElementById(id) as HTMLInputElement | HTMLSelectElement | null)?.value ?? "";
+    const password = valor("empresaPassword");
+
+    if (password !== valor("empresaConfirmar")) return mostrarError("Las contraseñas no coinciden.");
+    if (password.length < 6) return mostrarError("La contraseña debe tener al menos 6 caracteres.");
+    if (!docFiles["rut"]) return mostrarError("Falta subir el RUT.");
+
+    const datos = new FormData();
+    datos.append("nombreEmpresa", valor("empresaNombre").trim());
+    datos.append("nit", valor("empresaNit").trim());
+    datos.append("email", valor("empresaCorreo").trim());
+    datos.append("telefono", valor("empresaTelefono").trim());
+    datos.append("sector", valor("empresaSector"));
+    datos.append("cantidadEmpleados", valor("empresaEmpleados").trim());
+    datos.append("password", password);
+    datos.append("rut", docFiles["rut"]);
+    if (docFiles["camaraComercio"]) datos.append("camaraComercio", docFiles["camaraComercio"]);
+
+    const boton = formEmpresa.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+    if (boton) { boton.disabled = true; boton.textContent = "Creando cuenta..."; }
+
+    try {
+      const res = await fetch("http://localhost:8001/api/auth/registro/empresa", {
+        method: "POST",
+        credentials: "include", // recibe la cookie de sesión
+        body: datos,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        return mostrarError(Array.isArray(data.error) ? data.error.join(". ") : (data.error || "Error al crear la cuenta"));
+      }
+      if (exitoBox) {
+        exitoBox.textContent = "Registro recibido. Psynex revisará tus documentos para activar la empresa.";
+        exitoBox.hidden = false;
+      }
+      // Cuenta creada (pendiente de verificación): entra a su panel
+      setTimeout(() => { window.location.href = "/Empresa/Inicio"; }, 1500);
+    } catch {
+      mostrarError("No se pudo conectar con el servidor backend");
+    } finally {
+      if (boton) { boton.disabled = false; boton.textContent = "Crear cuenta"; }
+    }
+  });
 </script>

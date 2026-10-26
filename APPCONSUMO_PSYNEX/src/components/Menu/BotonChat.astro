@@ -1,0 +1,183 @@
+---
+// =====================================================================
+// Botón flotante de Mensajes (psicólogo).
+// Va encima del botón de colores (ThemePicker) en todas las vistas del
+// psicólogo y lleva a /Psicologos/Mensajes. En la propia vista de
+// Mensajes no se muestra.
+// La burbuja muestra cuántos mensajes sin leer hay (se consulta cada 30 s).
+// =====================================================================
+import { API_URL } from "../../lib/api";
+
+const ruta = Astro.url.pathname.toLowerCase();
+const enMensajes = ruta.startsWith("/psicologos/mensajes");
+---
+
+{!enMensajes && (
+  <a href="/Psicologos/Mensajes" class="boton-chat" id="botonChat" data-api={API_URL} aria-label="Ir a mensajes" title="Mensajes">
+    <!-- Globo de chat con tres puntos y una hojita pequeña arriba -->
+    <svg class="icono-chat-hoja" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <g transform="translate(-0.5 2.2) scale(0.9)">
+      <path class="globo" d="M15 7.5c-6 0-10.8 4-10.8 9 0 2.7 1.4 5.1 3.7 6.8l-1.3 4.2 4.6-2.4c1.2.3 2.5.5 3.8.5 6 0 10.8-4 10.8-9s-4.8-9.1-10.8-9.1Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      <circle cx="10.6" cy="16.6" r="1.35" fill="currentColor"/>
+      <circle cx="15" cy="16.6" r="1.35" fill="currentColor"/>
+      <circle cx="19.4" cy="16.6" r="1.35" fill="currentColor"/>
+      </g>
+      <g class="hojita" transform="translate(5.2 0.6) scale(0.78)">
+        <path d="M29.2 2.6c-2.8.1-4.9 1-5.8 2.6-.7 1.2-.2 2.4.8 2.9 1.1.5 2.3 0 3-1.1.8-1.2 1-2.7 2-4.4Z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M22.7 9c1-1.7 2.4-2.8 4.4-3.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <span class="boton-chat-texto">Mensajes</span>
+    <span class="boton-chat-contador" id="botonChatContador" hidden>0</span>
+  </a>
+)}
+
+<style>
+  /* Botón cuadrado con esquinas muy redondeadas, tono crema y relieve suave */
+  .boton-chat {
+    position: fixed;
+    right: 20px;
+    /* El botón de colores mide 52px y está a 20px del borde */
+    bottom: 86px;
+    z-index: 9998;
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    border-radius: 17px;
+    background:
+      linear-gradient(160deg, color-mix(in srgb, var(--surface) 92%, var(--primary)) 0%, color-mix(in srgb, var(--surface) 82%, var(--primary)) 100%);
+    color: color-mix(in srgb, var(--primary) 78%, var(--text));
+    border: 1px solid color-mix(in srgb, var(--primary) 14%, var(--surface));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 75%),
+      inset 0 -2px 4px color-mix(in srgb, var(--primary) 10%, transparent),
+      0 8px 20px color-mix(in srgb, var(--primary) 22%, transparent);
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .boton-chat:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 75%),
+      inset 0 -2px 4px color-mix(in srgb, var(--primary) 10%, transparent),
+      0 12px 26px color-mix(in srgb, var(--primary) 30%, transparent);
+  }
+
+  .icono-chat-hoja {
+    width: 30px;
+    height: 30px;
+    overflow: visible;
+  }
+
+  /* El globo tiene un relleno muy suave, como en relieve */
+  .icono-chat-hoja .globo {
+    fill: color-mix(in srgb, var(--surface) 70%, var(--primary) 6%);
+  }
+
+  /* La hojita se mueve un poquito al pasar el mouse */
+  .icono-chat-hoja .hojita {
+    transition: rotate 0.35s ease;
+    transform-box: fill-box;
+    transform-origin: 0% 100%;
+  }
+
+  .boton-chat:hover .hojita {
+    rotate: -14deg;
+  }
+
+  /* Etiqueta "Mensajes" que aparece a la izquierda al pasar el mouse */
+  .boton-chat-texto {
+    position: absolute;
+    right: calc(100% + 10px);
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: var(--text);
+    color: var(--surface);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(6px);
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .boton-chat:hover .boton-chat-texto {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .boton-chat-contador {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+    display: grid;
+    place-items: center;
+    border: 2px solid var(--surface);
+    border-radius: 999px;
+    background: var(--primary);
+    color: var(--on-primary);
+    font-size: 10px;
+    font-weight: 700;
+    box-sizing: border-box;
+  }
+
+  .boton-chat-contador[hidden] {
+    display: none;
+  }
+
+  @media (max-width: 500px) {
+    .boton-chat {
+      width: 48px;
+      height: 48px;
+      bottom: 82px;
+      border-radius: 15px;
+    }
+
+    .icono-chat-hoja {
+      width: 27px;
+      height: 27px;
+    }
+
+    .boton-chat-texto {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  // Cuenta los mensajes sin leer y los muestra en la burbuja del botón
+  const boton = document.getElementById("botonChat");
+  const contador = document.getElementById("botonChatContador");
+
+  const pintar = (total: number) => {
+    if (!contador) return;
+    contador.hidden = total <= 0;
+    contador.textContent = total > 9 ? "9+" : String(total);
+    boton?.setAttribute("aria-label", total > 0 ? `Ir a mensajes (${total} sin leer)` : "Ir a mensajes");
+  };
+
+  async function consultar() {
+    if (!boton || document.hidden) return;
+    try {
+      const api = boton.dataset.api || "http://localhost:8001";
+      const res = await fetch(`${api}/api/chat/no-leidos`, { credentials: "include" });
+      if (!res.ok) return;
+      const data = await res.json();
+      pintar(Number(data.total) || 0);
+    } catch {
+      /* Sin conexión: se intenta de nuevo en la próxima vuelta */
+    }
+  }
+
+  if (boton) {
+    consultar();
+    setInterval(consultar, 30000);
+    document.addEventListener("visibilitychange", consultar);
+  }
+</script>

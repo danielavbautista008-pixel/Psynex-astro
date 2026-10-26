@@ -1,0 +1,548 @@
+.resultado-page {
+  min-height: 100vh;
+  padding: 40px 20px 80px;
+
+  background: var(--bg);
+  color: var(--text);
+}
+
+.resultado-contenedor {
+  width: min(720px, 100%);
+  margin: 0 auto;
+}
+
+.resultado-volver {
+  display: inline-flex;
+  align-items: center;
+
+  margin-bottom: 22px;
+
+  color: var(--text-muted);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-decoration: none;
+
+  transition: color 0.2s ease;
+}
+
+.resultado-volver:hover {
+  color: var(--primary);
+}
+
+
+/* =====================================================
+   TARJETA
+===================================================== */
+
+.resultado-card {
+  position: relative;
+
+  overflow: hidden;
+
+  padding: 45px 52px;
+
+  border:
+    1px solid var(--border);
+
+  border-radius: 28px;
+
+  background: var(--surface);
+
+  box-shadow:
+    0 18px 50px
+    color-mix(
+      in srgb,
+      var(--text) 8%,
+      transparent
+    );
+
+  text-align: center;
+}
+
+
+/* =====================================================
+   DECORACIÓN
+===================================================== */
+
+.resultado-decoracion {
+  position: absolute;
+
+  pointer-events: none;
+
+  border-radius: 50%;
+
+  background: var(--primary-soft);
+}
+
+.resultado-decoracion-uno {
+  width: 180px;
+  height: 180px;
+
+  top: -110px;
+  left: -80px;
+}
+
+.resultado-decoracion-dos {
+  width: 210px;
+  height: 210px;
+
+  right: -130px;
+  bottom: -135px;
+}
+
+
+/* =====================================================
+   HOJA
+===================================================== */
+
+.resultado-hoja {
+  position: relative;
+  z-index: 2;
+
+  width: 64px;
+  height: 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 auto 17px;
+
+  border-radius: 50%;
+
+  background: var(--primary-soft);
+}
+
+.resultado-hoja svg {
+  width: 30px;
+  height: 30px;
+
+  fill: var(--primary);
+}
+
+
+/* =====================================================
+   TITULO
+===================================================== */
+
+.resultado-etiqueta {
+  position: relative;
+  z-index: 2;
+
+  display: block;
+
+  color: var(--primary);
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 0.17em;
+}
+
+.resultado-card h1 {
+  position: relative;
+  z-index: 2;
+
+  max-width: 500px;
+
+  margin: 9px auto 12px;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: clamp(32px, 5vw, 45px);
+
+  line-height: 1;
+
+  letter-spacing: -0.045em;
+
+  color: var(--text);
+}
+
+.resultado-intro {
+  position: relative;
+  z-index: 2;
+
+  max-width: 440px;
+
+  margin: 0 auto;
+
+  color: var(--text-muted);
+
+  font-size: 12px;
+
+  line-height: 1.7;
+}
+
+
+/* =====================================================
+   PUNTUACIÓN
+===================================================== */
+
+.resultado-puntuacion {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+
+  align-items: baseline;
+  justify-content: center;
+
+  gap: 4px;
+
+  margin-top: 29px;
+}
+
+.resultado-puntuacion strong {
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 50px;
+
+  line-height: 1;
+
+  color: var(--text);
+}
+
+.resultado-puntuacion span {
+  color: var(--text-muted);
+
+  font-size: 19px;
+}
+
+.resultado-puntuacion small {
+  margin-left: 5px;
+
+  color: var(--text-muted);
+
+  font-size: 10px;
+}
+
+
+/* =====================================================
+   NIVEL
+===================================================== */
+
+.resultado-nivel {
+  position: relative;
+  z-index: 2;
+
+  width: fit-content;
+
+  margin: 13px auto 0;
+
+  padding: 7px 17px;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.nivel-bajo,
+.nivel-leve {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.nivel-moderado {
+  background:
+    color-mix(
+      in srgb,
+      var(--warning) 13%,
+      var(--surface)
+    );
+
+  color: var(--warning);
+}
+
+.nivel-alto {
+  background:
+    color-mix(
+      in srgb,
+      var(--danger) 12%,
+      var(--surface)
+    );
+
+  color: var(--danger);
+}
+
+
+/* =====================================================
+   RESUMEN
+===================================================== */
+
+.resultado-resumen {
+  position: relative;
+  z-index: 2;
+
+  max-width: 470px;
+
+  margin: 19px auto 0;
+
+  color: var(--text);
+
+  font-size: 13px;
+
+  line-height: 1.7;
+}
+
+
+/* =====================================================
+   SIGNIFICADO
+===================================================== */
+
+.resultado-significado {
+  position: relative;
+  z-index: 2;
+
+  margin-top: 27px;
+
+  padding: 20px;
+
+  border-radius: 16px;
+
+  background: var(--primary-soft);
+
+  text-align: left;
+}
+
+.resultado-significado h2 {
+  margin: 0 0 8px;
+
+  font-size: 13px;
+
+  color: var(--text);
+}
+
+.resultado-significado p {
+  margin: 0;
+
+  color: var(--text-muted);
+
+  font-size: 11px;
+
+  line-height: 1.75;
+}
+
+
+/* =====================================================
+   RECOMENDACIÓN
+===================================================== */
+
+.resultado-recomendacion {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  margin-top: 12px;
+
+  padding: 17px 19px;
+
+  border:
+    1px solid var(--border);
+
+  border-radius: 16px;
+
+  background: var(--surface);
+
+  text-align: left;
+}
+
+.recomendacion-hoja {
+  flex: 0 0 38px;
+
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: var(--primary-soft);
+}
+
+.recomendacion-hoja svg {
+  width: 18px;
+  height: 18px;
+
+  fill: var(--primary);
+}
+
+.resultado-recomendacion strong {
+  display: block;
+
+  margin-bottom: 4px;
+
+  font-size: 11px;
+}
+
+.resultado-recomendacion p {
+  margin: 0;
+
+  color: var(--text-muted);
+
+  font-size: 10px;
+
+  line-height: 1.6;
+}
+
+
+/* =====================================================
+   AVISO
+===================================================== */
+
+.resultado-aviso {
+  position: relative;
+  z-index: 2;
+
+  margin-top: 12px;
+
+  padding: 15px 17px;
+
+  border-left:
+    3px solid var(--primary);
+
+  border-radius:
+    0 11px 11px 0;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--text) 3%,
+      var(--surface)
+    );
+
+  text-align: left;
+}
+
+.resultado-aviso strong {
+  display: block;
+
+  margin-bottom: 5px;
+
+  font-size: 10px;
+}
+
+.resultado-aviso p {
+  margin: 0;
+
+  color: var(--text-muted);
+
+  font-size: 9px;
+
+  line-height: 1.65;
+}
+
+
+/* =====================================================
+   BOTONES
+===================================================== */
+
+.resultado-acciones {
+  position: relative;
+  z-index: 2;
+
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 10px;
+
+  margin-top: 25px;
+}
+
+.resultado-acciones a {
+  min-height: 44px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px 15px;
+
+  border-radius: 10px;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  text-decoration: none;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.resultado-acciones a:hover {
+  transform: translateY(-2px);
+}
+
+.btn-secundario {
+  border:
+    1px solid var(--border);
+
+  background: var(--surface);
+
+  color: var(--text);
+}
+
+.btn-secundario:hover {
+  background: var(--primary-soft);
+}
+
+.btn-principal {
+  background: var(--primary);
+
+  color: var(--on-primary);
+}
+
+.btn-principal:hover {
+  background: var(--primary-hover);
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 600px) {
+
+  .resultado-page {
+    padding:
+      25px 14px 55px;
+  }
+
+  .resultado-card {
+    padding:
+      36px 20px 25px;
+
+    border-radius: 22px;
+  }
+
+  .resultado-card h1 {
+    font-size: 32px;
+  }
+
+  .resultado-puntuacion strong {
+    font-size: 43px;
+  }
+
+  .resultado-acciones {
+    grid-template-columns: 1fr;
+  }
+
+}

@@ -1,0 +1,25 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PerfilPsicologo from "../../components/Explorar/Perfilpsicologo.astro";
+import type { PsicologoPublico } from "../../components/Explorar/Perfilpsicologo.astro";
+import { apiGet } from "../../lib/api";
+import { obtenerUsuario } from "../../lib/auth";
+
+// /Explorar/<id del perfil del psicólogo>
+const cookie = Astro.request.headers.get("cookie");
+const id = Astro.params.id ?? "";
+
+const [datos, usuario] = await Promise.all([
+  apiGet<{ psicologo: PsicologoPublico }>(cookie, `/api/explorar/psicologos/${encodeURIComponent(id)}`),
+  obtenerUsuario(cookie ?? undefined),
+]);
+
+// Si no existe (o no está verificado) se vuelve a la lista de psicólogos
+if (!datos?.psicologo) {
+  return Astro.redirect("/Explorar/Psicologos");
+}
+---
+
+<BaseLayout title={`${datos.psicologo.nombre} | Psynex`}>
+  <PerfilPsicologo psicologo={datos.psicologo} rol={usuario?.Rol ?? null} />
+</BaseLayout>

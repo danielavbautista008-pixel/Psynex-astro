@@ -1,0 +1,225 @@
+---
+import "./ResultadoCuestionario.css";
+
+interface Props {
+  titulo?: string;
+  puntuacion?: number;
+  maximo?: number;
+  nivel?: "Bajo" | "Leve" | "Moderado" | "Alto";
+}
+
+const {
+  titulo = "Tu resultado del cuestionario",
+  puntuacion = 16,
+  maximo = 28,
+  nivel = "Moderado",
+} = Astro.props;
+
+const resultados = {
+  Bajo: {
+    resumen:
+      "Tus respuestas muestran pocas señales de malestar en las áreas exploradas.",
+    significado:
+      "En este momento parece haber pocas experiencias frecuentes de malestar. Continúa observando cómo te sientes y qué actividades contribuyen a tu bienestar.",
+  },
+
+  Leve: {
+    resumen:
+      "Tus respuestas muestran algunas experiencias que vale la pena observar.",
+    significado:
+      "Puede ser útil prestar atención a las situaciones que están influyendo en cómo te sientes y reconocer qué recursos te ayudan a sentirte mejor.",
+  },
+
+  Moderado: {
+    resumen:
+      "Tus respuestas muestran experiencias que conviene observar con mayor atención.",
+    significado:
+      "Algunas experiencias aparecen con una frecuencia importante. Si están afectando tu vida diaria, tus relaciones, estudios o trabajo, considera conversar con un profesional.",
+  },
+
+  Alto: {
+    resumen:
+      "Tus respuestas muestran experiencias frecuentes que merecen especial atención.",
+    significado:
+      "Si estas experiencias son persistentes o están interfiriendo con diferentes áreas de tu vida, puede ser conveniente buscar acompañamiento profesional.",
+  },
+};
+
+const resultado = resultados[nivel];
+---
+
+<section class="resultado-page">
+
+  <div class="resultado-contenedor">
+
+    <!-- ENCABEZADO -->
+
+    <a
+      href="/Explorar/cuestionarios"
+      class="resultado-volver"
+    >
+      ← Volver a cuestionarios
+    </a>
+
+
+    <!-- TARJETA PRINCIPAL -->
+
+    <article class="resultado-card">
+
+      <!-- DECORACIÓN -->
+
+      <div
+        class="resultado-decoracion resultado-decoracion-uno"
+        aria-hidden="true"
+      ></div>
+
+      <div
+        class="resultado-decoracion resultado-decoracion-dos"
+        aria-hidden="true"
+      ></div>
+
+
+      <!-- HOJA -->
+
+      <div
+        class="resultado-hoja"
+        aria-hidden="true"
+      >
+        <svg viewBox="0 0 24 24">
+          <path d="M20.5 3.5C13.4 3.5 7.8 5.1 5 8.3c-2.2 2.5-2.1 5.8-.8 7.8.7 1 1.7 1.7 2.9 2.1-.4 1-.6 1.9-.6 2.8h2c0-.8.1-1.6.4-2.4 2.8.3 5.5-.8 7.6-3 3.1-3.1 4.2-7.5 4-12.1Z" />
+        </svg>
+      </div>
+
+
+      <span class="resultado-etiqueta">
+        TU RESULTADO
+      </span>
+
+
+      <h1>
+        {titulo}
+      </h1>
+
+
+      <p class="resultado-intro">
+        Gracias por completar este cuestionario.
+        Aquí tienes una lectura orientativa de tus respuestas.
+      </p>
+
+
+      <!-- PUNTUACIÓN -->
+
+      <div class="resultado-puntuacion">
+
+        <strong>
+          {puntuacion}
+        </strong>
+
+        <span>
+          / {maximo}
+        </span>
+
+        <small>
+          puntos
+        </small>
+
+      </div>
+
+
+      <!-- NIVEL -->
+
+      <div class={`resultado-nivel nivel-${nivel.toLowerCase()}`}>
+        {nivel}
+      </div>
+
+
+      <!-- RESUMEN -->
+
+      <p class="resultado-resumen">
+        {resultado.resumen}
+      </p>
+
+
+      <!-- SIGNIFICADO -->
+
+      <section class="resultado-significado">
+
+        <h2>
+          ¿Qué significa esto?
+        </h2>
+
+        <p>
+          {resultado.significado}
+        </p>
+
+      </section>
+
+
+      <!-- RECOMENDACIÓN -->
+
+      <section class="resultado-recomendacion">
+
+        <div class="recomendacion-hoja">
+          <svg viewBox="0 0 24 24">
+            <path d="M20.5 3.5C13.4 3.5 7.8 5.1 5 8.3c-2.2 2.5-2.1 5.8-.8 7.8.7 1 1.7 1.7 2.9 2.1-.4 1-.6 1.9-.6 2.8h2c0-.8.1-1.6.4-2.4 2.8.3 5.5-.8 7.6-3 3.1-3.1 4.2-7.5 4-12.1Z" />
+          </svg>
+        </div>
+
+        <div>
+          <strong>
+            Un pequeño paso también cuenta
+          </strong>
+
+          <p>
+            Conocer cómo te sientes puede ayudarte a
+            identificar qué necesitas y qué recursos
+            pueden acompañarte.
+          </p>
+        </div>
+
+      </section>
+
+
+      <!-- AVISO -->
+
+      <section class="resultado-aviso">
+
+        <strong>
+          Importante
+        </strong>
+
+        <p>
+          Este resultado es orientativo y no constituye
+          un diagnóstico. Si sientes que lo que estás
+          experimentando está afectando tu vida cotidiana,
+          considera hablar con un profesional de salud mental.
+        </p>
+
+      </section>
+
+
+      <!-- ACCIONES -->
+
+      <div class="resultado-acciones">
+
+        <a
+          href="/Explorar/cuestionarios"
+          class="btn-secundario"
+        >
+          Ver recomendaciones
+        </a>
+
+        <a
+          href="/Explorar/Psicologos"
+          class="btn-principal"
+        >
+          Buscar un psicólogo
+        </a>
+
+      </div>
+
+    </article>
+
+  </div>
+
+</section>

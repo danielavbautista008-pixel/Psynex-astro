@@ -1,0 +1,1198 @@
+---
+import MenuExplorar from "../Menu/Navbar.astro";
+import "./Psicologos.css";
+
+import { apiGet, fotoIniciales, pesos, urlFotoPsicologo } from "../../lib/api";
+
+// Psicólogos verificados desde el backend: GET /api/explorar/psicologos
+// (los filtros y el orden se aplican en el navegador, abajo en el <script>).
+const datos = await apiGet<{
+  psicologos: {
+    id: string; nombre: string; titulo: string; biografia: string; especialidades: string[];
+    modalidadTexto: string; experienciaTexto: string; disponibilidad: string; disponibilidadTexto: string;
+    calificacion: number | null; totalResenas: number; precio: number; voluntario: boolean; tieneFoto: boolean;
+  }[];
+  especialidades: string[];
+}>(Astro.request.headers.get("cookie"), "/api/explorar/psicologos");
+
+const recortar = (texto: string, max = 190) =>
+  texto.length > max ? `${texto.slice(0, max).trimEnd()}…` : texto;
+
+const psicologos = (datos?.psicologos ?? []).map((p) => ({
+  id: p.id,
+  nombre: p.nombre,
+  especialidad: p.titulo,
+  experiencia: p.experienciaTexto,
+  especialidades: p.especialidades.slice(0, 4),
+  todasEspecialidades: p.especialidades,
+  descripcion: p.biografia
+    ? recortar(p.biografia)
+    : "Profesional verificado por Psynex. Conoce su perfil para saber más sobre su forma de trabajo.",
+  modalidad: p.modalidadTexto,
+  disponibilidad: p.disponibilidadTexto,
+  codigoDisponibilidad: p.disponibilidad,
+  calificacion: p.calificacion === null ? "Nuevo" : p.calificacion.toFixed(1),
+  calificacionNumero: p.calificacion ?? 0,
+  resenas: p.totalResenas === 1 ? "1 reseña" : p.totalResenas > 0 ? `${p.totalResenas} reseñas` : "Sin reseñas aún",
+  precio: p.voluntario && !p.precio ? "Sin costo" : p.precio > 0 ? pesos(p.precio) : "Por confirmar",
+  precioNumero: p.precio,
+  imagen: p.tieneFoto ? urlFotoPsicologo(p.id) : fotoIniciales(p.nombre),
+}));
+
+const especialidadesFiltro = datos?.especialidades ?? [];
+---
+
+<MenuExplorar
+  menuItems={[
+    { label: "Inicio", href: "/" },
+    { label: "Explorar", href: "/Explorar/explorar" },
+    { label: "Psicólogos", href: "/Explorar/Psicologos" },
+    { label: "Ofertas laborales", href: "/Explorar/OfertasLaborales" },
+    { label: "Tests", href: "/Explorar/cuestionarios" },
+    { label: "Blog", href: "/Explorar/Articulos" },
+  ]}
+/>
+
+<main class="psicologos-page">
+
+  <!-- BANNER -->
+  <section class="hero-psicologos">
+
+    <img
+      src="/Imagenes/Compu.1.jpg"
+      alt="Encuentra a tu psicólogo ideal"
+      class="hero-imagen"
+    />
+
+    <div class="hero-overlay"></div>
+
+    <div class="hero-brillo hero-brillo-uno"></div>
+    <div class="hero-brillo hero-brillo-dos"></div>
+
+    <div class="hero-contenido">
+
+      <span class="hero-etiqueta">
+        TU BIENESTAR IMPORTA
+      </span>
+
+      <h1>Encuentra a tu psicólogo ideal</h1>
+
+      <p>
+        Profesionales preparados para acompañarte
+        en cada etapa de tu bienestar emocional.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- CONTENIDO -->
+  <section class="contenido-psicologos">
+
+    <!-- BUSCADOR -->
+    <div class="barra-superior">
+
+      <div class="buscador">
+
+        <i class="bi bi-search"></i>
+
+        <input
+          type="text"
+          id="buscarPsicologo"
+          placeholder="Buscar por nombre o especialidad..."
+        />
+
+        <button id="btnBuscar" type="button">
+          Buscar
+        </button>
+
+      </div>
+
+      <button
+        id="btnFiltros"
+        class="btn-filtros"
+        type="button"
+      >
+
+        <i class="bi bi-sliders2"></i>
+
+        <span>Filtros</span>
+
+        <span
+          id="contadorFiltros"
+          class="contador-filtros"
+        >
+          0
+        </span>
+
+      </button>
+
+    </div>
+
+
+    <!-- ZONA DE RESULTADOS -->
+    <div
+      id="zonaResultados"
+      class="zona-resultados"
+    >
+
+      <!-- FILTROS -->
+      <aside
+        id="panelFiltros"
+        class="panel-filtros"
+        aria-hidden="true"
+      >
+
+        <div class="filtros-header">
+
+          <div>
+
+            <span class="filtros-mini">
+              FILTRAR
+            </span>
+
+            <h3>Encuentra tu opción</h3>
+
+          </div>
+
+          <button
+            id="btnCerrarFiltros"
+            class="btn-cerrar-filtros"
+            type="button"
+            aria-label="Cerrar filtros"
+          >
+            <i class="bi bi-x-lg"></i>
+          </button>
+
+        </div>
+
+
+        <!-- ESPECIALIDAD -->
+        <div class="filtro-grupo">
+
+          <label for="especialidad">
+            Especialidad
+          </label>
+
+          <select id="especialidad">
+
+            <option value="">Todas</option>
+
+            {
+              especialidadesFiltro.map((nombre) => (
+                <option value={nombre}>{nombre}</option>
+              ))
+            }
+
+          </select>
+
+        </div>
+
+
+        <!-- MODALIDAD -->
+        <div class="filtro-grupo">
+
+          <label for="modalidad">
+            Modalidad
+          </label>
+
+          <select id="modalidad">
+
+            <option value="">Todas</option>
+
+            <option value="Virtual">
+              Virtual
+            </option>
+
+            <option value="Presencial">
+              Presencial
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- DISPONIBILIDAD -->
+        <div class="filtro-grupo">
+
+          <label for="horario">
+            Disponibilidad
+          </label>
+
+          <select id="horario">
+
+            <option value="">
+              Cualquier horario
+            </option>
+
+            <option value="hoy">
+              Disponible hoy
+            </option>
+
+            <option value="semana">
+              Disponible esta semana
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- PRECIO -->
+        <div class="filtro-grupo">
+
+          <label for="precio">
+            Precio
+          </label>
+
+          <select id="precio">
+
+            <option value="">
+              Cualquier precio
+            </option>
+
+            <option value="bajo">
+              Hasta $80.000
+            </option>
+
+            <option value="medio">
+              $80.000 - $90.000
+            </option>
+
+            <option value="alto">
+              Más de $90.000
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <button
+          id="btnLimpiarFiltros"
+          class="btn-limpiar"
+          type="button"
+        >
+
+          <i class="bi bi-arrow-counterclockwise"></i>
+
+          Limpiar filtros
+
+        </button>
+
+      </aside>
+
+
+      <!-- RESULTADOS -->
+      <div class="resultados">
+
+        <!-- CABECERA -->
+        <div class="resultados-header">
+
+          <div class="titulo-resultados">
+
+            <div class="icono-titulo">
+              <i class="bi bi-people"></i>
+            </div>
+
+            <div>
+
+              <span>PROFESIONALES</span>
+
+              <h2>
+                Psicólogos disponibles
+              </h2>
+
+            </div>
+
+          </div>
+
+
+          <div class="ordenar">
+
+            <label for="orden">
+              Ordenar
+            </label>
+
+            <select id="orden">
+
+              <option value="recomendados">
+                Recomendados
+              </option>
+
+              <option value="calificacion">
+                Mejor calificación
+              </option>
+
+              <option value="precio-menor">
+                Precio menor
+              </option>
+
+              <option value="precio-mayor">
+                Precio mayor
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <!-- CONTADOR -->
+        <div class="contador-resultados">
+
+          <strong id="contador">
+            {psicologos.length}
+          </strong>
+
+          <span>
+            profesionales encontrados
+          </span>
+
+        </div>
+
+
+        <!-- LISTA -->
+        <div
+          id="listaPsicologos"
+          class="lista-psicologos"
+        >
+
+          {
+            psicologos.map((psicologo) => (
+              <article
+                class="psicologo-row"
+                data-nombre={psicologo.nombre}
+                data-especialidades={psicologo.todasEspecialidades.join("|")}
+                data-modalidad={psicologo.modalidad}
+                data-disponibilidad={psicologo.codigoDisponibilidad}
+                data-precio={psicologo.precioNumero}
+                data-calificacion={psicologo.calificacionNumero}
+              >
+
+                <!-- FOTO -->
+                <div class="foto-contenedor">
+
+                  {psicologo.codigoDisponibilidad === "hoy" && <div class="estado-online"></div>}
+
+                  <img
+                    src={psicologo.imagen}
+                    alt={`Foto de ${psicologo.nombre}`}
+                    loading="lazy"
+                  />
+
+                </div>
+
+
+                <!-- INFORMACIÓN -->
+                <div class="psicologo-info">
+
+                  <div class="nombre-linea">
+
+                    <h3>
+                      {psicologo.nombre}
+                    </h3>
+
+                    <span class="verificado">
+                      <i class="bi bi-patch-check-fill"></i>
+                    </span>
+
+                  </div>
+
+
+                  <div class="profesion">
+                    {psicologo.especialidad}
+                  </div>
+
+
+                  <div class="experiencia">
+
+                    <i class="bi bi-award"></i>
+
+                    {psicologo.experiencia}
+
+                  </div>
+
+
+                  <div class="especialidades">
+
+                    {
+                      psicologo.especialidades.map(
+                        (especialidad) => (
+                          <span>
+                            {especialidad}
+                          </span>
+                        )
+                      )
+                    }
+
+                  </div>
+
+
+                  <p class="descripcion">
+                    {psicologo.descripcion}
+                  </p>
+
+
+                  <div class="datos-extra">
+
+                    <span>
+
+                      <i class="bi bi-camera-video"></i>
+
+                      {psicologo.modalidad}
+
+                    </span>
+
+                    <span>
+
+                      <i class="bi bi-calendar-check"></i>
+
+                      {psicologo.disponibilidad}
+
+                    </span>
+
+                  </div>
+
+                </div>
+
+
+                <!-- LATERAL -->
+                <div class="psicologo-lateral">
+
+                  <div class="valoracion">
+
+                    <div class="estrellas">
+
+                      <i class="bi bi-star-fill"></i>
+
+                      <strong>
+                        {psicologo.calificacion}
+                      </strong>
+
+                    </div>
+
+                    <span>
+                      {psicologo.resenas}
+                    </span>
+
+                  </div>
+
+
+                  <div class="precio">
+
+                    <span>
+                      Desde
+                    </span>
+
+                    <strong>
+                      {psicologo.precio}
+                    </strong>
+
+                    <small>
+                      / sesión
+                    </small>
+
+                  </div>
+
+
+                  <a
+                    href={`/Explorar/${psicologo.id}`}
+                    class="btn-perfil"
+                  >
+
+                    Ver perfil
+
+                    <i class="bi bi-arrow-right"></i>
+
+                  </a>
+
+                </div>
+
+              </article>
+            ))
+          }
+
+        </div>
+
+
+        <!-- SIN RESULTADOS -->
+        <div
+          id="sinResultados"
+          class="sin-resultados"
+          style="display: none;"
+        >
+
+          <div class="sin-resultados-icono">
+            <i class="bi bi-search"></i>
+          </div>
+
+          <h3>
+            No encontramos psicólogos
+          </h3>
+
+          <p>
+            Intenta cambiar los filtros o realizar
+            otra búsqueda.
+          </p>
+
+          <button
+            id="btnLimpiarSinResultados"
+            type="button"
+          >
+            Limpiar filtros
+          </button>
+
+        </div>
+
+
+        <!-- PAGINACIÓN (los botones los crea el script según los resultados) -->
+        <div
+          id="paginacion"
+          class="paginacion"
+        ></div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<script>
+  /* =====================================================
+     ELEMENTOS
+  ====================================================== */
+
+  const btnFiltros =
+    document.querySelector<HTMLButtonElement>(
+      "#btnFiltros"
+    );
+
+  const btnCerrarFiltros =
+    document.querySelector<HTMLButtonElement>(
+      "#btnCerrarFiltros"
+    );
+
+  const panelFiltros =
+    document.querySelector<HTMLElement>(
+      "#panelFiltros"
+    );
+
+  const zonaResultados =
+    document.querySelector<HTMLElement>(
+      "#zonaResultados"
+    );
+
+  const buscarInput =
+    document.querySelector<HTMLInputElement>(
+      "#buscarPsicologo"
+    );
+
+  const btnBuscar =
+    document.querySelector<HTMLButtonElement>(
+      "#btnBuscar"
+    );
+
+  const especialidad =
+    document.querySelector<HTMLSelectElement>(
+      "#especialidad"
+    );
+
+  const modalidad =
+    document.querySelector<HTMLSelectElement>(
+      "#modalidad"
+    );
+
+  const horario =
+    document.querySelector<HTMLSelectElement>(
+      "#horario"
+    );
+
+  const precio =
+    document.querySelector<HTMLSelectElement>(
+      "#precio"
+    );
+
+  const orden =
+    document.querySelector<HTMLSelectElement>(
+      "#orden"
+    );
+
+  const btnLimpiar =
+    document.querySelector<HTMLButtonElement>(
+      "#btnLimpiarFiltros"
+    );
+
+  const btnLimpiarSinResultados =
+    document.querySelector<HTMLButtonElement>(
+      "#btnLimpiarSinResultados"
+    );
+
+  const contadorFiltros =
+    document.querySelector<HTMLElement>(
+      "#contadorFiltros"
+    );
+
+  const contador =
+    document.querySelector<HTMLElement>(
+      "#contador"
+    );
+
+  const lista =
+    document.querySelector<HTMLElement>(
+      "#listaPsicologos"
+    );
+
+  const sinResultados =
+    document.querySelector<HTMLElement>(
+      "#sinResultados"
+    );
+
+
+  /* =====================================================
+     ABRIR FILTROS
+  ====================================================== */
+
+  function abrirFiltros(): void {
+    panelFiltros?.classList.add("visible");
+
+    panelFiltros?.setAttribute(
+      "aria-hidden",
+      "false"
+    );
+
+    zonaResultados?.classList.add(
+      "filtros-abiertos"
+    );
+  }
+
+
+  /* =====================================================
+     CERRAR FILTROS
+  ====================================================== */
+
+  function cerrarFiltros(): void {
+    panelFiltros?.classList.remove(
+      "visible"
+    );
+
+    panelFiltros?.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    zonaResultados?.classList.remove(
+      "filtros-abiertos"
+    );
+  }
+
+
+  btnFiltros?.addEventListener(
+    "click",
+    abrirFiltros
+  );
+
+  btnCerrarFiltros?.addEventListener(
+    "click",
+    cerrarFiltros
+  );
+
+
+  /* =====================================================
+     CONTADOR DE FILTROS
+  ====================================================== */
+
+  function actualizarContadorFiltros(): void {
+    let total = 0;
+
+    if (especialidad?.value) {
+      total++;
+    }
+
+    if (modalidad?.value) {
+      total++;
+    }
+
+    if (horario?.value) {
+      total++;
+    }
+
+    if (precio?.value) {
+      total++;
+    }
+
+    if (contadorFiltros) {
+      contadorFiltros.textContent =
+        total.toString();
+
+      if (total > 0) {
+        contadorFiltros.classList.add(
+          "activo"
+        );
+      } else {
+        contadorFiltros.classList.remove(
+          "activo"
+        );
+      }
+    }
+  }
+
+
+  /* =====================================================
+     OBTENER PRECIO
+  ====================================================== */
+
+  function obtenerPrecio(
+    fila: HTMLElement
+  ): number {
+    return Number(
+      fila.dataset.precio || "0"
+    );
+  }
+
+
+  /* =====================================================
+     APLICAR FILTROS
+  ====================================================== */
+
+  function aplicarFiltros(): void {
+
+    const texto =
+      buscarInput?.value
+        .toLowerCase()
+        .trim() || "";
+
+    const filtroEspecialidad =
+      especialidad?.value
+        .toLowerCase() || "";
+
+    const filtroModalidad =
+      modalidad?.value
+        .toLowerCase() || "";
+
+    const filtroHorario =
+      horario?.value || "";
+
+    const filtroPrecio =
+      precio?.value || "";
+
+
+    const filas =
+      Array.from(
+        document.querySelectorAll<HTMLElement>(
+          ".psicologo-row"
+        )
+      );
+
+
+    let encontrados = 0;
+
+
+    filas.forEach(
+      (fila: HTMLElement) => {
+
+        const nombre =
+          fila.dataset.nombre
+            ?.toLowerCase() || "";
+
+        const especialidades =
+          fila.dataset.especialidades
+            ?.toLowerCase() || "";
+
+        const modalidadTexto =
+          fila.dataset.modalidad
+            ?.toLowerCase() || "";
+
+        const disponibilidad =
+          fila.dataset.disponibilidad
+            ?.toLowerCase() || "";
+
+        const precioNumero =
+          obtenerPrecio(fila);
+
+
+        /* BÚSQUEDA */
+
+        const coincideBusqueda =
+          texto === "" ||
+          nombre.includes(texto) ||
+          especialidades.includes(texto);
+
+
+        /* ESPECIALIDAD */
+
+        const coincideEspecialidad =
+          filtroEspecialidad === "" ||
+          especialidades.includes(
+            filtroEspecialidad
+          );
+
+
+        /* MODALIDAD */
+
+        const coincideModalidad =
+          filtroModalidad === "" ||
+          modalidadTexto.includes(
+            filtroModalidad
+          );
+
+
+        /* HORARIO */
+
+        let coincideHorario = true;
+
+        if (filtroHorario === "hoy") {
+          coincideHorario =
+            disponibilidad.includes("hoy");
+        }
+
+        // "Esta semana" también incluye a quienes atienden hoy
+        if (filtroHorario === "semana") {
+          coincideHorario =
+            disponibilidad === "hoy" ||
+            disponibilidad === "semana";
+        }
+
+
+        /* PRECIO */
+
+        let coincidePrecio = true;
+
+        if (filtroPrecio === "bajo") {
+          coincidePrecio =
+            precioNumero <= 80000;
+        }
+
+        if (filtroPrecio === "medio") {
+          coincidePrecio =
+            precioNumero >= 80000 &&
+            precioNumero <= 90000;
+        }
+
+        if (filtroPrecio === "alto") {
+          coincidePrecio =
+            precioNumero > 90000;
+        }
+
+
+        /* RESULTADO */
+
+        const mostrar =
+          coincideBusqueda &&
+          coincideEspecialidad &&
+          coincideModalidad &&
+          coincideHorario &&
+          coincidePrecio;
+
+
+        // Se marca si coincide; la paginación decide cuáles se ven
+        fila.dataset.coincide = mostrar ? "1" : "0";
+
+        if (mostrar) {
+          encontrados++;
+        }
+
+      }
+    );
+
+
+    /* CONTADOR */
+
+    if (contador) {
+      contador.textContent =
+        encontrados.toString();
+    }
+
+
+    /* LISTA */
+
+    if (lista) {
+      lista.style.display =
+        encontrados === 0
+          ? "none"
+          : "flex";
+    }
+
+
+    /* SIN RESULTADOS */
+
+    if (sinResultados) {
+      sinResultados.style.display =
+        encontrados === 0
+          ? "flex"
+          : "none";
+    }
+
+
+    actualizarContadorFiltros();
+
+    mostrarPagina(1);
+  }
+
+
+  /* =====================================================
+     LIMPIAR FILTROS
+  ====================================================== */
+
+  function limpiarFiltros(): void {
+
+    if (buscarInput) {
+      buscarInput.value = "";
+    }
+
+    if (especialidad) {
+      especialidad.value = "";
+    }
+
+    if (modalidad) {
+      modalidad.value = "";
+    }
+
+    if (horario) {
+      horario.value = "";
+    }
+
+    if (precio) {
+      precio.value = "";
+    }
+
+    aplicarFiltros();
+  }
+
+
+  /* =====================================================
+     EVENTOS DE BÚSQUEDA
+  ====================================================== */
+
+  btnBuscar?.addEventListener(
+    "click",
+    aplicarFiltros
+  );
+
+  buscarInput?.addEventListener(
+    "input",
+    aplicarFiltros
+  );
+
+
+  /* =====================================================
+     EVENTOS DE FILTROS
+  ====================================================== */
+
+  especialidad?.addEventListener(
+    "change",
+    aplicarFiltros
+  );
+
+  modalidad?.addEventListener(
+    "change",
+    aplicarFiltros
+  );
+
+  horario?.addEventListener(
+    "change",
+    aplicarFiltros
+  );
+
+  precio?.addEventListener(
+    "change",
+    aplicarFiltros
+  );
+
+
+  /* =====================================================
+     BOTONES LIMPIAR
+  ====================================================== */
+
+  btnLimpiar?.addEventListener(
+    "click",
+    limpiarFiltros
+  );
+
+  btnLimpiarSinResultados?.addEventListener(
+    "click",
+    limpiarFiltros
+  );
+
+
+  /* =====================================================
+     ORDENAMIENTO
+  ====================================================== */
+
+  orden?.addEventListener(
+    "change",
+    () => {
+
+      const filas =
+        Array.from(
+          document.querySelectorAll<HTMLElement>(
+            ".psicologo-row"
+          )
+        );
+
+      const tipo =
+        orden?.value || "recomendados";
+
+
+      if (tipo === "recomendados") {
+        return;
+      }
+
+
+      filas.sort(
+        (
+          filaA: HTMLElement,
+          filaB: HTMLElement
+        ) => {
+
+          if (tipo === "calificacion") {
+
+            const calificacionA =
+              Number(
+                filaA.dataset.calificacion ||
+                "0"
+              );
+
+            const calificacionB =
+              Number(
+                filaB.dataset.calificacion ||
+                "0"
+              );
+
+            return (
+              calificacionB -
+              calificacionA
+            );
+          }
+
+
+          if (tipo === "precio-menor") {
+
+            return (
+              obtenerPrecio(filaA) -
+              obtenerPrecio(filaB)
+            );
+          }
+
+
+          if (tipo === "precio-mayor") {
+
+            return (
+              obtenerPrecio(filaB) -
+              obtenerPrecio(filaA)
+            );
+          }
+
+
+          return 0;
+        }
+      );
+
+
+      filas.forEach(
+        (fila: HTMLElement) => {
+          lista?.appendChild(fila);
+        }
+      );
+
+      mostrarPagina(1);
+
+    }
+  );
+
+
+  /* =====================================================
+     PAGINACIÓN
+     Muestra POR_PAGINA psicólogos de los que coinciden
+     con los filtros y arma los botones de páginas.
+  ====================================================== */
+
+  const POR_PAGINA = 8;
+
+  const paginacion =
+    document.querySelector<HTMLElement>(
+      "#paginacion"
+    );
+
+  function mostrarPagina(pagina: number): void {
+
+    const coinciden =
+      Array.from(
+        document.querySelectorAll<HTMLElement>(
+          ".psicologo-row"
+        )
+      ).filter(
+        (fila) => fila.dataset.coincide !== "0"
+      );
+
+    const totalPaginas =
+      Math.max(
+        1,
+        Math.ceil(coinciden.length / POR_PAGINA)
+      );
+
+    const actual =
+      Math.min(
+        Math.max(pagina, 1),
+        totalPaginas
+      );
+
+    document
+      .querySelectorAll<HTMLElement>(".psicologo-row")
+      .forEach((fila) => {
+        fila.style.display = "none";
+      });
+
+    coinciden
+      .slice(
+        (actual - 1) * POR_PAGINA,
+        actual * POR_PAGINA
+      )
+      .forEach((fila) => {
+        fila.style.display = "grid";
+      });
+
+    if (!paginacion) {
+      return;
+    }
+
+    paginacion.innerHTML = "";
+    paginacion.style.display =
+      totalPaginas > 1 ? "" : "none";
+
+    for (let i = 1; i <= totalPaginas; i++) {
+      const boton = document.createElement("button");
+      boton.type = "button";
+      boton.className = "pagina" + (i === actual ? " activa" : "");
+      boton.textContent = String(i);
+      boton.addEventListener("click", () => {
+        mostrarPagina(i);
+        lista?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      paginacion.appendChild(boton);
+    }
+
+    if (actual < totalPaginas) {
+      const siguiente = document.createElement("button");
+      siguiente.type = "button";
+      siguiente.className = "pagina siguiente";
+      siguiente.setAttribute("aria-label", "Siguiente página");
+      siguiente.innerHTML = '<i class="bi bi-chevron-right"></i>';
+      siguiente.addEventListener("click", () => mostrarPagina(actual + 1));
+      paginacion.appendChild(siguiente);
+    }
+  }
+
+
+  /* =====================================================
+     INICIALIZAR
+  ====================================================== */
+
+  aplicarFiltros();
+</script>
