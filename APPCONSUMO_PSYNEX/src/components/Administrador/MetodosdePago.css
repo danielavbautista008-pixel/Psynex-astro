@@ -915,3 +915,11 @@ body {
   height: 32px;
   font-size: 13px;
 }
+
+/* cambio: en celular las dos tarjetas de resumen van una debajo de la otra
+   (la regla de arriba con 2 columnas fijas hacía que la segunda se saliera) */
+@media (max-width: 600px) {
+  .resumen-metodos {
+    grid-template-columns: 1fr;
+  }
+}

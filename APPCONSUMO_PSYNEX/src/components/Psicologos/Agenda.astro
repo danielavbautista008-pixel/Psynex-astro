@@ -488,6 +488,9 @@ const citasJSON = JSON.stringify(((datosCitas?.citas ?? []) as any[]).map(aCita)
 
             <div class="select-wrap">
 
+              {/* cambio: la base de datos y el backend solo aceptan 6, 12, 24 o 48 horas
+                  (con minutos salía "Invalid input" al guardar). Para la exposición,
+                  el horario extra de hoy se agregó por SQL y solo pide 15 minutos. */}
               <select id="anticipacion">
                 {[6, 12, 24, 48].map((h) => (
                   <option value={h} selected={h === anticipacion}>
@@ -510,9 +513,9 @@ const citasJSON = JSON.stringify(((datosCitas?.citas ?? []) as any[]).map(aCita)
             <div class="select-wrap">
 
               <select id="cancelacion">
-                {[6, 12, 24, 48].map((h) => (
-                  <option value={h} selected={h === cancelacion}>
-                    {h} horas antes
+                {[6, 12, 24, 48].map((m) => (
+                  <option value={m} selected={m === cancelacion}>
+                    {m} horas antes
                   </option>
                 ))}
               </select>

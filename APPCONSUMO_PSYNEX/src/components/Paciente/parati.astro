@@ -1,6 +1,7 @@
 ---
 import "./parati.css";
 import Menu from "./menuPac.astro";
+import HistorialResultados from "./HistorialResultados.astro"; // cambio: historial de cuestionarios
 import { apiGet, imagenCuestionario, minutosLectura, urlImagenBlog } from "../../lib/api";
 
 // cambio: carruseles con los tests y los artículos del blog REALES
@@ -119,6 +120,11 @@ for (let k = 0; k < Math.max(tests.length, articulos.length); k++) {
                     </div>
                 </div>
             )}
+        </section>
+
+        <!-- cambio: historial de los cuestionarios que respondió (Mis resultados) -->
+        <section class="section-historial" style="width: 100%;">
+            <HistorialResultados modo="parati" />
         </section>
     </main>
 </div>

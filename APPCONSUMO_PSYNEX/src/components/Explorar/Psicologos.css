@@ -1661,6 +1661,12 @@
     position: relative;
   }
 
+  /* cambio: en celular el panel cerrado ocupaba espacio (quedaba un hueco
+     blanco grande entre "Filtros" y la lista). Cerrado, no se muestra. */
+  .panel-filtros:not(.visible) {
+    display: none;
+  }
+
 
   .panel-filtros.visible {
     width: 100%;

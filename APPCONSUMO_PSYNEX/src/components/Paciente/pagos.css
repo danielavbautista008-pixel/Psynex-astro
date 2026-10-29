@@ -106,3 +106,50 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* cambio: en celular cada pago es una tarjetita (antes la tabla se cortaba
+   y había que deslizar de lado para ver el valor y el recibo) */
+@media (max-width: 600px) {
+  .pag-tabla thead {
+    display: none;
+  }
+
+  .pag-tabla,
+  .pag-tabla tbody {
+    display: block;
+  }
+
+  .pag-tabla tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "concepto valor"
+      "metodo estado"
+      "fecha recibo";
+    gap: 4px 10px;
+    padding: 12px 2px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pag-tabla tr:last-child {
+    border-bottom: 0;
+  }
+
+  .pag-tabla td {
+    padding: 0;
+    border: 0;
+    white-space: normal;
+    align-self: center;
+  }
+
+  .pag-tabla td[colspan] {
+    grid-column: 1 / -1;
+  }
+
+  .pag-tabla td:nth-child(1) { grid-area: fecha; color: var(--text-muted); font-size: 11.5px; }
+  .pag-tabla td:nth-child(2) { grid-area: concepto; }
+  .pag-tabla td:nth-child(3) { grid-area: metodo; color: var(--text-muted); font-size: 11.5px; }
+  .pag-tabla td:nth-child(4) { grid-area: estado; justify-self: end; }
+  .pag-tabla td:nth-child(5) { grid-area: valor; font-weight: 700; font-size: 14px; }
+  .pag-tabla td:nth-child(6) { grid-area: recibo; justify-self: end; }
+}

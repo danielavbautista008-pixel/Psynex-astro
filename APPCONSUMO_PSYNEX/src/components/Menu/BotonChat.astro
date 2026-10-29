@@ -171,7 +171,7 @@ const enMensajes = ruta.startsWith(href.toLowerCase());
   async function consultar() {
     if (!boton || document.hidden) return;
     try {
-      const api = boton.dataset.api || "http://localhost:8001";
+      const api = boton.dataset.api ?? "http://localhost:8001"; // cambio (túnel): "" = misma dirección de la página
       const res = await fetch(`${api}/api/chat/no-leidos`, { credentials: "include" });
       if (!res.ok) return;
       const data = await res.json();

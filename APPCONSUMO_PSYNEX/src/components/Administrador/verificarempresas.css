@@ -2796,3 +2796,16 @@ body.modal-abierto {
     height: 34px;
     font-size: 12px !important;
 }
+
+/* cambio: en celular el recuadro "Selecciona una empresa" ocupaba casi
+   toda la pantalla aunque no hubiera nada que mostrar */
+@media (max-width: 900px) {
+    .empresas-layout {
+        min-height: 0;
+    }
+
+    .detalle-vacio {
+        min-height: 0;
+        padding: 28px 18px;
+    }
+}

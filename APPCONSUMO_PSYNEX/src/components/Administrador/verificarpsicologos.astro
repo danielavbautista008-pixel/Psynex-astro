@@ -1168,6 +1168,11 @@ const psicologosBD = (respuesta?.psicologos ?? respuesta?.datos ?? []).map((p: a
 
         detalleContenido.hidden = false;
 
+        // cambio: en celular el detalle queda debajo de la lista; se baja hasta él
+        if (window.innerWidth <= 900) {
+            detalleContenido.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
 
         document.getElementById("detalleNombre").textContent =
             psicologo.nombre;

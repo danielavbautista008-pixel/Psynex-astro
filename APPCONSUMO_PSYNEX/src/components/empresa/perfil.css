@@ -268,3 +268,20 @@ body {
         gap: 0;
     }
 }
+/* cambio: en celular el formulario del perfil quedaba muy angosto
+   (mucho espacio a los lados) */
+@media (max-width: 600px) {
+    .perfil-empresa-container {
+        margin: 20px auto;
+        padding: 0 12px;
+        gap: 16px;
+    }
+
+    .perfil-avatar-card {
+        padding: 24px 16px;
+    }
+
+    .perfil-form-card {
+        padding: 20px 16px;
+    }
+}

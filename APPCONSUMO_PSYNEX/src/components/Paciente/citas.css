@@ -125,3 +125,98 @@
   object-fit: cover;
   object-position: center 25%;
 }
+
+/* cambio: ventana para pagar la cita */
+.cit-pago-resumen {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.cit-pago-resumen strong {
+  font-size: 18px;
+  color: var(--primary);
+}
+
+.cit-pago-paquete {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+}
+
+/* cambio: lugar de la cita presencial y su mapa */
+.cit-lugar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.cit-lugar i {
+  color: var(--primary);
+}
+
+.cit-mapa-caja {
+  width: min(560px, calc(100vw - 32px));
+}
+
+.cit-mapa-lugar {
+  font-weight: 600;
+}
+
+.cit-mapa {
+  width: 100%;
+  height: 300px;
+  margin: 10px 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.pac-modal-acciones a.pac-btn {
+  text-decoration: none;
+}
+
+/* cambio: botón de la sala, pequeño como en el panel del psicólogo */
+.cit-sala {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cit-sala:hover {
+  color: var(--on-primary);
+  filter: brightness(1.05);
+}
+
+.cit-sala.espera {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.cit-sala.espera i {
+  color: var(--primary);
+}
+
+/* cambio: en la ventana de pagar, los botones bajan de línea si no caben */
+#modalPagar .pac-modal-acciones {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}

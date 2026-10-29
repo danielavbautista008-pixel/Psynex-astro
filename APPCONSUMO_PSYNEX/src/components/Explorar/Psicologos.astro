@@ -1278,5 +1278,18 @@ const especialidadesFiltro = datos?.especialidades ?? [];
      INICIALIZAR
   ====================================================== */
 
+  // cambio: desde el Inicio del paciente llega ?especialidad=Ansiedad
+  // y la lista ya sale filtrada por esa especialidad.
+  const especialidadUrl = new URLSearchParams(location.search).get("especialidad");
+  if (especialidad && especialidadUrl) {
+    const opcion = Array.from(especialidad.options).find(
+      (o) => o.value.toLowerCase() === especialidadUrl.toLowerCase()
+    );
+    if (opcion) {
+      especialidad.value = opcion.value;
+      actualizarContadorFiltros();
+    }
+  }
+
   aplicarFiltros();
 </script>

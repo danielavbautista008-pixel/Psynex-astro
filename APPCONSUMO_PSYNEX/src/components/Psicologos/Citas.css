@@ -742,3 +742,17 @@
   color: var(--primary);
   background: transparent;
 }
+
+/* cambio: lugar de la cita presencial */
+.cita-lugar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.cita-lugar i {
+  color: var(--primary);
+}

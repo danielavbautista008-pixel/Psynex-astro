@@ -284,7 +284,7 @@ const { paciente = false } = Astro.props;
 
   const pagina = document.getElementById("chatPagina");
   const YO = pagina?.dataset.yo || "";
-  const API = pagina?.dataset.api || "http://localhost:8001";
+  const API = pagina?.dataset.api ?? "http://localhost:8001"; // cambio (túnel): "" = misma dirección de la página
   const esPaciente = pagina?.dataset.paciente === "1"; // cambio: vista del paciente
 
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T | null;
@@ -1028,7 +1028,7 @@ const { paciente = false } = Astro.props;
   }
 
   function conectar() {
-    socket = new WebSocket(API.replace(/^http/, "ws") + "/api/chat/ws");
+    socket = new WebSocket((API || location.origin).replace(/^http/, "ws") + "/api/chat/ws");
 
     socket.addEventListener("open", () => {
       espera = 1000;

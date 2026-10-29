@@ -298,6 +298,8 @@
   font-size: 11px;
 }
 
+.pac-prueba[hidden] { display: none; } /* cambio: avisos que se muestran solo si algo falla */
+
 /* ---------------- Ventanas pequeñas ---------------- */
 .pac-modal {
   position: fixed;

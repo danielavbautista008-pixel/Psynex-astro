@@ -1,0 +1,732 @@
+---
+// =====================================================================
+// cambio: COMPONENTE NUEVO — historial de cuestionarios del paciente.
+//   modo="parati"   -> sección "Mis resultados" con los que respondió
+//                      por su cuenta (desde Para ti / Explorar).
+//   modo="registro" -> botón al final de Registro diario que abre, en la
+//                      misma vista, el historial de los cuestionarios que
+//                      le ASIGNARON sus psicólogos.
+// Al tocar un resultado se abre una ventana emergente con el detalle
+// (puntaje, nivel, mensaje de apoyo y sus respuestas).
+// Rutas (Deno, solo lectura):
+//   GET /api/paciente/resultados
+//   GET /api/paciente/resultados/:id
+// =====================================================================
+import { API_URL, apiGet } from "../../lib/api";
+
+interface Props {
+  modo: "parati" | "registro";
+}
+const { modo } = Astro.props;
+
+interface Resultado {
+  id: string;
+  fecha: string;
+  puntaje: number;
+  maximo: number;
+  nivel: string;
+  asignadoPor: string | null;
+  cuestionario: { id: string; sigla: string; descripcion: string; categoria: string };
+}
+
+const datos = await apiGet<{ resultados: Resultado[] }>(Astro.request.headers.get("cookie"), "/api/paciente/resultados");
+const todos = datos?.resultados ?? [];
+const lista = todos.filter((r) => (modo === "registro" ? r.asignadoPor !== null : r.asignadoPor === null));
+
+const fecha = (f: string) => {
+  const d = new Date(f);
+  return Number.isNaN(d.getTime())
+    ? ""
+    : d.toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric", timeZone: "America/Bogota" });
+};
+const NIVEL: Record<string, { clase: string; texto: string }> = {
+  "Sin riesgo": { clase: "ok", texto: "Sin riesgo" },
+  Leve: { clase: "leve", texto: "Leve" },
+  Moderado: { clase: "medio", texto: "Moderado" },
+  Critico: { clase: "alto", texto: "Alto" },
+};
+const nivelDe = (n: string) => NIVEL[n] ?? { clase: "leve", texto: n || "—" };
+const volver = modo === "registro" ? "/Paciente/Registro" : "/Paciente/ParaTi";
+---
+
+<div class:list={["hr-raiz", `hr-${modo}`]} data-api={API_URL} data-volver={volver}>
+  {modo === "registro" && (
+    <button type="button" class="hr-abrir" id="hrAbrir" aria-expanded="false" aria-controls="hrPanel">
+      <i class="bi bi-clock-history"></i>
+      <span>
+        <strong>Historial de cuestionarios asignados</strong>
+        <small>{lista.length} {lista.length === 1 ? "respondido" : "respondidos"} · toca para ver</small>
+      </span>
+      <i class="bi bi-chevron-down hr-flecha"></i>
+    </button>
+  )}
+
+  <section class:list={["hr-panel", { cerrado: modo === "registro" }]} id="hrPanel">
+    <div class="hr-panel-dentro">
+      {modo === "parati" && (
+        <div class="hr-top">
+          <h2 class="section-heading">Mis resultados</h2>
+          <small>{lista.length} {lista.length === 1 ? "cuestionario respondido" : "cuestionarios respondidos"}</small>
+        </div>
+      )}
+
+      {datos === null && <p class="hr-vacio">No pudimos cargar tu historial. Intenta de nuevo más tarde.</p>}
+      {datos !== null && lista.length === 0 && (
+        <p class="hr-vacio">
+          {modo === "registro"
+            ? "Todavía no has respondido cuestionarios que te asignaran."
+            : "Cuando respondas un cuestionario, tu resultado aparecerá aquí."}
+        </p>
+      )}
+
+      <div class="hr-lista">
+        {lista.map((r) => (
+          <button type="button" class="hr-item" data-resultado={r.id}>
+            <span class={`hr-nivel ${nivelDe(r.nivel).clase}`}>{nivelDe(r.nivel).texto}</span>
+            <span class="hr-info">
+              <strong>{r.cuestionario.sigla}</strong>
+              <small>
+                {r.cuestionario.categoria} · {fecha(r.fecha)}
+                {r.asignadoPor && ` · asignado por ${r.asignadoPor}`}
+              </small>
+            </span>
+            <span class="hr-puntaje">
+              <b>{r.puntaje}</b>{r.maximo ? `/${r.maximo}` : ""}
+            </span>
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Ventana emergente con el detalle -->
+  <div class="hr-fondo" id="hrVentana" hidden>
+    <section class="hr-caja" role="dialog" aria-modal="true" aria-labelledby="hrTitulo">
+      <button type="button" class="hr-cerrar" data-hr-cerrar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+      <p class="hr-cargando" id="hrCargando">Cargando…</p>
+
+      <div id="hrContenido" hidden>
+        <span class="hr-eyebrow" id="hrCategoria"></span>
+        <h3 id="hrTitulo"></h3>
+        <p class="hr-sub" id="hrFecha"></p>
+
+        <div class="hr-marcador">
+          <div>
+            <strong id="hrPuntaje"></strong>
+            <small id="hrMaximo"></small>
+          </div>
+          <span class="hr-nivel" id="hrNivel"></span>
+        </div>
+        <div class="hr-barra"><i id="hrBarra"></i></div>
+        <p class="hr-significado" id="hrSignificado"></p>
+        <p class="hr-apoyo" id="hrApoyo" hidden></p>
+
+        <div class="hr-crisis" id="hrCrisis" hidden>
+          <i class="bi bi-heart-pulse"></i>
+          <span>Si sientes que no puedes más, no estás solo/a. Llama a la <b>Línea 106</b> o al <b>123</b>, o habla con tu psicólogo.</span>
+        </div>
+
+        <h4 class="hr-subtitulo"><i class="bi bi-list-check"></i> Tus respuestas</h4>
+        <ol class="hr-respuestas" id="hrRespuestas"></ol>
+
+        <div class="hr-acciones">
+          <button type="button" class="hr-btn borde" data-hr-cerrar>Cerrar</button>
+          <a class="hr-btn" id="hrRepetir" href="#">Responder otra vez</a>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+  const raiz = document.querySelector<HTMLElement>(".hr-raiz");
+  const API = raiz?.dataset.api ?? "http://localhost:8001"; // cambio (túnel): "" = misma dirección de la página
+  const volver = raiz?.dataset.volver || "/Paciente/ParaTi";
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T | null;
+
+  // ---- Registro diario: abrir / cerrar el historial en la misma vista ----
+  const boton = $("hrAbrir");
+  const panel = $("hrPanel");
+  boton?.addEventListener("click", () => {
+    const abierto = panel?.classList.toggle("cerrado") === false;
+    boton.setAttribute("aria-expanded", String(abierto));
+    boton.classList.toggle("abierto", abierto);
+    if (abierto) setTimeout(() => panel?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
+  });
+
+  // ---- Ventana emergente ----
+  const ventana = $("hrVentana");
+  const cerrar = () => {
+    if (!ventana) return;
+    ventana.classList.remove("visible");
+    ventana.hidden = true;
+  };
+  ventana?.addEventListener("click", (e) => {
+    if (e.target === ventana || (e.target as HTMLElement).closest("[data-hr-cerrar]")) cerrar();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") cerrar();
+  });
+
+  const SIGNIFICADO: Record<string, string> = {
+    "Sin riesgo": "Tus respuestas no muestran señales de alerta. ¡Sigue cuidándote!",
+    Leve: "Aparecen algunas señales leves. Vale la pena prestarles atención y cuidarte.",
+    Moderado: "Algunas experiencias aparecen con frecuencia. Conversar con un profesional puede ayudarte.",
+    Critico: "Tus respuestas muestran un nivel alto. Te recomendamos hablar pronto con tu psicólogo.",
+  };
+  const CLASE: Record<string, string> = { "Sin riesgo": "ok", Leve: "leve", Moderado: "medio", Critico: "alto" };
+  const TEXTO: Record<string, string> = { "Sin riesgo": "Sin riesgo", Leve: "Leve", Moderado: "Moderado", Critico: "Alto" };
+
+  type Detalle = {
+    fecha: string; puntaje: number; maximo: number; nivel: string; asignadoPor: string | null; mensajeApoyo: string | null;
+    cuestionario: { id: string; sigla: string; categoria: string };
+    respuestas: { numero: number; pregunta: string; respuesta: string }[];
+  };
+
+  const poner = (id: string, t: string) => {
+    const el = $(id);
+    if (el) el.textContent = t;
+  };
+
+  async function abrir(id: string) {
+    if (!ventana) return;
+    const cargando = $("hrCargando");
+    const contenido = $("hrContenido");
+    if (cargando) { cargando.hidden = false; cargando.textContent = "Cargando…"; }
+    if (contenido) contenido.hidden = true;
+    ventana.hidden = false;
+    requestAnimationFrame(() => ventana.classList.add("visible"));
+
+    let r: Detalle | null = null;
+    try {
+      const res = await fetch(`${API}/api/paciente/resultados/${encodeURIComponent(id)}`, { credentials: "include" });
+      const data = await res.json();
+      r = res.ok ? data.resultado : null;
+    } catch {
+      r = null;
+    }
+    if (!r) {
+      if (cargando) cargando.textContent = "No pudimos abrir este resultado. Intenta de nuevo.";
+      return;
+    }
+
+    const f = new Date(r.fecha);
+    poner("hrCategoria", r.cuestionario.categoria);
+    poner("hrTitulo", r.cuestionario.sigla);
+    poner(
+      "hrFecha",
+      `Respondido el ${Number.isNaN(f.getTime()) ? "" : f.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" })}` +
+        (r.asignadoPor ? ` · asignado por ${r.asignadoPor}` : ""),
+    );
+    poner("hrPuntaje", String(r.puntaje));
+    poner("hrMaximo", r.maximo ? `de ${r.maximo} puntos` : "puntos");
+    const nivel = $("hrNivel");
+    if (nivel) {
+      nivel.className = `hr-nivel ${CLASE[r.nivel] ?? "leve"}`;
+      nivel.textContent = TEXTO[r.nivel] ?? r.nivel;
+    }
+    const barra = $("hrBarra");
+    if (barra) {
+      barra.className = CLASE[r.nivel] ?? "leve";
+      barra.style.width = "0%";
+      const pct = r.maximo ? Math.min(100, Math.round((r.puntaje / r.maximo) * 100)) : 0;
+      setTimeout(() => (barra.style.width = `${pct}%`), 60);
+    }
+    poner("hrSignificado", SIGNIFICADO[r.nivel] ?? "");
+    const apoyo = $("hrApoyo");
+    if (apoyo) {
+      apoyo.hidden = !r.mensajeApoyo;
+      apoyo.textContent = r.mensajeApoyo ?? "";
+    }
+    const crisis = $("hrCrisis");
+    if (crisis) crisis.hidden = r.nivel !== "Critico";
+
+    const ol = $("hrRespuestas");
+    if (ol) {
+      ol.replaceChildren();
+      if (!r.respuestas.length) {
+        const li = document.createElement("li");
+        li.className = "hr-sin";
+        li.textContent = "Las respuestas de este cuestionario no quedaron guardadas (se respondió antes de que existiera esta función).";
+        ol.append(li);
+      }
+      r.respuestas.forEach((x) => {
+        const li = document.createElement("li");
+        const p = document.createElement("span");
+        p.textContent = x.pregunta;
+        const b = document.createElement("b");
+        b.textContent = x.respuesta || "—";
+        li.append(p, b);
+        ol.append(li);
+      });
+    }
+    const repetir = $<HTMLAnchorElement>("hrRepetir");
+    if (repetir) repetir.href = `/Explorar/cuestionarios/${r.cuestionario.id}?volver=${volver}`;
+
+    if (cargando) cargando.hidden = true;
+    if (contenido) contenido.hidden = false;
+  }
+
+  document.querySelectorAll<HTMLButtonElement>("[data-resultado]").forEach((b) =>
+    b.addEventListener("click", () => abrir(b.dataset.resultado || ""))
+  );
+</script>
+
+<style is:global>
+  /* cambio: historial de cuestionarios (prefijo hr-), colores del tema */
+  .hr-raiz {
+    width: 100%;
+    font-family: var(--bs-body-font-family);
+    color: var(--text);
+  }
+
+  .hr-parati {
+    margin-top: 10px;
+  }
+
+  .hr-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .hr-top small {
+    color: var(--text-muted);
+    font-size: 12.5px;
+  }
+
+  /* Botón de Registro diario */
+  .hr-abrir {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .hr-abrir:hover,
+  .hr-abrir.abierto {
+    border-color: var(--primary);
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 12%, transparent);
+  }
+
+  .hr-abrir > i:first-child {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 18px;
+  }
+
+  .hr-abrir span {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hr-abrir strong {
+    font-size: 14px;
+  }
+
+  .hr-abrir small {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .hr-flecha {
+    color: var(--primary);
+    transition: transform 0.3s ease;
+  }
+
+  .hr-abrir.abierto .hr-flecha {
+    transform: rotate(180deg);
+  }
+
+  /* Panel que se abre en la misma vista */
+  .hr-panel {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.35s ease, opacity 0.35s ease;
+  }
+
+  .hr-panel.cerrado {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+
+  .hr-panel-dentro {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .hr-registro .hr-panel-dentro {
+    padding-top: 12px;
+  }
+
+  .hr-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .hr-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .hr-item:hover {
+    transform: translateX(4px);
+    border-color: var(--primary);
+  }
+
+  .hr-item > i {
+    color: var(--text-muted);
+  }
+
+  .hr-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hr-info strong {
+    font-size: 14px;
+  }
+
+  .hr-info small {
+    color: var(--text-muted);
+    font-size: 11.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .hr-puntaje {
+    color: var(--text-muted);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .hr-puntaje b {
+    color: var(--text);
+    font-size: 15px;
+  }
+
+  .hr-nivel {
+    flex: none;
+    min-width: 74px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  /* cambio: el nivel usa los colores del tema elegido (automáticos) */
+  .hr-nivel.ok,
+  .hr-nivel.leve,
+  .hr-nivel.medio,
+  .hr-nivel.alto { background: var(--primary-soft); color: var(--primary); }
+
+  .hr-vacio {
+    margin: 10px 0 0;
+    padding: 18px;
+    border: 1px dashed var(--border);
+    border-radius: 14px;
+    color: var(--text-muted);
+    font-size: 13px;
+    text-align: center;
+  }
+
+  /* Ventana emergente */
+  .hr-fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 4000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(20, 16, 12, 0.45);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .hr-fondo[hidden] {
+    display: none;
+  }
+
+  .hr-fondo.visible {
+    opacity: 1;
+  }
+
+  .hr-caja {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    max-height: calc(100vh - 36px);
+    overflow-y: auto;
+    padding: 26px;
+    border-radius: 20px;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+    transform: translateY(12px) scale(0.98);
+    transition: transform 0.25s ease;
+  }
+
+  .hr-fondo.visible .hr-caja {
+    transform: none;
+  }
+
+  .hr-cerrar {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .hr-cargando {
+    margin: 10px 0;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .hr-eyebrow {
+    color: var(--primary);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+  }
+
+  .hr-caja h3 {
+    margin: 4px 0 0;
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 24px;
+    font-weight: 500;
+  }
+
+  .hr-sub {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+    font-size: 12.5px;
+  }
+
+  .hr-marcador {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .hr-marcador strong {
+    font-size: 34px;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+  }
+
+  .hr-marcador small {
+    margin-left: 6px;
+    color: var(--text-muted);
+    font-size: 12.5px;
+  }
+
+  .hr-barra {
+    height: 8px;
+    margin-top: 10px;
+    border-radius: 999px;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  .hr-barra i {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: var(--primary);
+    transition: width 0.7s ease;
+  }
+
+  /* cambio: la barra también va con el color del tema */
+
+  .hr-significado {
+    margin: 12px 0 0;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  .hr-apoyo {
+    margin: 10px 0 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--primary-soft);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .hr-crisis {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--danger-bg);
+    color: var(--danger-fg);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .hr-crisis[hidden] {
+    display: none;
+  }
+
+  .hr-subtitulo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 20px 0 8px;
+    font-size: 13.5px;
+    font-weight: 700;
+  }
+
+  .hr-subtitulo i {
+    color: var(--primary);
+  }
+
+  .hr-respuestas {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: r;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .hr-respuestas li {
+    counter-increment: r;
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: start;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+
+  .hr-respuestas li:last-child {
+    border-bottom: 0;
+  }
+
+  .hr-respuestas li::before {
+    content: counter(r);
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .hr-respuestas li b {
+    max-width: 170px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--bg);
+    font-size: 11.5px;
+    text-align: center;
+  }
+
+  .hr-respuestas li.hr-sin {
+    display: block;
+    color: var(--text-muted);
+  }
+
+  .hr-respuestas li.hr-sin::before {
+    content: none;
+  }
+
+  .hr-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .hr-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 18px;
+    border: 1px solid var(--primary);
+    border-radius: 999px;
+    background: var(--primary);
+    color: var(--on-primary);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .hr-btn.borde {
+    background: transparent;
+    color: var(--primary);
+  }
+
+  @media (max-width: 520px) {
+    .hr-puntaje {
+      display: none;
+    }
+
+    .hr-respuestas li {
+      grid-template-columns: 22px minmax(0, 1fr);
+    }
+
+    .hr-respuestas li b {
+      grid-column: 2;
+      justify-self: start;
+    }
+  }
+</style>

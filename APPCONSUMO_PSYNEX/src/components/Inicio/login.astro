@@ -185,7 +185,7 @@ import "./login.css";
     }
 
     try {
-      const res = await fetch("http://localhost:8001/api/auth/login", {
+      const res = await fetch(`${(window as any).PSYNEX_API ?? "http://localhost:8001"}/api/auth/login`, { // cambio (túnel)
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // sin esto el navegador no guarda la cookie

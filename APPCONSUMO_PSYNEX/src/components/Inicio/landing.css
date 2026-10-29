@@ -10,7 +10,7 @@
   min-height: 100vh;
   background:
     linear-gradient(color-mix(in srgb, var(--bg) 95%, transparent), color-mix(in srgb, var(--bg) 95%, transparent)),
-    url("/imagenes/fondo.jpeg") center / cover;
+    url("/Imagenes/fondo.jpeg") /* cambio: la carpeta es "Imagenes" con I mayúscula */ center / cover;
 }
 .landing h1, .landing h2, .landing h3, .landing h4 { font-family: "Fraunces", Georgia, serif; }
 .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }

@@ -1105,6 +1105,11 @@ const rechazadas = 0;
 
             detalleContenido.style.display = "block";
 
+            // cambio: en celular el detalle queda debajo de la lista; se baja hasta él
+            if (window.innerWidth <= 900) {
+                detalleContenido.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+
 
             const nombre =
                 empresa.getAttribute("data-nombre");

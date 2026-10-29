@@ -1,17 +1,35 @@
 ---
 // =====================================================================
 // Mi perfil del paciente — con MENÚ VERTICAL (menuPacVertical.astro).
-// El nombre y el correo son los reales de la sesión; el resto del
-// formulario es de prueba (guardar todavía no llama al backend).
+// cambio: ahora todo es REAL (GET/PATCH /api/paciente/perfil): datos
+// personales, foto (se ve también en el menú y en el chat) y la
+// preferencia de recordatorios por correo.
 // =====================================================================
 import MenuVertical from "./menuPacVertical.astro";
 import CodigoEmpresa from "./CodigoEmpresa.astro";
 import "./perfil.css";
+import { apiGet, API_URL } from "../../lib/api";
+
+interface PerfilApi {
+  nombre: string;
+  email: string;
+  fechaNacimiento: string;
+  telefono: string;
+  genero: string;
+  ocupacion: string;
+  tieneFoto: boolean;
+  fotoVersion: string;
+  recordatorios: boolean;
+}
 
 const usuario = Astro.locals.usuario ?? {};
-const nombre = usuario.NombreCompleto ?? "";
-const correo = usuario.Email ?? "";
+const datos = await apiGet<{ perfil: PerfilApi }>(Astro.request.headers.get("cookie"), "/api/paciente/perfil");
+const perfil = datos?.perfil ?? null;
+const nombre = perfil?.nombre ?? usuario.NombreCompleto ?? "";
+const correo = perfil?.email ?? usuario.Email ?? "";
 const inicial = (nombre.trim().charAt(0) || "P").toUpperCase();
+const fotoUrl = perfil?.tieneFoto ? `${API_URL}/api/paciente/perfil/foto?v=${perfil.fotoVersion}` : "";
+const hoy = new Date().toISOString().slice(0, 10);
 ---
 
 <MenuVertical />
@@ -39,34 +57,40 @@ const inicial = (nombre.trim().charAt(0) || "P").toUpperCase();
       </div>
 
       <div class="per-foto">
-        <span class="per-avatar" id="perAvatar">{inicial}</span>
+        <span
+          class:list={["per-avatar", { "con-foto": Boolean(fotoUrl) }]}
+          id="perAvatar"
+          style={fotoUrl ? `background-image:url('${fotoUrl}')` : undefined}
+        >{inicial}</span>
         <div>
-          <strong>{nombre || "Tu nombre"}</strong>
+          <strong id="perNombreVisto">{nombre || "Tu nombre"}</strong>
           <small class="pac-muted">{correo}</small>
           <div class="per-foto-acciones">
-            <button type="button" class="pac-btn pequeno borde" id="perCambiarFoto">Cambiar foto</button>
+            <button type="button" class="pac-btn pequeno borde" id="perCambiarFoto">
+              <i class="bi bi-camera"></i> <span id="perFotoTexto">{fotoUrl ? "Cambiar foto" : "Subir foto"}</span>
+            </button>
+            <button type="button" class="pac-btn pequeno borde peligro" id="perQuitarFoto" hidden={!fotoUrl}>Quitar</button>
             <input type="file" id="perFotoInput" accept="image/png,image/jpeg,image/webp" hidden />
           </div>
+          <small class="pac-muted">JPG, PNG o WEBP. La recortamos y reducimos automáticamente.</small>
         </div>
       </div>
 
       <form class="pac-form-grid" id="perForm">
         <label class="pac-campo">Nombre completo<input name="nombre" value={nombre} required minlength="3" maxlength="150" /></label>
         <label class="pac-campo">Correo<input value={correo} readonly /></label>
-        <label class="pac-campo">Teléfono<input name="telefono" inputmode="numeric" placeholder="3001234567" maxlength="15" /></label>
-        <label class="pac-campo">Fecha de nacimiento<input name="nacimiento" type="date" /></label>
+        <label class="pac-campo">Teléfono<input name="telefono" value={perfil?.telefono ?? ""} inputmode="numeric" pattern="[0-9+ -]{0,15}" placeholder="3001234567" maxlength="15" /></label>
+        <label class="pac-campo">Fecha de nacimiento<input name="nacimiento" type="date" value={perfil?.fechaNacimiento ?? ""} max={hoy} /></label>
         <label class="pac-campo">Género
           <select name="genero">
-            <option value="">Prefiero no decirlo</option>
-            <option>Femenino</option>
-            <option>Masculino</option>
-            <option>No binario</option>
-            <option>Otro</option>
+            {[["", "Prefiero no decirlo"], ["Femenino", "Femenino"], ["Masculino", "Masculino"], ["No binario", "No binario"], ["Otro", "Otro"]].map(([v, t]) => (
+              <option value={v} selected={(perfil?.genero ?? "") === v}>{t}</option>
+            ))}
           </select>
         </label>
-        <label class="pac-campo">Ocupación<input name="ocupacion" maxlength="100" placeholder="Ej: Estudiante" /></label>
+        <label class="pac-campo">Ocupación<input name="ocupacion" value={perfil?.ocupacion ?? ""} maxlength="100" placeholder="Ej: Estudiante" /></label>
         <div class="per-acciones">
-          <button type="submit" class="pac-btn">Guardar cambios</button>
+          <button type="submit" class="pac-btn" id="perGuardar">Guardar cambios</button>
         </div>
       </form>
     </section>
@@ -87,7 +111,7 @@ const inicial = (nombre.trim().charAt(0) || "P").toUpperCase();
           <strong>Recordatorios por correo</strong>
           <small class="pac-muted">Te avisamos un día antes de cada cita.</small>
         </span>
-        <input type="checkbox" id="perRecordatorios" checked />
+        <input type="checkbox" id="perRecordatorios" checked={perfil?.recordatorios ?? true} />
         <i></i>
       </label>
     </section>
@@ -106,12 +130,15 @@ const inicial = (nombre.trim().charAt(0) || "P").toUpperCase();
       </div>
     </section>
 
-    <span class="pac-prueba"><i class="bi bi-info-circle"></i> Guardar todavía es de prueba: no cambia la base de datos</span>
+    {!perfil && (
+      <span class="pac-prueba"><i class="bi bi-wifi-off"></i> No pudimos cargar tu perfil. Revisa que el servidor esté encendido.</span>
+    )}
   </div>
 </main>
 
 <script>
   import { avisar } from "./utilidades";
+  import { API_URL, apiEnviar, textoError } from "../../lib/api";
 
   // cambio: menú dinámico del perfil
   const secciones = Array.from(document.querySelectorAll<HTMLElement>(".per-seccion"));
@@ -197,27 +224,111 @@ const inicial = (nombre.trim().charAt(0) || "P").toUpperCase();
   const inicial = location.hash.slice(1);
   if (secciones.some((s) => s.id === inicial)) verSolo(inicial);
 
-  // Guardar (prueba)
-  document.getElementById("perForm")?.addEventListener("submit", (e) => {
+  // cambio: guardar los datos personales (PATCH /api/paciente/perfil)
+  const form = document.getElementById("perForm") as HTMLFormElement | null;
+  const botonGuardar = document.getElementById("perGuardar") as HTMLButtonElement | null;
+  form?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const form = e.currentTarget as HTMLFormElement;
     if (!form.reportValidity()) return;
-    avisar("Cambios guardados (prueba).");
+    const v = (n: string) => String(new FormData(form).get(n) ?? "").trim();
+    if (botonGuardar) { botonGuardar.disabled = true; botonGuardar.textContent = "Guardando…"; }
+    const r = await apiEnviar("PATCH", "/api/paciente/perfil", {
+      nombre: v("nombre"),
+      telefono: v("telefono"),
+      fechaNacimiento: v("nacimiento") || null,
+      genero: v("genero"),
+      ocupacion: v("ocupacion"),
+    });
+    if (botonGuardar) { botonGuardar.disabled = false; botonGuardar.textContent = "Guardar cambios"; }
+    if (!r.ok) return avisar(textoError(r.data, "No se pudieron guardar los cambios"));
+    // El nombre nuevo se ve de una vez en la tarjeta y en los menús
+    const nombre = v("nombre");
+    const visto = document.getElementById("perNombreVisto");
+    if (visto) visto.textContent = nombre;
+    document.querySelectorAll(".pv-usuario strong, .profile-info strong").forEach((el) => (el.textContent = nombre));
+    avisar("¡Listo! Guardamos tus cambios.");
   });
 
-  // Foto: vista previa en esta pantalla (prueba)
+  // cambio: foto real. Se recorta en cuadrado y se reduce a 400 px (JPG)
+  // antes de enviarla, así pesa poco (PUT /api/paciente/perfil/foto).
   const input = document.getElementById("perFotoInput") as HTMLInputElement | null;
-  document.getElementById("perCambiarFoto")?.addEventListener("click", () => input?.click());
-  input?.addEventListener("change", () => {
-    const archivo = input.files?.[0];
-    const avatar = document.getElementById("perAvatar");
-    if (!archivo || !avatar) return;
-    avatar.style.backgroundImage = `url(${URL.createObjectURL(archivo)})`;
-    avatar.classList.add("con-foto");
-    avisar("Vista previa de tu foto (prueba).");
+  const avatar = document.getElementById("perAvatar");
+  const quitar = document.getElementById("perQuitarFoto") as HTMLButtonElement | null;
+  const botonFoto = document.getElementById("perCambiarFoto") as HTMLButtonElement | null;
+
+  // Cambia la foto en la tarjeta y en los menús (sin recargar)
+  const pintarFoto = (url: string | null) => {
+    if (avatar) {
+      avatar.style.backgroundImage = url ? `url('${url}')` : "";
+      avatar.classList.toggle("con-foto", Boolean(url));
+    }
+    document.querySelectorAll<HTMLImageElement>(".pac-foto-menu").forEach((img) => {
+      if (url) {
+        img.hidden = false;
+        img.src = url;
+      } else {
+        img.hidden = true;
+      }
+    });
+    if (quitar) quitar.hidden = !url;
+    const t = document.getElementById("perFotoTexto");
+    if (t) t.textContent = url ? "Cambiar foto" : "Subir foto";
+  };
+
+  const reducir = (archivo: File) => new Promise<string>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const lado = Math.min(img.width, img.height);
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = 400;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject(new Error("canvas"));
+      ctx.drawImage(img, (img.width - lado) / 2, (img.height - lado) / 2, lado, lado, 0, 0, 400, 400);
+      URL.revokeObjectURL(img.src);
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => reject(new Error("imagen"));
+    img.src = URL.createObjectURL(archivo);
   });
 
-  ["perRecordatorios"] /* cambio: sin anónimo */.forEach((id) =>
-    document.getElementById(id)?.addEventListener("change", () => avisar("Preferencia actualizada (prueba)."))
-  );
+  botonFoto?.addEventListener("click", () => input?.click());
+  input?.addEventListener("change", async () => {
+    const archivo = input.files?.[0];
+    input.value = "";
+    if (!archivo) return;
+    if (!/^image\/(png|jpeg|webp)$/.test(archivo.type)) return avisar("Elige una imagen JPG, PNG o WEBP.");
+    if (archivo.size > 10 * 1024 * 1024) return avisar("La imagen es muy pesada (máximo 10 MB).");
+    let dataUrl = "";
+    try {
+      dataUrl = await reducir(archivo);
+    } catch {
+      return avisar("No pudimos leer esa imagen.");
+    }
+    if (botonFoto) botonFoto.disabled = true;
+    const r = await apiEnviar("PUT", "/api/paciente/perfil/foto", { foto: dataUrl });
+    if (botonFoto) botonFoto.disabled = false;
+    if (!r.ok) return avisar(textoError(r.data, "No se pudo guardar tu foto"));
+    pintarFoto(`${API_URL}/api/paciente/perfil/foto?v=${Date.now()}`);
+    avisar("¡Foto actualizada!");
+  });
+
+  quitar?.addEventListener("click", async () => {
+    quitar.disabled = true;
+    const r = await apiEnviar("DELETE", "/api/paciente/perfil/foto");
+    quitar.disabled = false;
+    if (!r.ok) return avisar(textoError(r.data, "No se pudo quitar tu foto"));
+    pintarFoto(null);
+    avisar("Quitamos tu foto.");
+  });
+
+  // cambio: recordatorios por correo (PATCH /api/paciente/perfil/ajustes)
+  const recordatorios = document.getElementById("perRecordatorios") as HTMLInputElement | null;
+  recordatorios?.addEventListener("change", async () => {
+    const r = await apiEnviar("PATCH", "/api/paciente/perfil/ajustes", { recordatorios: recordatorios.checked });
+    if (!r.ok) {
+      recordatorios.checked = !recordatorios.checked;
+      return avisar(textoError(r.data, "No se pudo guardar la preferencia"));
+    }
+    avisar(recordatorios.checked ? "Te enviaremos recordatorios." : "Ya no te enviaremos recordatorios.");
+  });
 </script>

@@ -1,59 +1,108 @@
 ---
 // =====================================================================
 // Mis citas del paciente: próximas e historial.
-// DATOS DE PRUEBA: las citas son de ejemplo (todavía sin backend).
-// Cuando se conecte, se reemplaza el arreglo "citas" por la API.
+// cambio: ahora son las citas REALES (GET /api/paciente/citas) y se pueden
+// pagar con Wompi cuando el psicólogo las acepta, o con una sesión de un
+// paquete (GET /api/paciente/paquetes).
+// cambio: Cancelar y Calificar ya se guardan en la base de datos.
 // =====================================================================
 import Menu from "./menuPac.astro";
-import { apiGet, urlFotoPsicologo } from "../../lib/api";
+import { apiGet, pesos, urlFotoPsicologo } from "../../lib/api";
 import "./citas.css";
 
-// cambio: las citas de prueba usan los psicólogos REALES de Explorar
-// (ruta pública que ya existe) para mostrar su nombre y su foto.
-const datosPs = await apiGet<{ psicologos: { id: string; nombre: string; titulo: string; tieneFoto: boolean; fotoVersion?: string }[] }>(
-  Astro.request.headers.get("cookie"), "/api/explorar/psicologos");
-const reales = datosPs?.psicologos ?? [];
-
-type Cita = {
+interface CitaApi {
   id: string;
-  psicologoId?: string; // cambio: para la foto y el enlace al perfil
-  foto?: string | null; // cambio: foto del psicólogo
-  psicologo: string;
-  especialidad: string;
-  fecha: string;
-  hora: string;
-  modalidad: "Virtual" | "Presencial";
-  formato: "Individual" | "Pareja" | "Familiar";
-  estado: "Confirmada" | "Pendiente" | "Completada" | "Cancelada";
-  pago: "Pagada" | "Cubierta por tu empresa" | "Pendiente";
-  calificada?: boolean;
+  fechaHora: string; // "AAAA-MM-DD HH:MM"
+  duracion: number;
+  modalidad: string;
+  formato: string;
+  estado: string;
+  esTitular: boolean;
+  precio: number;
+  pago: "Pagada" | "Paquete" | "Empresa" | "Revision" | "Pendiente";
+  calificada: boolean;
+  direccion: string; // cambio: lugar de la cita presencial
+  indicaciones: string;
+  psicologo: { id: string; nombre: string; titulo: string; tieneFoto: boolean; fotoVersion: string };
+}
+interface PaqueteApi { id: string; plan: string; sesionesDisponibles: number; vigente: boolean }
+
+const cookie = Astro.request.headers.get("cookie");
+const [datos, datosPaq, datosBen] = await Promise.all([
+  apiGet<{ citas: CitaApi[]; modoPago: "wompi" | "manual" }>(cookie, "/api/paciente/citas"),
+  apiGet<{ paquetes: PaqueteApi[] }>(cookie, "/api/paciente/paquetes"),
+  // cambio: beneficio de la empresa (sesiones cubiertas)
+  apiGet<{ beneficio: { empresa: string; sesionesDisponibles: number } | null }>(cookie, "/api/paciente/beneficio"),
+]);
+const beneficio = datosBen?.beneficio ?? null;
+const sesionesEmpresa = beneficio?.sesionesDisponibles ?? 0;
+// cambio: "manual" = modo temporal (el administrador acepta el pago)
+const manual = datos?.modoPago !== "wompi";
+const sesionesPaquete = (datosPaq?.paquetes ?? [])
+  .filter((p) => p.vigente)
+  .reduce((s, p) => s + p.sesionesDisponibles, 0);
+
+const DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+const textoFecha = (t: string) => {
+  const d = new Date(Date.UTC(+t.slice(0, 4), +t.slice(5, 7) - 1, +t.slice(8, 10)));
+  return `${DIAS[d.getUTCDay()]} ${d.getUTCDate()} de ${MESES[d.getUTCMonth()]}`;
+};
+const textoHora = (t: string) => {
+  const hh = +t.slice(11, 13), mm = t.slice(14, 16);
+  return `${((hh + 11) % 12) + 1}:${mm} ${hh >= 12 ? "p. m." : "a. m."}`;
 };
 
-const citasPrueba: Cita[] = [
-  { id: "c1", psicologo: "Andrea Gómez Ruiz", especialidad: "Psicóloga clínica", fecha: "Jueves 29 de octubre", hora: "10:00 a. m.", modalidad: "Virtual", formato: "Individual", estado: "Confirmada", pago: "Pagada" },
-  { id: "c2", psicologo: "Víctor Santiago", especialidad: "Psicólogo", fecha: "Martes 3 de noviembre", hora: "4:00 p. m.", modalidad: "Virtual", formato: "Pareja", estado: "Pendiente", pago: "Cubierta por tu empresa" },
-  { id: "c3", psicologo: "Camila Barrera", especialidad: "Psicología clínica", fecha: "Lunes 12 de octubre", hora: "9:00 a. m.", modalidad: "Presencial", formato: "Individual", estado: "Completada", pago: "Pagada" },
-  { id: "c4", psicologo: "Andrea Gómez Ruiz", especialidad: "Psicóloga clínica", fecha: "Viernes 25 de septiembre", hora: "11:00 a. m.", modalidad: "Virtual", formato: "Individual", estado: "Completada", pago: "Pagada", calificada: true },
-  { id: "c5", psicologo: "Víctor Santiago", especialidad: "Psicólogo", fecha: "Jueves 10 de septiembre", hora: "3:00 p. m.", modalidad: "Virtual", formato: "Individual", estado: "Cancelada", pago: "Pendiente" },
-];
+const conPais = (d: string) => (/colombia/i.test(d) ? d : `${d}, Colombia`);
 
-// cambio: a cada cita de prueba se le pone un psicólogo real (con su foto)
-const citas: Cita[] = citasPrueba.map((c, i) => {
-  const p = reales.length ? reales[i % Math.min(reales.length, 3)] : null;
-  return p
-    ? { ...c, psicologo: p.nombre, especialidad: p.titulo || c.especialidad, psicologoId: p.id, foto: p.tieneFoto ? urlFotoPsicologo(p.id, p.fotoVersion) : null }
-    : c;
-});
+// cambio: la sala abre 10 minutos antes y cierra 30 minutos después de terminar
+// (igual que en el panel del psicólogo). fechaHora viene en hora de Colombia (UTC-5).
+const ahora = Date.now();
+const instante = (t: string) => Date.UTC(+t.slice(0, 4), +t.slice(5, 7) - 1, +t.slice(8, 10), +t.slice(11, 13) + 5, +t.slice(14, 16));
+const hoyCol = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(new Date());
+const salaDe = (c: { fechaHora: string; duracion: number; estado: string; modalidad: string }) => {
+  if (c.estado !== "Confirmada" || c.modalidad !== "Virtual") return null;
+  const inicio = instante(c.fechaHora);
+  const abre = inicio - 10 * 60_000;
+  const cierra = inicio + ((Number(c.duracion) || 60) + 30) * 60_000;
+  if (ahora > cierra) return null;
+  const a = new Date(abre - 5 * 3600_000); // de vuelta a hora de Colombia para mostrarla
+  const hh = a.getUTCHours();
+  const horaAbre = `${((hh + 11) % 12) + 1}:${String(a.getUTCMinutes()).padStart(2, "0")} ${hh >= 12 ? "p. m." : "a. m."}`;
+  const fechaAbre = a.toISOString().slice(0, 10);
+  return {
+    abierta: ahora >= abre,
+    // cambio: texto corto como en el panel del psicólogo ("Sala · 9:50 a. m.")
+    texto: fechaAbre === hoyCol ? `Sala · ${horaAbre}` : `Sala · ${+fechaAbre.slice(8, 10)} ${MESES[+fechaAbre.slice(5, 7) - 1].slice(0, 3)} · ${horaAbre}`,
+    titulo: fechaAbre === hoyCol ? `La sala abre a las ${horaAbre}` : `La sala abre el ${+fechaAbre.slice(8, 10)} de ${MESES[+fechaAbre.slice(5, 7) - 1]} a las ${horaAbre}`,
+  };
+};
 
-const claseEstado: Record<Cita["estado"], string> = {
+const citas = (datos?.citas ?? []).map((c) => ({
+  ...c,
+  fecha: textoFecha(c.fechaHora),
+  hora: textoHora(c.fechaHora),
+  foto: c.psicologo.tieneFoto ? urlFotoPsicologo(c.psicologo.id, c.psicologo.fotoVersion) : null,
+  textoPago: c.pago === "Pagada" ? "Pagada" : c.pago === "Paquete" ? "Pagada con paquete" : c.pago === "Empresa" ? "Cubierta por tu empresa" : c.pago === "Revision" ? "Pago en revisión" : !c.esTitular ? "La paga quien agendó" : c.estado === "Confirmada" ? "Pago pendiente" : "Sin pagar",
+  debePagar: c.esTitular && c.estado === "Confirmada" && c.pago === "Pendiente",
+  // cambio: Google Maps (sin llave) para las citas presenciales
+  lugar: c.modalidad === "Presencial" ? (c.direccion || "").trim() : "",
+  sala: salaDe(c),
+  // cambio: cancelar (solo quien agendó y antes de que empiece) y calificar (cuando ya terminó)
+  puedeCancelar: c.esTitular && (c.estado === "Confirmada" || c.estado === "Pendiente") && instante(c.fechaHora) > ahora,
+  puedeCalificar: !c.calificada && (c.estado === "Completada" ||
+    (c.estado === "Confirmada" && instante(c.fechaHora) + (Number(c.duracion) || 60) * 60_000 < ahora)),
+}));
+
+const claseEstado: Record<string, string> = {
   Confirmada: "ok",
   Pendiente: "espera",
   Completada: "neutro",
   Cancelada: "mal",
 };
 
-const proximas = citas.filter((c) => c.estado === "Confirmada" || c.estado === "Pendiente");
-const historial = citas.filter((c) => c.estado === "Completada" || c.estado === "Cancelada");
+const proximas = citas.filter((c) => c.estado === "Confirmada" || c.estado === "Pendiente").reverse();
+const historial = citas.filter((c) => c.estado !== "Confirmada" && c.estado !== "Pendiente");
 ---
 
 <Menu />
@@ -91,38 +140,66 @@ const historial = citas.filter((c) => c.estado === "Completada" || c.estado === 
             {/* cambio: foto del psicólogo (si no tiene, queda la inicial) */}
             <a
               class="cit-foto"
-              href={c.psicologoId ? `/Explorar/${c.psicologoId}?desde=paciente&volver=/Paciente/Citas` : undefined}
-              title={`Ver perfil de ${c.psicologo}`}
+              href={`/Explorar/${c.psicologo.id}?desde=paciente&volver=/Paciente/Citas`}
+              title={`Ver perfil de ${c.psicologo.nombre}`}
             >
-              {c.psicologo.charAt(0)}
-              {c.foto && <img src={c.foto} alt={c.psicologo} loading="lazy" onerror="this.style.display='none'" />}
+              {c.psicologo.nombre.charAt(0)}
+              {c.foto && <img src={c.foto} alt={c.psicologo.nombre} loading="lazy" onerror="this.style.display='none'" />}
             </a>
 
             <div class="cit-info">
               <div class="cit-nombre">
-                <strong>{c.psicologo}</strong>
+                <strong>{c.psicologo.nombre}</strong>
                 <span class={`pac-chip ${claseEstado[c.estado]}`}>{c.estado}</span>
               </div>
-              <span class="cit-esp">{c.especialidad}</span>
+              <span class="cit-esp">{c.psicologo.titulo}</span>
               <span class="cit-cuando"><i class="bi bi-calendar3"></i> {c.fecha} · {c.hora}</span>
               <span class="cit-tags">
                 <span class="pac-chip neutro">{c.modalidad}</span>
                 <span class="pac-chip neutro">{c.formato === "Individual" ? "Individual" : c.formato === "Pareja" ? "Terapia de pareja" : "Terapia familiar"}</span>
-                <span class="pac-chip neutro">{c.pago}</span>
+                <span class:list={["pac-chip", c.pago === "Pagada" || c.pago === "Paquete" || c.pago === "Empresa" ? "ok" : c.debePagar || c.pago === "Revision" ? "espera" : "neutro"]}>{c.textoPago}</span>
+                {c.estado === "Pendiente" && <span class="pac-chip neutro">Esperando que el psicólogo acepte</span>}
               </span>
+              {c.lugar && (
+                <span class="cit-lugar"><i class="bi bi-geo-alt"></i> {c.lugar}</span>
+              )}
             </div>
 
             <div class="cit-acciones">
-              {c.estado === "Confirmada" && c.modalidad === "Virtual" && (
-                <button type="button" class="pac-btn pequeno" disabled title="Se habilita 10 minutos antes de la cita">Entrar a la sala</button>
+              {/* cambio: pagar cuando el psicólogo ya aceptó */}
+              {c.debePagar && (
+                <button type="button" class="pac-btn pequeno" data-pagar-cita={c.id} data-nombre={c.psicologo.nombre} data-valor={pesos(c.precio)} data-fecha={`${c.fecha} · ${c.hora}`}>
+                  <i class="bi bi-credit-card"></i> Pagar cita
+                </button>
               )}
-              {(c.estado === "Confirmada" || c.estado === "Pendiente") && (
-                <button type="button" class="pac-btn pequeno peligro" data-cancelar={c.id} data-nombre={c.psicologo}>Cancelar</button>
+              {/* cambio: cita presencial -> ver el lugar en el mapa */}
+              {c.lugar && (c.estado === "Confirmada" || c.estado === "Pendiente") && (
+                <button
+                  type="button"
+                  class="pac-btn pequeno borde"
+                  data-mapa={conPais(c.lugar)}
+                  data-lugar={c.lugar}
+                  data-indicaciones={c.indicaciones}
+                  data-nombre={c.psicologo.nombre}
+                >
+                  <i class="bi bi-geo-alt"></i> Ver mapa
+                </button>
               )}
-              {c.estado === "Completada" && !c.calificada && (
-                <button type="button" class="pac-btn pequeno" data-calificar={c.id} data-nombre={c.psicologo}>Calificar</button>
+              {/* cambio: la sala muestra a qué hora abre (como en el panel del psicólogo) */}
+              {c.sala && (
+                c.pago !== "Pagada" && c.pago !== "Paquete" && c.pago !== "Empresa"
+                  ? <button type="button" class="pac-btn pequeno borde" disabled title="Primero paga la cita">Entrar a la sala</button>
+                  : c.sala.abierta
+                  ? <a href={`/Sala/${c.id}`} class="cit-sala" title="Entrar a la sala de videollamada"><i class="bi bi-camera-video"></i> Entrar a la sesión</a>
+                  : <span class="cit-sala espera" title={`${c.sala.titulo} (10 minutos antes de la cita)`}><i class="bi bi-camera-video"></i> {c.sala.texto}</span>
               )}
-              {c.estado === "Completada" && c.calificada && (
+              {c.puedeCancelar && (
+                <button type="button" class="pac-btn pequeno peligro" data-cancelar={c.id} data-nombre={c.psicologo.nombre} data-pago={c.pago}>Cancelar</button>
+              )}
+              {c.puedeCalificar && (
+                <button type="button" class="pac-btn pequeno" data-calificar={c.id} data-nombre={c.psicologo.nombre}>Calificar</button>
+              )}
+              {c.calificada && (
                 <span class="pac-chip ok"><i class="bi bi-star-fill"></i> Calificada</span>
               )}
               {c.estado === "Cancelada" && (
@@ -134,9 +211,60 @@ const historial = citas.filter((c) => c.estado === "Completada" || c.estado === 
       </section>
     ))}
 
-    <span class="pac-prueba"><i class="bi bi-info-circle"></i> Citas de prueba: todavía no se conectan con el backend</span>
+    {datos === null && (
+      <span class="pac-prueba"><i class="bi bi-wifi-off"></i> No pudimos cargar tus citas. Revisa que el servidor esté encendido.</span>
+    )}
   </div>
 </main>
+
+<!-- cambio: mapa de la cita presencial (Google Maps sin llave) -->
+<div class="pac-modal" id="modalMapa" hidden>
+  <button type="button" class="pac-modal-fondo" data-cerrar-modal aria-label="Cerrar"></button>
+  <div class="pac-modal-caja cit-mapa-caja" role="dialog" aria-modal="true" aria-labelledby="mapaTitulo">
+    <h3 id="mapaTitulo">Lugar de tu cita</h3>
+    <p id="mapaLugar" class="cit-mapa-lugar">—</p>
+    <p id="mapaIndicaciones" class="pac-muted" hidden></p>
+    <iframe id="mapaFrame" class="cit-mapa" title="Mapa del lugar de la cita" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    <div class="pac-modal-acciones">
+      <button type="button" class="pac-btn borde pequeno" data-cerrar-modal>Cerrar</button>
+      <a id="mapaComoLlegar" class="pac-btn pequeno" href="#" target="_blank" rel="noopener"><i class="bi bi-sign-turn-right"></i> Cómo llegar</a>
+    </div>
+  </div>
+</div>
+
+<!-- cambio: Pagar cita (Wompi o paquete) -->
+<div class="pac-modal" id="modalPagar" hidden>
+  <button type="button" class="pac-modal-fondo" data-cerrar-modal aria-label="Cerrar"></button>
+  <div class="pac-modal-caja" role="dialog" aria-modal="true" aria-labelledby="pagarTitulo">
+    <h3 id="pagarTitulo">Pagar cita</h3>
+    <p id="pagarTexto">—</p>
+    <div class="cit-pago-resumen">
+      <span>Total a pagar</span>
+      <strong id="pagarValor">$0</strong>
+    </div>
+    {sesionesEmpresa > 0 && (
+      <p class="pac-muted cit-pago-paquete">
+        <i class="bi bi-building-check"></i> {beneficio?.empresa} te cubre {sesionesEmpresa} {sesionesEmpresa === 1 ? "sesión" : "sesiones"}.
+      </p>
+    )}
+    {sesionesPaquete > 0 && (
+      <p class="pac-muted cit-pago-paquete">
+        <i class="bi bi-box-seam"></i> Tienes {sesionesPaquete} {sesionesPaquete === 1 ? "sesión disponible" : "sesiones disponibles"} en tu paquete.
+      </p>
+    )}
+    {manual
+      ? <p class="pac-muted">Por ahora el equipo de Psynex confirma los pagos. Envía tu pago y te avisaremos cuando quede aprobado.</p>
+      : <p class="pac-muted">Pagas en la página segura de Wompi con tarjeta, PSE o Nequi.</p>}
+    <div class="pac-modal-acciones">
+      <button type="button" class="pac-btn borde pequeno" data-cerrar-modal>Ahora no</button>
+      {sesionesEmpresa > 0 && <button type="button" class="pac-btn borde pequeno" id="usarBeneficio">Usar beneficio de mi empresa</button>}
+      {sesionesPaquete > 0 && <button type="button" class="pac-btn borde pequeno" id="usarPaquete">Usar mi paquete</button>}
+      <button type="button" class="pac-btn pequeno" id="irAWompi" data-texto={manual ? "Enviar pago" : "Pagar con Wompi"}>
+        <i class="bi bi-shield-lock"></i> {manual ? "Enviar pago" : "Pagar con Wompi"}
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- Cancelar cita -->
 <div class="pac-modal" id="modalCancelar" hidden>
@@ -144,9 +272,10 @@ const historial = citas.filter((c) => c.estado === "Completada" || c.estado === 
   <div class="pac-modal-caja" role="dialog" aria-modal="true" aria-labelledby="cancelarTitulo">
     <h3 id="cancelarTitulo">Cancelar cita</h3>
     <p id="cancelarTexto">¿Seguro que quieres cancelar esta cita?</p>
+    <p class="pac-muted" id="cancelarPago" hidden></p>
     <label class="pac-campo">
       Motivo (opcional)
-      <textarea rows="2" maxlength="300" placeholder="Cuéntale al psicólogo por qué cancelas"></textarea>
+      <textarea id="cancelarMotivo" rows="2" maxlength="300" placeholder="Cuéntale al psicólogo por qué cancelas"></textarea>
     </label>
     <div class="pac-modal-acciones">
       <button type="button" class="pac-btn borde pequeno" data-cerrar-modal>Volver</button>
@@ -179,8 +308,93 @@ const historial = citas.filter((c) => c.estado === "Completada" || c.estado === 
 
 <script>
   import { abrirModal, avisar, prepararModales } from "./utilidades";
+  import { apiEnviar, textoError } from "../../lib/api";
 
   prepararModales();
+
+  // cambio: ver el lugar de la cita presencial en Google Maps
+  document.querySelectorAll<HTMLButtonElement>("[data-mapa]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const q = encodeURIComponent(b.dataset.mapa || "");
+      const frame = document.getElementById("mapaFrame") as HTMLIFrameElement | null;
+      if (frame) frame.src = `https://maps.google.com/maps?q=${q}&z=16&output=embed`;
+      const ir = document.getElementById("mapaComoLlegar") as HTMLAnchorElement | null;
+      if (ir) ir.href = `https://www.google.com/maps/dir/?api=1&destination=${q}`;
+      const l = document.getElementById("mapaLugar");
+      if (l) l.textContent = `${b.dataset.lugar} · con ${b.dataset.nombre}`;
+      const ind = document.getElementById("mapaIndicaciones");
+      if (ind) {
+        ind.textContent = b.dataset.indicaciones ? `Indicaciones: ${b.dataset.indicaciones}` : "";
+        ind.hidden = !b.dataset.indicaciones;
+      }
+      abrirModal("modalMapa");
+    })
+  );
+
+  // cambio: pagar la cita con Wompi o con una sesión del paquete
+  let citaPagar = "";
+  document.querySelectorAll<HTMLButtonElement>("[data-pagar-cita]").forEach((b) =>
+    b.addEventListener("click", () => {
+      citaPagar = b.dataset.pagarCita || "";
+      const t = document.getElementById("pagarTexto");
+      if (t) t.textContent = `Cita con ${b.dataset.nombre} · ${b.dataset.fecha}`;
+      const v = document.getElementById("pagarValor");
+      if (v) v.textContent = b.dataset.valor || "";
+      abrirModal("modalPagar");
+    })
+  );
+
+  const ocupado = (boton: HTMLButtonElement | null, si: boolean, texto?: string) => {
+    if (!boton) return;
+    boton.disabled = si;
+    if (texto) boton.textContent = texto;
+  };
+
+  const irAWompi = document.getElementById("irAWompi") as HTMLButtonElement | null;
+  irAWompi?.addEventListener("click", async () => {
+    const textoBoton = irAWompi.dataset.texto || "Pagar";
+    ocupado(irAWompi, true, "Enviando…");
+    const r = await apiEnviar("POST", `/api/pagos/wompi/cita/${encodeURIComponent(citaPagar)}`);
+    if (r.ok && r.data?.url) {
+      window.location.href = r.data.url;
+      return;
+    }
+    // cambio: modo temporal -> el pago queda en revisión del administrador
+    if (r.ok && r.data?.manual) {
+      avisar("Enviamos tu pago. Te avisaremos cuando quede aprobado.");
+      setTimeout(() => window.location.reload(), 1200);
+      return;
+    }
+    ocupado(irAWompi, false, textoBoton);
+    avisar(textoError(r.data, "No se pudo abrir el pago"));
+  });
+
+  // cambio: pagar con una sesión del beneficio de la empresa
+  const usarBeneficio = document.getElementById("usarBeneficio") as HTMLButtonElement | null;
+  usarBeneficio?.addEventListener("click", async () => {
+    ocupado(usarBeneficio, true, "Usando tu beneficio…");
+    const r = await apiEnviar("POST", `/api/pagos/cita/${encodeURIComponent(citaPagar)}/usar-beneficio`);
+    if (r.ok) {
+      avisar("¡Listo! Tu empresa cubrió esta cita.");
+      setTimeout(() => window.location.reload(), 900);
+      return;
+    }
+    ocupado(usarBeneficio, false, "Usar beneficio de mi empresa");
+    avisar(textoError(r.data, "No se pudo usar tu beneficio"));
+  });
+
+  const usarPaquete = document.getElementById("usarPaquete") as HTMLButtonElement | null;
+  usarPaquete?.addEventListener("click", async () => {
+    ocupado(usarPaquete, true, "Usando tu paquete…");
+    const r = await apiEnviar("POST", `/api/pagos/cita/${encodeURIComponent(citaPagar)}/usar-paquete`);
+    if (r.ok) {
+      avisar("¡Listo! Pagaste la cita con tu paquete.");
+      setTimeout(() => window.location.reload(), 900);
+      return;
+    }
+    ocupado(usarPaquete, false, "Usar mi paquete");
+    avisar(textoError(r.data, "No se pudo usar tu paquete"));
+  });
 
   // Pestañas
   document.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((tab) =>
@@ -190,27 +404,45 @@ const historial = citas.filter((c) => c.estado === "Completada" || c.estado === 
     })
   );
 
-  // Cancelar (prueba: solo cambia en pantalla)
+  // cambio: Cancelar de verdad (PATCH /api/paciente/citas/:id/cancelar)
   let citaActual = "";
+  const AVISO_PAGO: Record<string, string> = {
+    Pagada: "Ya pagaste esta cita: el equipo de Psynex te devolverá el dinero.",
+    Paquete: "Te devolvemos la sesión a tu paquete.",
+    Empresa: "Te devolvemos la sesión del beneficio de tu empresa.",
+    Revision: "Tu pago en revisión se anula.",
+  };
   document.querySelectorAll<HTMLButtonElement>("[data-cancelar]").forEach((b) =>
     b.addEventListener("click", () => {
       citaActual = b.dataset.cancelar || "";
       const t = document.getElementById("cancelarTexto");
       if (t) t.textContent = `¿Seguro que quieres cancelar tu cita con ${b.dataset.nombre}?`;
+      const p = document.getElementById("cancelarPago");
+      if (p) {
+        p.textContent = AVISO_PAGO[b.dataset.pago || ""] ?? "";
+        p.hidden = !p.textContent;
+      }
+      const m = document.getElementById("cancelarMotivo") as HTMLTextAreaElement | null;
+      if (m) m.value = "";
       abrirModal("modalCancelar");
     })
   );
 
-  document.getElementById("confirmarCancelar")?.addEventListener("click", () => {
-    const item = document.querySelector<HTMLElement>(`[data-cita="${citaActual}"]`);
-    const chip = item?.querySelector(".cit-nombre .pac-chip");
-    if (chip) {
-      chip.textContent = "Cancelada";
-      chip.className = "pac-chip mal";
+  const botonCancelar = document.getElementById("confirmarCancelar") as HTMLButtonElement | null;
+  botonCancelar?.addEventListener("click", async () => {
+    const motivo = (document.getElementById("cancelarMotivo") as HTMLTextAreaElement | null)?.value.trim() || "";
+    ocupado(botonCancelar, true, "Cancelando…");
+    const r = await apiEnviar("PATCH", `/api/paciente/citas/${encodeURIComponent(citaActual)}/cancelar`, { motivo });
+    if (r.ok) {
+      (document.getElementById("modalCancelar") as HTMLElement).hidden = true;
+      avisar(r.data?.reembolso
+        ? "Cita cancelada. Te avisaremos cuando te devolvamos el dinero."
+        : r.data?.sesionDevuelta ? "Cita cancelada. Te devolvimos la sesión." : "Cita cancelada.");
+      setTimeout(() => window.location.reload(), 1200);
+      return;
     }
-    item?.querySelectorAll(".cit-acciones button").forEach((b) => b.remove());
-    (document.getElementById("modalCancelar") as HTMLElement).hidden = true;
-    avisar("Cita cancelada (prueba).");
+    ocupado(botonCancelar, false, "Sí, cancelar");
+    avisar(textoError(r.data, "No se pudo cancelar la cita"));
   });
 
   // Calificar
@@ -234,6 +466,8 @@ const historial = citas.filter((c) => c.estado === "Completada" || c.estado === 
       citaActual = b.dataset.calificar || "";
       puntaje = 0;
       pintarEstrellas(0);
+      const comentario = document.getElementById("calificarComentario") as HTMLTextAreaElement | null;
+      if (comentario) comentario.value = "";
       if (enviar) enviar.disabled = true;
       const t = document.getElementById("calificarTexto");
       if (t) t.textContent = `Califica tu sesión con ${b.dataset.nombre}.`;
@@ -241,7 +475,16 @@ const historial = citas.filter((c) => c.estado === "Completada" || c.estado === 
     })
   );
 
-  enviar?.addEventListener("click", () => {
+  // cambio: la reseña se guarda de verdad (POST /api/paciente/citas/:id/calificacion)
+  enviar?.addEventListener("click", async () => {
+    const comentario = (document.getElementById("calificarComentario") as HTMLTextAreaElement | null)?.value.trim() || "";
+    ocupado(enviar, true, "Enviando…");
+    const r = await apiEnviar("POST", `/api/paciente/citas/${encodeURIComponent(citaActual)}/calificacion`, { puntaje, comentario });
+    ocupado(enviar, false, "Enviar reseña");
+    if (!r.ok) {
+      avisar(textoError(r.data, "No se pudo guardar tu reseña"));
+      return;
+    }
     const boton = document.querySelector<HTMLElement>(`[data-calificar="${citaActual}"]`);
     if (boton) {
       const chip = document.createElement("span");

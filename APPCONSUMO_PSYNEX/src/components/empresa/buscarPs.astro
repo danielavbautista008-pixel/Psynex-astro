@@ -10,11 +10,13 @@ const {
 } = Astro.props;
 
 import MenuE from "./menuE.astro";
+import VentanasEmpresa from "./VentanasEmpresa.astro"; // cambio: ventanas emergentes
 import "./buscarPs.css";
 ---
 
 <div class="landing-container">
   <MenuE />
+  <VentanasEmpresa /> <!-- cambio: ventanas emergentes -->
   <main class="Bienvenida-Em">
     <!-- Encabezado unificado con la página de inicio -->
     <header class="dashboard-header">
@@ -214,6 +216,214 @@ import "./buscarPs.css";
 </div>
 
 <script>
+  // CONEXIÓN (empresa.e): antes apuntaba a http://localhost:8000/api/psicologos/nombres (puerto
+  // y ruta que no existen, y la página mostraba "No se pudieron cargar"). Ahora usa la ruta real
+  // de Explorar (GET /api/explorar/psicologos) y la dirección del túnel si se usa.
+  const BASE = (window as any).PSYNEX_API ?? "http://localhost:8001";
+  const API_URL = `${BASE}/api`;
+
+  interface Psicologo {
+    id: string | number;
+    nombreCompleto: string;
+    foto?: string;
+    especialidades?: string[];
+    precioPorHora: number;
+  }
+
+  let listaPsicologos: Psicologo[] = [];
+  const favoritosIds = new Set<string>(); // CONEXIÓN (empresa.e)
+  let listaFiltrada: Psicologo[] = [];
+  let paginaActual = 1;
+  const tarjetasPorPagina = 4;
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const gridEl = document.getElementById("profile-grid");
+    const inputBusqueda = document.getElementById("input-busqueda") as HTMLInputElement;
+    const btnLimpiar = document.getElementById("btn-limpiar-filtros");
+
+    try {
+      const res = await fetch(`${API_URL}/explorar/psicologos`);
+      if (!res.ok) throw new Error("Error al obtener la lista de psicólogos");
+
+      // CONEXIÓN (empresa.e): se adapta la respuesta de Explorar a lo que usa esta vista
+      const json = await res.json();
+      // CONEXIÓN (empresa.e): favoritos de la empresa, para pintar el corazón lleno
+      try {
+        const rf = await fetch(`${API_URL}/empresa/favoritos`, { credentials: "include" });
+        const jf = await rf.json();
+        if (rf.ok && jf.ok) jf.ids.forEach((id: string) => favoritosIds.add(id));
+      } catch { /* sin favoritos */ }
+
+      listaPsicologos = (json.psicologos ?? []).map((p: any) => ({
+        id: p.id,
+        nombreCompleto: p.nombre,
+        foto: p.tieneFoto ? `${API_URL}/explorar/psicologos/${p.id}/foto?v=${p.fotoVersion ?? ""}` : undefined,
+        especialidades: p.especialidades ?? [],
+        precioPorHora: Number(p.precio ?? 0),
+      }));
+      listaFiltrada = [...listaPsicologos];
+
+      renderizarVista();
+    } catch (error) {
+      console.error(error);
+      if (gridEl) {
+        gridEl.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--text, #4b3425);">
+          No se pudieron cargar los psicólogos. Verifique la conexión con el servidor.
+        </p>`;
+      }
+    }
+
+    if (inputBusqueda) {
+      inputBusqueda.addEventListener("input", (e) => {
+        const query = (e.target as HTMLInputElement).value.toLowerCase();
+        listaFiltrada = listaPsicologos.filter(
+          (p) =>
+            p.nombreCompleto.toLowerCase().includes(query) ||
+            (p.especialidades && p.especialidades.some((esp) => esp.toLowerCase().includes(query)))
+        );
+        paginaActual = 1;
+        renderizarVista();
+      });
+    }
+
+    if (btnLimpiar) {
+      btnLimpiar.addEventListener("click", () => {
+        if (inputBusqueda) inputBusqueda.value = "";
+        listaFiltrada = [...listaPsicologos];
+        paginaActual = 1;
+        renderizarVista();
+      });
+    }
+  });
+
+  // CONEXIÓN (empresa.e): el corazón guarda o quita el favorito
+  //   POST / DELETE /api/empresa/favoritos/:perfilId
+  document.addEventListener("click", async (e) => {
+    const boton = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-favorito]");
+    if (!boton) return;
+    const id = boton.dataset.favorito || "";
+    const es = favoritosIds.has(id);
+    boton.disabled = true;
+    const r = await fetch(`${API_URL}/empresa/favoritos/${encodeURIComponent(id)}`, {
+      method: es ? "DELETE" : "POST",
+      credentials: "include",
+    }).catch(() => null);
+    boton.disabled = false;
+    if (!r || !r.ok) return;
+    if (es) favoritosIds.delete(id); else favoritosIds.add(id);
+    const icono = boton.querySelector("i");
+    if (icono) {
+      icono.className = `bi ${es ? "bi-heart" : "bi-heart-fill"}`;
+      icono.style.color = es ? "" : "var(--primary)";
+    }
+    boton.title = es ? "Guardar favorito" : "Quitar de favoritos";
+  });
+
+  function renderizarVista() {
+    const gridEl = document.getElementById("profile-grid");
+    const paginationEl = document.getElementById("pagination-wrapper");
+
+    if (!gridEl || !paginationEl) return;
+
+    if (listaFiltrada.length === 0) {
+      gridEl.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--text, #3d3028);">
+        No se encontraron psicólogos que coincidan con la búsqueda.
+      </p>`;
+      paginationEl.style.display = "none";
+      return;
+    }
+
+    const totalPaginas = Math.ceil(listaFiltrada.length / tarjetasPorPagina);
+    const inicio = (paginaActual - 1) * tarjetasPorPagina;
+    const fin = inicio + tarjetasPorPagina;
+    const psicologosPagina = listaFiltrada.slice(inicio, fin);
+
+    gridEl.innerHTML = psicologosPagina
+      .map((p) => {
+        const fotoUrl =
+          !p.foto || p.foto === "sin-foto.jpg" ? "/Imagenes/logo.png" : p.foto; // cambio: via.placeholder.com ya no funciona
+        const especialidadesHtml =
+          p.especialidades && p.especialidades.length > 0
+            ? p.especialidades.join("<br>")
+            : "Sin especialidades registradas";
+        const precioFormateado = (p.precioPorHora || 0).toLocaleString("es-CO");
+
+        return `
+        <article class="profile-card">
+          <div class="verified-badge"><i class="bi bi-check-lg"></i> Verificado</div>
+          <div class="avatar-holder">
+            <img src="${fotoUrl}" alt="${p.nombreCompleto}" class="profile-photo">
+          </div>
+          <h2>${p.nombreCompleto}</h2>
+          <p class="profile-details">${especialidadesHtml}</p>
+          <p class="price">Desde $${precioFormateado} / sesión</p>
+          <div class="card-actions">
+            <button class="view-profile-btn" data-id="${p.id}">Ver perfil</button>
+            <button class="action-icon-btn" title="Enviar mensaje"><i class="bi bi-chat-left"></i></button>
+            <button class="action-icon-btn" title="${favoritosIds.has(String(p.id)) ? "Quitar de favoritos" : "Guardar favorito"}" data-favorito="${p.id}"><i class="bi ${favoritosIds.has(String(p.id)) ? "bi-heart-fill" : "bi-heart"}" ${favoritosIds.has(String(p.id)) ? 'style="color: var(--primary)"' : ""}></i></button>
+          </div>
+        </article>
+      `;
+      })
+      .join("");
+
+    if (totalPaginas > 1) {
+      paginationEl.style.display = "flex";
+      let botonesPag = `
+        <button class="page-arrow" id="btn-prev" ${paginaActual === 1 ? "disabled" : ""}>
+          <i class="bi bi-chevron-left"></i>
+        </button>
+      `;
+
+      for (let i = 1; i <= totalPaginas; i++) {
+        botonesPag += `
+          <button class="page-num ${i === paginaActual ? "active" : ""}" data-page="${i}">
+            ${i}
+          </button>
+        `;
+      }
+
+      botonesPag += `
+        <button class="page-arrow" id="btn-next" ${paginaActual === totalPaginas ? "disabled" : ""}>
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      `;
+
+      paginationEl.innerHTML = botonesPag;
+
+      document.getElementById("btn-prev")?.addEventListener("click", () => {
+        if (paginaActual > 1) {
+          paginaActual--;
+          renderizarVista();
+        }
+      });
+
+      document.getElementById("btn-next")?.addEventListener("click", () => {
+        if (paginaActual < totalPaginas) {
+          paginaActual++;
+          renderizarVista();
+        }
+      });
+
+      document.querySelectorAll(".page-num").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const target = e.currentTarget as HTMLElement;
+          paginaActual = Number(target.getAttribute("data-page"));
+          renderizarVista();
+        });
+      });
+    } else {
+      paginationEl.style.display = "none";
+    }
+  }
+</script>
+
+<!-- =====================================================================
+     CÓDIGO ORIGINAL (amiga) — se deja tal cual, solo comentado, para no borrar su trabajo.
+     Pedía los psicólogos a http://localhost:8000/api/psicologos/nombres (puerto y ruta que no existen).
+     La versión activa (arriba) es la CONEXIÓN (empresa.e).
+     =====================================================================
+<script>
   const API_URL = "http://localhost:8000/api";
 
   interface Psicologo {
@@ -372,3 +582,4 @@ import "./buscarPs.css";
     }
   }
 </script>
+-->

@@ -1,96 +1,256 @@
 ---
+// =====================================================================
+// cambio: Inicio del paciente con datos REALES (GET /api/paciente/inicio):
+// su nombre, la próxima cita, citas por pagar, cómo se siente hoy (se
+// guarda en el registro emocional), cuestionarios pendientes y las
+// especialidades que de verdad tienen psicólogos para buscar.
+// Usa los estilos comunes del paciente (paciente.css) e íconos de Bootstrap.
+// =====================================================================
 import "./inicio.css";
 import Menu from "./menuPac.astro";
+import { apiGet } from "../../lib/api";
 
+interface Inicio {
+  nombre: string;
+  proximaCita: { id: string; fechaHora: string; modalidad: string; estado: string; psicologo: string } | null;
+  citasPorPagar: number;
+  cuestionariosPendientes: number;
+  registroHoy: number | null;
+  diasRegistrados: number;
+  especialidades: { nombre: string; psicologos: number }[];
+}
+
+const datos = await apiGet<Inicio>(Astro.request.headers.get("cookie"), "/api/paciente/inicio");
+const primerNombre = (datos?.nombre ?? "").trim().split(/\s+/)[0] || "";
+
+const DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+// "2026-10-29 09:00" (hora de Colombia) -> "Jueves 29 de octubre · 9:00 a. m."
+const cuando = (t: string) => {
+  const d = new Date(Date.UTC(+t.slice(0, 4), +t.slice(5, 7) - 1, +t.slice(8, 10)));
+  const hh = +t.slice(11, 13);
+  return `${DIAS[d.getUTCDay()]} ${d.getUTCDate()} de ${MESES[d.getUTCMonth()]} · ${((hh + 11) % 12) + 1}:${t.slice(14, 16)} ${hh >= 12 ? "p. m." : "a. m."}`;
+};
+
+const cita = datos?.proximaCita ?? null;
+const pendientes = datos?.cuestionariosPendientes ?? 0;
+const hechos = (datos?.registroHoy ? 1 : 0) + (pendientes === 0 ? 1 : 0);
+
+const accesos = [
+  { texto: "Agendar sesión", icono: "bi-calendar-plus", href: "/Paciente/Especialistas" },
+  { texto: "Mis citas", icono: "bi-calendar-check", href: "/Paciente/Citas" },
+  { texto: "Mis chequeos", icono: "bi-clipboard2-pulse", href: "/Paciente/ParaTi" },
+  { texto: "Mi diario emocional", icono: "bi-journal-text", href: "/Paciente/Registro" },
+];
+
+const caritas = [
+  { valor: 1, icono: "bi-emoji-angry", texto: "Muy mal" },
+  { valor: 2, icono: "bi-emoji-frown", texto: "Mal" },
+  { valor: 3, icono: "bi-emoji-neutral", texto: "Normal" },
+  { valor: 4, icono: "bi-emoji-smile", texto: "Bien" },
+  { valor: 5, icono: "bi-emoji-laughing", texto: "Muy bien" },
+];
 ---
 
-<div class="page-layout">
-    <!-- 1. Menú arriba ocupando todo el ancho -->
-    <Menu />
-    <!-- 2. Contenido dividido en 2 columnas abajo -->
-    <main class="dashboard-container">
-        <!-- COLUMNA IZQUIERDA Y CENTRAL -->
-        <section class="main-content">
-            <div class="greeting-header">
-                <h1>¡Hola, Nombre Paciente!</h1>
-                <p>Nos alegra que estés aquí.</p>
+<Menu />
+
+<main class="pac-page ini-page">
+  <div class="pac-contenido">
+
+    <header class="pac-header">
+      <div>
+        <span class="pac-etiqueta">Inicio</span>
+        <h1>¡Hola{primerNombre ? `, ${primerNombre}` : ""}!</h1>
+        <p>Nos alegra que estés aquí.</p>
+      </div>
+      <a href="/Paciente/Especialistas" class="pac-btn"><i class="bi bi-calendar-plus"></i> Agendar sesión</a>
+    </header>
+
+    {datos === null && (
+      <span class="pac-prueba"><i class="bi bi-wifi-off"></i> No pudimos cargar tu información. Revisa que el servidor esté encendido.</span>
+    )}
+
+    <div class="pac-grid-2">
+      <!-- Columna izquierda -->
+      <div class="pac-col">
+
+        <!-- Próxima cita -->
+        <section class="pac-card ini-cita">
+          <div class="pac-card-top">
+            <h2>Tu próxima cita</h2>
+            {datos && datos.citasPorPagar > 0 && (
+              <a href="/Paciente/Citas" class="pac-chip espera">
+                <i class="bi bi-credit-card"></i> {datos.citasPorPagar} {datos.citasPorPagar === 1 ? "cita por pagar" : "citas por pagar"}
+              </a>
+            )}
+          </div>
+          {cita ? (
+            <div class="ini-cita-fila">
+              <span class="pac-icono"><i class={`bi ${cita.modalidad === "Presencial" ? "bi-geo-alt" : "bi-camera-video"}`}></i></span>
+              <div class="ini-cita-info">
+                <strong>{cita.psicologo}</strong>
+                <span>{cuando(cita.fechaHora)}</span>
+                <span class="ini-cita-tags">
+                  <span class="pac-chip neutro">{cita.modalidad}</span>
+                  <span class={`pac-chip ${cita.estado === "Confirmada" ? "ok" : "espera"}`}>
+                    {cita.estado === "Confirmada" ? "Confirmada" : "Esperando que el psicólogo acepte"}
+                  </span>
+                </span>
+              </div>
+              <a href="/Paciente/Citas" class="pac-btn pequeno borde">Ver mis citas</a>
             </div>
-
-            <section class="quick-access">
-                <h2>Accesos rápidos</h2>
-                <div class="quick-cards">
-                    <div class="card">
-                        <i class="fa-solid fa-gift card-icon"></i>
-                        <span>Agendar sesión</span>
-                    </div>
-                    <div class="card">
-                        <i class="fa-regular fa-calendar-check card-icon"></i>
-                        <span>Mis citas</span>
-                    </div>
-                    <div class="card">
-                        <i class="fa-solid fa-clipboard-list card-icon"></i>
-                        <span>Mis chequeos</span>
-                    </div>
-                    <div class="card">
-                        <i class="fa-solid fa-book-open card-icon"></i>
-                        <span>Mi diario emocional</span>
-                    </div>
-                </div>
-            </section>
-
-            <section class="search-specialist">
-                <h3>Buscar especialista para:</h3>
-                <div class="tags-container">
-                    <button class="tag"><i class="fa-solid fa-crown"></i> Relaciones interpersonales</button>
-                    <button class="tag"><i class="fa-solid fa-brain"></i> Ansiedad</button>
-                    <button class="tag"><i class="fa-solid fa-cloud-showers-heavy"></i> Depresión</button>
-                    <button class="tag"><i class="fa-solid fa-eye"></i> Sexualidad</button>
-                    <button class="tag"><i class="fa-solid fa-feather"></i> Trauma</button>
-                    <button class="tag">Cambios de vida</button>
-                    <button class="tag"><i class="fa-solid fa-shield-heart"></i> Autolesión</button>
-                </div>
-                <a href="#" class="see-more-link">+ Ver más</a>
-            </section>
+          ) : (
+            <div class="ini-cita-vacia">
+              <p class="pac-muted">No tienes citas próximas. Agendar es el primer paso para cuidar tu bienestar.</p>
+              <a href="/Paciente/Especialistas" class="pac-btn pequeno">Buscar especialista</a>
+            </div>
+          )}
         </section>
 
-        <!-- COLUMNA DERECHA ("Tu plan hoy") -->
-        <aside class="sidebar-content">
-            <div class="plan-card">
-                <div class="plan-header">
-                    <h2>Tu plan hoy</h2>
-                    <span class="badge">Completaste 0 de 2</span>
-                </div>
+        <!-- Accesos rápidos -->
+        <section>
+          <h2 class="ini-subtitulo">Accesos rápidos</h2>
+          <div class="ini-accesos">
+            {accesos.map((a) => (
+              <a href={a.href} class="ini-acceso">
+                <span class="pac-icono"><i class={`bi ${a.icono}`}></i></span>
+                <span>{a.texto}</span>
+              </a>
+            ))}
+          </div>
+        </section>
 
-                <div class="plan-timeline">
-                    <div class="timeline-item">
-                        <div class="timeline-node"></div>
-                        <div class="timeline-content mood-card">
-                            <p class="mood-title">¿Cómo te sientes hoy?</p>
-                            <div class="mood-emojis">
-                                <button class="emoji-btn"><i class="fa-regular fa-face-frown"></i></button>
-                                <button class="emoji-btn"><i class="fa-regular fa-face-frown-open"></i></button>
-                                <button class="emoji-btn"><i class="fa-regular fa-face-meh"></i></button>
-                                <button class="emoji-btn"><i class="fa-regular fa-face-smile"></i></button>
-                                <button class="emoji-btn"><i class="fa-regular fa-face-laugh-beam"></i></button>
-                            </div>
-                        </div>
-                    </div>
+        <!-- Buscar especialista por especialidad -->
+        <section class="pac-card">
+          <div class="pac-card-top">
+            <h2>Buscar especialista para:</h2>
+          </div>
+          <div class="ini-tags">
+            {(datos?.especialidades ?? []).map((e) => (
+              <a
+                class="ini-tag"
+                href={`/Paciente/Especialistas?especialidad=${encodeURIComponent(e.nombre)}`}
+                title={`${e.psicologos} ${e.psicologos === 1 ? "psicólogo" : "psicólogos"}`}
+              >
+                {e.nombre}
+              </a>
+            ))}
+            {datos && datos.especialidades.length === 0 && (
+              <p class="pac-muted">Pronto verás aquí las especialidades de nuestros psicólogos.</p>
+            )}
+          </div>
+          <a href="/Paciente/Especialistas" class="ini-ver-mas">+ Ver todos los especialistas</a>
+        </section>
+      </div>
 
-                    <div class="timeline-item">
-                        <div class="timeline-node"></div>
-                        <div class="timeline-content checkup-card">
-                            <div class="checkup-img">
-                                <img src="https://picsum.photos/60/60" alt="Chequeo" />
-                            </div>
-                            <div class="checkup-details">
-                                <span class="sub-text">Chequeo Diario</span>
-                                <h4>Chequeo Diario</h4>
-                                <span class="checkin-tag"><i class="fa-regular fa-square-check"></i> Check-in</span>
-                            </div>
-                        </div>
-                    </div>
+      <!-- Columna derecha: Tu plan hoy -->
+      <aside class="pac-col">
+        <section class="pac-card ini-plan">
+          <div class="pac-card-top">
+            <h2>Tu plan hoy</h2>
+            <span class="pac-chip neutro" id="iniHechos" data-hechos={hechos}>Completaste {hechos} de 2</span>
+          </div>
+
+          <div class="ini-linea">
+            <!-- 1. Cómo se siente hoy (se guarda en el registro emocional) -->
+            <div class:list={["ini-paso", { hecho: datos?.registroHoy }]} id="iniPasoAnimo">
+              <span class="ini-nodo"><i class="bi bi-check-lg"></i></span>
+              <div class="ini-paso-caja">
+                <p class="ini-paso-titulo">¿Cómo te sientes hoy?</p>
+                <div class="ini-caritas" role="radiogroup" aria-label="¿Cómo te sientes hoy?">
+                  {caritas.map((c) => (
+                    <button
+                      type="button"
+                      class:list={["ini-carita", { activa: datos?.registroHoy === c.valor }]}
+                      data-carita={c.valor}
+                      data-icono={c.icono}
+                      title={c.texto}
+                      aria-label={c.texto}
+                      aria-pressed={datos?.registroHoy === c.valor ? "true" : "false"}
+                    >
+                      <i class={`bi ${c.icono}${datos?.registroHoy === c.valor ? "-fill" : ""}`}></i>
+                    </button>
+                  ))}
                 </div>
+                <a href="/Paciente/Registro" class="ini-paso-link" id="iniCompletar">
+                  {datos?.registroHoy ? "Completar mi registro de hoy" : "Ir a mi registro diario"} <i class="bi bi-arrow-right"></i>
+                </a>
+              </div>
             </div>
-        </aside>
-    </main>
-</div>
+
+            <!-- 2. Cuestionarios que le asignó su psicólogo -->
+            <div class:list={["ini-paso", { hecho: pendientes === 0 }]}>
+              <span class="ini-nodo"><i class="bi bi-check-lg"></i></span>
+              <div class="ini-paso-caja ini-chequeo">
+                <span class="pac-icono"><i class="bi bi-clipboard-check"></i></span>
+                <div>
+                  {pendientes > 0 ? (
+                    <>
+                      <p class="ini-paso-titulo">Tienes {pendientes} {pendientes === 1 ? "cuestionario pendiente" : "cuestionarios pendientes"}</p>
+                      <a href="/Paciente/Registro?asignados=1" class="ini-paso-link">Responder ahora <i class="bi bi-arrow-right"></i></a>
+                    </>
+                  ) : (
+                    <>
+                      <p class="ini-paso-titulo">Estás al día con tus cuestionarios</p>
+                      <a href="/Paciente/ParaTi" class="ini-paso-link">Hacer un chequeo en Para ti <i class="bi bi-arrow-right"></i></a>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="pac-muted ini-semana">
+            <i class="bi bi-fire"></i> Esta semana registraste <b id="iniDias">{datos?.diasRegistrados ?? 0}</b> de 7 días.
+          </p>
+        </section>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<script>
+  import { avisar } from "./utilidades";
+  import { apiEnviar, textoError } from "../../lib/api";
+
+  // Guardar cómo se siente hoy con un toque (PUT /api/paciente/registro-emocional)
+  const botones = document.querySelectorAll<HTMLButtonElement>("[data-carita]");
+  const paso = document.getElementById("iniPasoAnimo");
+  const chipHechos = document.getElementById("iniHechos");
+
+  const marcar = (valor: number) =>
+    botones.forEach((b) => {
+      const activa = Number(b.dataset.carita) === valor;
+      b.classList.toggle("activa", activa);
+      b.setAttribute("aria-pressed", activa ? "true" : "false");
+      const i = b.querySelector("i");
+      if (i) i.className = `bi ${b.dataset.icono}${activa ? "-fill" : ""}`;
+    });
+
+  botones.forEach((b) =>
+    b.addEventListener("click", async () => {
+      const valor = Number(b.dataset.carita);
+      const antes = document.querySelector<HTMLButtonElement>(".ini-carita.activa");
+      marcar(valor);
+      const r = await apiEnviar("PUT", "/api/paciente/registro-emocional", { estado: valor, soloEstado: true });
+      if (!r.ok) {
+        marcar(Number(antes?.dataset.carita ?? 0));
+        avisar(textoError(r.data, "No se pudo guardar cómo te sientes"));
+        return;
+      }
+      if (paso && !paso.classList.contains("hecho")) {
+        paso.classList.add("hecho");
+        const n = Number(chipHechos?.dataset.hechos ?? 0) + 1;
+        if (chipHechos) {
+          chipHechos.dataset.hechos = String(n);
+          chipHechos.textContent = `Completaste ${n} de 2`;
+        }
+        const dias = document.getElementById("iniDias");
+        if (dias) dias.textContent = String(Number(dias.textContent || 0) + 1);
+      }
+      const link = document.getElementById("iniCompletar");
+      if (link) link.innerHTML = 'Completar mi registro de hoy <i class="bi bi-arrow-right"></i>';
+      avisar("¡Gracias! Guardamos cómo te sientes hoy.");
+    })
+  );
+</script>

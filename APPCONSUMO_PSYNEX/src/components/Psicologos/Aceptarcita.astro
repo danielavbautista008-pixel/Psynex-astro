@@ -1,5 +1,10 @@
 ---
 import "./Aceptarcita.css";
+import { fotoIniciales } from "../../lib/api"; // cambio: foto por defecto con iniciales
+
+// cambio: dirección del consultorio (perfil) para las citas presenciales
+interface Props { direccionPerfil?: string }
+const { direccionPerfil = "" } = Astro.props;
 ---
 
 <div
@@ -52,9 +57,11 @@ import "./Aceptarcita.css";
     <!-- PACIENTE -->
     <section class="patient-summary">
 
+      <!-- cambio: antes arrancaba con "/Imagenes/paciente3.jpg", que no existe.
+           Ahora se pone la foto real del paciente o sus iniciales. -->
       <img
         id="modalPacienteImagen"
-        src="/Imagenes/paciente3.jpg"
+        src={fotoIniciales("Paciente")}
         alt="Paciente"
         class="patient-modal-photo"
       />
@@ -158,31 +165,30 @@ import "./Aceptarcita.css";
         <input
           id="direccionCita"
           type="text"
-          placeholder="Calle, carrera, número..."
+          maxlength="300"
+          data-perfil={direccionPerfil}
+          placeholder={direccionPerfil || "Calle, carrera, número, ciudad..."}
         />
 
         <small>
-          Escribe la dirección donde atenderás al paciente.
+          {direccionPerfil
+            ? "Si la dejas vacía, se usa la dirección de tu consultorio (tu perfil)."
+            : "Escribe la dirección donde atenderás al paciente (con la ciudad)."}
         </small>
 
-
-        <label
-          for="mapaCita"
-          class="mapa-label"
-        >
-          Enlace de Google Maps
-          <span>Opcional</span>
-        </label>
-
-        <input
-          id="mapaCita"
-          type="url"
-          placeholder="https://maps.google.com/..."
-        />
-
-        <small>
-          Puedes agregar un enlace para facilitar la ubicación.
-        </small>
+        <!-- cambio: vista previa en Google Maps (sin llave); el paciente recibe
+             la dirección y el botón "Cómo llegar" en su correo y en Mis citas -->
+        <div class="mapa-previa" id="mapaPrevia" hidden>
+          <iframe
+            id="mapaPreviaFrame"
+            title="Vista previa de la dirección en Google Maps"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+          <a id="mapaPreviaLink" href="#" target="_blank" rel="noopener">
+            <i class="bi bi-box-arrow-up-right"></i> Abrir en Google Maps
+          </a>
+        </div>
 
       </div>
 
@@ -199,6 +205,7 @@ import "./Aceptarcita.css";
       <textarea
         id="observacionesCita"
         rows="4"
+        maxlength="500"
         placeholder="Escribe alguna indicación o información que quieras compartir con el paciente..."
       ></textarea>
 
@@ -258,7 +265,7 @@ import "./Aceptarcita.css";
 
 
 <script>
-  import { API_URL } from "../../lib/api";
+  import { API_URL, fotoIniciales } from "../../lib/api";
 
   // Id de la cita que se está aceptando (lo envía Citas.astro)
   let citaIdActual = "";
@@ -303,6 +310,32 @@ import "./Aceptarcita.css";
       "#mapaCita"
     );
 
+  // cambio: vista previa del mapa mientras se escribe la dirección
+  const mapaPrevia = document.querySelector<HTMLElement>("#mapaPrevia");
+  const mapaPreviaFrame = document.querySelector<HTMLIFrameElement>("#mapaPreviaFrame");
+  const mapaPreviaLink = document.querySelector<HTMLAnchorElement>("#mapaPreviaLink");
+  const conPais = (d: string) => (/colombia/i.test(d) ? d : `${d}, Colombia`);
+  let temporizadorMapa: ReturnType<typeof setTimeout> | undefined;
+
+  function pintarMapa() {
+    const d = (direccionInput?.value.trim() || direccionInput?.dataset.perfil || "").trim();
+    if (!mapaPrevia || !mapaPreviaFrame || !mapaPreviaLink) return;
+    if (d.length < 6) {
+      mapaPrevia.hidden = true;
+      return;
+    }
+    const q = encodeURIComponent(conPais(d));
+    const src = `https://maps.google.com/maps?q=${q}&z=16&output=embed`;
+    if (mapaPreviaFrame.src !== src) mapaPreviaFrame.src = src;
+    mapaPreviaLink.href = `https://www.google.com/maps/search/?api=1&query=${q}`;
+    mapaPrevia.hidden = false;
+  }
+
+  direccionInput?.addEventListener("input", () => {
+    clearTimeout(temporizadorMapa);
+    temporizadorMapa = setTimeout(pintarMapa, 600);
+  });
+
   const observacionesInput =
     document.querySelector<HTMLTextAreaElement>(
       "#observacionesCita"
@@ -319,6 +352,7 @@ import "./Aceptarcita.css";
     tipoUbicacion = tipo;
     if (campoSala) campoSala.hidden = tipo !== "sala";
     if (campoDireccion) campoDireccion.hidden = tipo !== "address";
+    if (tipo === "address") pintarMapa(); // cambio: mostrar el mapa de la dirección
   }
 
 
@@ -371,7 +405,14 @@ import "./Aceptarcita.css";
     ponerTexto("#modalDuracion", datos.duracion ? `${datos.duracion} minutos` : undefined);
 
     const imagen = document.querySelector<HTMLImageElement>("#modalPacienteImagen");
-    if (imagen && datos.foto) imagen.src = datos.foto;
+    // cambio: si el paciente no tiene foto, un circulito con sus iniciales
+    if (imagen) {
+      imagen.onerror = () => {
+        imagen.onerror = null;
+        imagen.src = fotoIniciales(datos.nombre || "Paciente");
+      };
+      imagen.src = datos.foto || fotoIniciales(datos.nombre || "Paciente");
+    }
 
     // Limpiar lo que se escribió la vez anterior
     if (direccionInput) direccionInput.value = "";
@@ -512,6 +553,10 @@ import "./Aceptarcita.css";
               estado: "Confirmada",
               ...(tipoUbicacion === "sala" && citaIdActual
                 ? { linkVideollamada: datos.enlace }
+                : {}),
+              // cambio: antes la dirección y las observaciones no se enviaban (se perdían)
+              ...(tipoUbicacion === "address"
+                ? { direccion: datos.direccion, indicaciones: datos.observaciones }
                 : {}),
             }),
           }

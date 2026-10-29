@@ -1,0 +1,308 @@
+---
+// =====================================================================
+// cambio: ARCHIVO NUEVO — components/Administrador/pagospacientes.astro
+// El administrador acepta o rechaza los pagos de los pacientes (citas y
+// paquetes) mientras la pasarela Wompi no tenga llaves de prueba.
+// Aceptar -> la cita queda pagada (se habilita la sala) o el paquete activo,
+// y se avisa al paciente (y al psicólogo, si es una cita).
+// Usa los mismos estilos de "Pagos de empresas".
+// cambio: también salen las DEVOLUCIONES (el paciente canceló una cita que
+// ya había pagado): el admin devuelve el dinero y la marca "Devuelto".
+// =====================================================================
+import MenuAdmin from "../Menu/MenuAdmin.astro";
+import "../EmpresaBeneficio/beneficio.css";
+import "./pagosempresas.css";
+import { apiGet, pesos } from "../../lib/api";
+
+interface PagoPaciente {
+  id: string;
+  tipo: "cita" | "paquete";
+  estado: "Pendiente" | "Aprobado" | "Rechazado" | "Reembolso" | "Reembolsado";
+  valor: number;
+  referencia: string;
+  solicitado: string; // "AAAA-MM-DD HH:MM"
+  fechaPago: string | null;
+  paciente: { nombre: string; email: string };
+  concepto: string;
+  detalle: string;
+}
+
+const datos = await apiGet<{ pagos: PagoPaciente[]; modoPago: "wompi" | "manual" }>(
+  Astro.request.headers.get("cookie"),
+  "/api/admin/pagos-pacientes",
+);
+const pagos = datos?.pagos ?? [];
+
+const porRevisar = pagos.filter((p) => p.estado === "Pendiente" || p.estado === "Reembolso").length;
+const aprobados = pagos.filter((p) => p.estado === "Aprobado");
+const totalAprobado = aprobados.reduce((s, p) => s + p.valor, 0);
+const rechazados = pagos.filter((p) => p.estado === "Rechazado").length;
+
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+const fecha = (t: string | null) => {
+  if (!t) return "—";
+  const hh = +t.slice(11, 13);
+  return `${+t.slice(8, 10)} ${MESES[+t.slice(5, 7) - 1]} · ${((hh + 11) % 12) + 1}:${t.slice(14, 16)} ${hh >= 12 ? "p. m." : "a. m."}`;
+};
+
+const CHIP: Record<string, { clase: string; texto: string }> = {
+  Pendiente: { clase: "", texto: "Por revisar" },
+  Aprobado: { clase: "activo", texto: "Aprobado" },
+  Rechazado: { clase: "rechazado", texto: "Rechazado" },
+  Reembolso: { clase: "", texto: "Devolver dinero" },
+  Reembolsado: { clase: "neutro", texto: "Devuelto" },
+};
+---
+
+<div class="pe-page">
+  <MenuAdmin />
+
+  <main class="pe-content">
+    <header class="pe-header">
+      <div class="pe-header-left">
+        <div class="pe-header-icon"><i class="bi bi-wallet2"></i></div>
+        <div>
+          <h1>Pagos de pacientes</h1>
+          <p>Acepta los pagos de citas y paquetes. Al aceptar, la cita queda pagada (se habilita la sala) o el paquete queda activo, y se le avisa al paciente.</p>
+        </div>
+      </div>
+    </header>
+
+    {!datos && (
+      <div class="bnf-aviso error"><i class="bi bi-exclamation-circle"></i><div>No se pudieron cargar los pagos de pacientes. Revisa que Deno esté encendido.</div></div>
+    )}
+
+    {datos?.modoPago === "manual" && (
+      <div class="bnf-aviso alerta">
+        <i class="bi bi-info-circle"></i>
+        <div>Modo temporal: la pasarela Wompi todavía no tiene llaves de prueba, por eso los pagos llegan aquí para que los aceptes.</div>
+      </div>
+    )}
+    {datos?.modoPago === "wompi" && (
+      <div class="bnf-aviso">
+        <i class="bi bi-shield-check"></i>
+        <div>Wompi está activo: los pagos nuevos se confirman solos. Aquí solo quedan los que se enviaron en modo temporal.</div>
+      </div>
+    )}
+
+    <section class="pe-metricas">
+      <div class="bnf-metrica"><small>Por revisar</small><strong>{porRevisar}</strong></div>
+      <div class="bnf-metrica"><small>Aprobados</small><strong>{aprobados.length}</strong></div>
+      <div class="bnf-metrica"><small>Rechazados</small><strong>{rechazados}</strong></div>
+      <div class="bnf-metrica"><small>Total aprobado</small><strong style="font-size:19px">{pesos(totalAprobado)}</strong></div>
+    </section>
+
+    <div class="pe-filtros" role="tablist">
+      <button type="button" class="pe-filtro activo" data-filtro="todos">Todos</button>
+      <button type="button" class="pe-filtro" data-filtro="Pendiente">Por revisar</button>
+      <button type="button" class="pe-filtro" data-filtro="cita">Citas</button>
+      <button type="button" class="pe-filtro" data-filtro="paquete">Paquetes</button>
+      <button type="button" class="pe-filtro" data-filtro="Aprobado">Aprobados</button>
+      <button type="button" class="pe-filtro" data-filtro="Rechazado">Rechazados</button>
+    </div>
+
+    {pagos.length === 0 ? (
+      <section class="bnf-vacio">
+        <i class="bi bi-inbox"></i>
+        <h2>No hay pagos por revisar</h2>
+        <p>Cuando un paciente pague una cita o un paquete, aparecerá aquí.</p>
+      </section>
+    ) : (
+      <section class="bnf-card" style="padding:8px 12px">
+        <div class="bnf-tabla-wrap">
+          <table class="bnf-tabla pe-tabla">
+            <thead>
+              <tr><th>Paciente</th><th>Concepto</th><th>Valor</th><th>Solicitado</th><th>Estado</th><th></th></tr>
+            </thead>
+            <tbody>
+              {pagos.map((p) => (
+                <tr data-estado={p.estado === "Reembolso" ? "Pendiente" : p.estado} data-tipo={p.tipo}>
+                  <td class="pe-empresa"><strong>{p.paciente.nombre}</strong><span>{p.paciente.email}</span></td>
+                  <td>
+                    <i class:list={["bi", p.tipo === "cita" ? "bi-calendar-check" : "bi-box-seam"]} style="color:var(--primary)"></i> {p.concepto}
+                    <br /><span class="pe-espera">{p.detalle}</span>
+                  </td>
+                  <td>{pesos(p.valor)}</td>
+                  <td>{fecha(p.solicitado)}</td>
+                  <td>
+                    <span class={`bnf-chip ${CHIP[p.estado]?.clase ?? "neutro"}`}>{CHIP[p.estado]?.texto ?? p.estado}</span>
+                    {p.fechaPago && <div class="pe-espera" style="margin-top:4px">{fecha(p.fechaPago)}</div>}
+                  </td>
+                  <td>
+                    {p.estado === "Reembolso" && (
+                      <div class="pe-acciones">
+                        <button
+                          type="button"
+                          class="bnf-btn pequeno"
+                          data-aprobar={p.id}
+                          data-tipo={p.tipo}
+                          data-reembolso="1"
+                          data-paciente={p.paciente.nombre}
+                          data-concepto={p.concepto}
+                          data-valor={pesos(p.valor)}
+                        >
+                          Marcar devuelto
+                        </button>
+                      </div>
+                    )}
+                    {p.estado === "Pendiente" && (
+                      <div class="pe-acciones">
+                        <button type="button" class="bnf-btn secundario pequeno" data-rechazar={p.id} data-tipo={p.tipo} data-paciente={p.paciente.nombre}>Rechazar</button>
+                        <button
+                          type="button"
+                          class="bnf-btn pequeno"
+                          data-aprobar={p.id}
+                          data-tipo={p.tipo}
+                          data-paciente={p.paciente.nombre}
+                          data-concepto={p.concepto}
+                          data-valor={pesos(p.valor)}
+                        >
+                          Aceptar pago
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="pe-espera" id="sinFiltro" hidden style="padding:10px">No hay pagos con ese filtro.</p>
+      </section>
+    )}
+  </main>
+
+  {/* Aceptar */}
+  <div class="bnf-overlay" id="modalAprobar" aria-hidden="true">
+    <div class="bnf-dialog" role="dialog" aria-modal="true" aria-labelledby="aprobarTitulo">
+      <div class="bnf-dialog-top">
+        <div><h3 id="aprobarTitulo">Aceptar pago</h3><p id="aprobarConcepto"></p></div>
+        <button type="button" class="bnf-cerrar" data-cerrar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <p class="pe-confirmar" id="aprobarTexto"></p>
+      <p class="bnf-error" id="aprobarError" role="alert"></p>
+      <div class="bnf-dialog-acciones">
+        <button type="button" class="bnf-btn secundario" data-cerrar>Cancelar</button>
+        <button type="button" class="bnf-btn" id="confirmarAprobar">Sí, aceptar</button>
+      </div>
+    </div>
+  </div>
+
+  {/* Rechazar */}
+  <div class="bnf-overlay" id="modalRechazar" aria-hidden="true">
+    <div class="bnf-dialog" role="dialog" aria-modal="true" aria-labelledby="rechazarTitulo">
+      <div class="bnf-dialog-top">
+        <div><h3 id="rechazarTitulo">Rechazar pago</h3><p id="rechazarPaciente"></p></div>
+        <button type="button" class="bnf-cerrar" data-cerrar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="bnf-campo">
+        <label for="motivoRechazo">Motivo (opcional, el paciente lo verá)</label>
+        <textarea id="motivoRechazo" rows="3" maxlength="300" placeholder="Ej.: no recibimos el pago."></textarea>
+      </div>
+      <p class="bnf-error" id="rechazarError" role="alert"></p>
+      <div class="bnf-dialog-acciones">
+        <button type="button" class="bnf-btn secundario" data-cerrar>Cancelar</button>
+        <button type="button" class="bnf-btn" id="confirmarRechazar">Rechazar pago</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { apiEnviar, textoError } from "../../lib/api";
+
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null;
+
+  function abrirModal(id: string) {
+    $(id)?.classList.add("visible");
+    $(id)?.setAttribute("aria-hidden", "false");
+  }
+  function cerrarModales() {
+    document.querySelectorAll(".bnf-overlay.visible").forEach((m) => {
+      m.classList.remove("visible");
+      m.setAttribute("aria-hidden", "true");
+    });
+  }
+  document.querySelectorAll(".bnf-overlay").forEach((m) => {
+    m.addEventListener("click", (e) => { if (e.target === m) cerrarModales(); });
+    m.querySelectorAll("[data-cerrar]").forEach((b) => b.addEventListener("click", cerrarModales));
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") cerrarModales(); });
+
+  // Filtros: por estado o por tipo
+  document.querySelectorAll<HTMLButtonElement>(".pe-filtro").forEach((b) =>
+    b.addEventListener("click", () => {
+      document.querySelectorAll(".pe-filtro").forEach((x) => x.classList.toggle("activo", x === b));
+      const f = b.dataset.filtro;
+      let visibles = 0;
+      document.querySelectorAll<HTMLTableRowElement>("tr[data-estado]").forEach((tr) => {
+        const ok = f === "todos" || tr.dataset.estado === f || tr.dataset.tipo === f;
+        tr.hidden = !ok;
+        if (ok) visibles++;
+      });
+      const sin = $("sinFiltro");
+      if (sin) sin.hidden = visibles > 0;
+    })
+  );
+
+  let elegido = { id: "", tipo: "" };
+
+  // Aceptar
+  document.querySelectorAll<HTMLButtonElement>("[data-aprobar]").forEach((b) =>
+    b.addEventListener("click", () => {
+      elegido = { id: b.dataset.aprobar ?? "", tipo: b.dataset.tipo ?? "" };
+      const c = $("aprobarConcepto");
+      if (c) c.textContent = b.dataset.concepto ?? "";
+      const t = $("aprobarTexto");
+      if (t) {
+        t.textContent = b.dataset.reembolso
+          ? `${b.dataset.paciente} canceló esta cita. ¿Ya le devolviste ${b.dataset.valor}? Se le avisará que su dinero fue devuelto.`
+          : elegido.tipo === "cita"
+          ? `¿Confirmas el pago de ${b.dataset.valor} de ${b.dataset.paciente}? La cita quedará pagada y podrá entrar a la sala.`
+          : `¿Confirmas el pago de ${b.dataset.valor} de ${b.dataset.paciente}? Su paquete quedará activo.`;
+      }
+      // cambio: la misma ventana sirve para marcar una devolución
+      const titulo = $("aprobarTitulo");
+      if (titulo) titulo.textContent = b.dataset.reembolso ? "Devolver dinero" : "Aceptar pago";
+      const confirmar = $("confirmarAprobar");
+      if (confirmar) confirmar.textContent = b.dataset.reembolso ? "Sí, ya lo devolví" : "Sí, aceptar";
+      const e = $("aprobarError");
+      if (e) e.textContent = "";
+      abrirModal("modalAprobar");
+    })
+  );
+  const botonAprobar = $<HTMLButtonElement>("confirmarAprobar");
+  botonAprobar?.addEventListener("click", async () => {
+    botonAprobar.disabled = true;
+    const r = await apiEnviar("PATCH", `/api/admin/pagos-pacientes/${elegido.tipo}/${elegido.id}/aprobar`);
+    if (r.ok) return location.reload();
+    const e = $("aprobarError");
+    if (e) e.textContent = textoError(r.data, "No se pudo aceptar el pago");
+    botonAprobar.disabled = false;
+  });
+
+  // Rechazar
+  document.querySelectorAll<HTMLButtonElement>("[data-rechazar]").forEach((b) =>
+    b.addEventListener("click", () => {
+      elegido = { id: b.dataset.rechazar ?? "", tipo: b.dataset.tipo ?? "" };
+      const p = $("rechazarPaciente");
+      if (p) p.textContent = b.dataset.paciente ?? "";
+      const m = $<HTMLTextAreaElement>("motivoRechazo");
+      if (m) m.value = "";
+      const e = $("rechazarError");
+      if (e) e.textContent = "";
+      abrirModal("modalRechazar");
+      setTimeout(() => m?.focus(), 50);
+    })
+  );
+  const botonRechazar = $<HTMLButtonElement>("confirmarRechazar");
+  botonRechazar?.addEventListener("click", async () => {
+    const motivo = ($<HTMLTextAreaElement>("motivoRechazo")?.value ?? "").trim();
+    botonRechazar.disabled = true;
+    const r = await apiEnviar("PATCH", `/api/admin/pagos-pacientes/${elegido.tipo}/${elegido.id}/rechazar`, { motivo });
+    if (r.ok) return location.reload();
+    const e = $("rechazarError");
+    if (e) e.textContent = textoError(r.data, "No se pudo rechazar el pago");
+    botonRechazar.disabled = false;
+  });
+</script>

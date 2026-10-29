@@ -7,6 +7,8 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "dev:tunel": "astro dev --mode tunel",
+    "tunel": "cloudflared tunnel --url http://localhost:4321",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"

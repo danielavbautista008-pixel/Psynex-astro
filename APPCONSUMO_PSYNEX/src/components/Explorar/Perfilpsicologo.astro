@@ -115,6 +115,26 @@ for (const h of p.horarios ?? []) {
   fila.rangos.push(`${hora12(h.desde)} – ${hora12(h.hasta)}`);
 }
 
+// cambio: la semana COMPLETA (lunes a domingo) para mostrarla organizada en
+// columnas; los días sin horario salen como "No atiende".
+const DIAS_SEMANA = [
+  { nombre: "Lunes", corto: "Lun" }, { nombre: "Martes", corto: "Mar" }, { nombre: "Miércoles", corto: "Mié" },
+  { nombre: "Jueves", corto: "Jue" }, { nombre: "Viernes", corto: "Vie" }, { nombre: "Sábado", corto: "Sáb" },
+  { nombre: "Domingo", corto: "Dom" },
+];
+// Hora corta para las columnas: "08:00" -> "8 am", "14:30" -> "2:30 pm"
+const horaCorta = (h: string) => {
+  const [hh, mm] = h.split(":").map(Number);
+  return `${((hh + 11) % 12) + 1}${mm ? `:${String(mm).padStart(2, "0")}` : ""} ${hh >= 12 ? "pm" : "am"}`;
+};
+const semanaCompleta = DIAS_SEMANA.map((d) => ({
+  ...d,
+  rangos: (p.horarios ?? [])
+    .filter((h) => (NOMBRE_DIA[h.dia] ?? h.dia) === d.nombre)
+    .map((h) => `${horaCorta(h.desde)} – ${horaCorta(h.hasta)}`),
+}));
+const diasQueAtiende = semanaCompleta.filter((d) => d.rangos.length).length;
+
 // cambio: si el psicólogo está viendo su propio perfil (viene de "Ver mi perfil
 // público"), el botón de arriba lo devuelve a Mi perfil y no a la lista.
 const esPropio = rol === "Psicologo" && Astro.url.searchParams.get("propio") === "1";
@@ -129,6 +149,16 @@ const textoVolverPanel =
   : volverPanel === "/Paciente/Especialistas" ? "Volver a especialistas"
   : "Volver a mi panel";
 
+// cambio: si lo abre una EMPRESA (desde Profesionales, Favoritos o
+// Postulaciones), el botón "Volver" la regresa a su panel.
+const volverEmpresa = /^\/Empresa\/[A-Za-z]+$/.test(volverParam)
+  ? volverParam
+  : rol === "Empresa" ? "/Empresa/BuscarPs" : "";
+const textoVolverEmpresa =
+  volverEmpresa === "/Empresa/Favoritos" ? "Volver a favoritos"
+  : volverEmpresa === "/Empresa/Postulaciones" ? "Volver a postulaciones"
+  : "Volver a profesionales";
+
 const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
   `${desde ?? ""}${desde ? " — " : ""}${actual ? "Actualmente" : (hasta ?? "")}`.trim();
 ---
@@ -142,11 +172,11 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
 
   <!-- VOLVER -->
   <div class="perfil-topbar">
-    <a href={esPropio ? "/Psicologos/MiPerfil" : desdePanelPaciente ? volverPanel : "/Explorar/Psicologos"} class="volver-link">
+    <a href={esPropio ? "/Psicologos/MiPerfil" : volverEmpresa ? volverEmpresa : desdePanelPaciente ? volverPanel : "/Explorar/Psicologos"} class="volver-link">
       <span class="volver-icon">
         <i class="bi bi-arrow-left"></i>
       </span>
-      {esPropio ? "Volver a mi perfil" : desdePanelPaciente ? textoVolverPanel : "Volver a psicólogos"}
+      {esPropio ? "Volver a mi perfil" : volverEmpresa ? textoVolverEmpresa : desdePanelPaciente ? textoVolverPanel : "Volver a psicólogos"}
     </a>
     {esPropio && <span class="perfil-propio-aviso">Así ven tu perfil los pacientes</span>}
   </div>
@@ -385,6 +415,40 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
         }
       </section>
 
+      <!-- cambio: HORARIOS ahora en la columna principal y organizados:
+           la semana en columnas (Lun a Dom) y abajo los próximos espacios
+           libres por día (se elige el día y salen sus horas). -->
+      <section class="contenido-card horarios-card" id="horarios">
+        <div class="titulo-seccion">
+          <span class="titulo-icono">
+            <i class="bi bi-calendar-week"></i>
+          </span>
+
+          <div>
+            <h2>Horarios</h2>
+            <p>{diasQueAtiende ? `Atiende ${diasQueAtiende} ${diasQueAtiende === 1 ? "día" : "días"} a la semana` : "Cuándo atiende"}</p>
+          </div>
+        </div>
+
+        <!-- cambio: horario semanal compacto (la agenda para elegir día y hora
+             está en la columna derecha, debajo de "¿Quieres comenzar?") -->
+        {semanaCompleta.some((d) => d.rangos.length) ? (
+          <div class="agd-semanal sin-linea">
+            <span class="agd-semanal-titulo"><i class="bi bi-clock-history"></i> Horario de atención</span>
+            <div class="agd-semanal-lista">
+              {semanaCompleta.map((d) => (
+                <span class:list={["agd-semanal-dia", { inactivo: !d.rangos.length }]} title={d.rangos.join(" · ") || "No atiende"}>
+                  <strong>{d.corto}</strong>
+                  {d.rangos.length ? d.rangos.join(" · ") : "No atiende"}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p class="texto-principal">Todavía no ha publicado su horario semanal.</p>
+        )}
+      </section>
+
       <!-- RESEÑAS -->
       <section class="contenido-card resenas-card" id="resenas">
 
@@ -602,6 +666,26 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
           </div>
         )}
 
+        {/* cambio: mapa del consultorio con Google Maps (sin llave).
+            Solo se muestra a quien inició sesión; sin sesión se ve solo la dirección. */}
+        {p.direccion && p.modalidades.includes("Presencial") && rol && (
+          <div class="consultorio-mapa">
+            <iframe
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(/colombia/i.test(p.direccion) ? p.direccion : `${p.direccion}, Colombia`)}&z=15&output=embed`}
+              title={`Mapa del consultorio de ${psicologo.nombre}`}
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(/colombia/i.test(p.direccion) ? p.direccion : `${p.direccion}, Colombia`)}`}
+              target="_blank"
+              rel="noopener"
+            >
+              <i class="bi bi-sign-turn-right"></i> Cómo llegar
+            </a>
+          </div>
+        )}
+
       </section>
 
       <!-- SEGURIDAD -->
@@ -642,47 +726,40 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
 
       </section>
 
-      <!-- HORARIOS (públicos: cualquiera los puede ver) -->
-      <section class="sidebar-card horarios-card" id="horarios">
-        <div class="sidebar-titulo">
-          <span>
-            <i class="bi bi-calendar-week"></i>
-          </span>
-
-          <h3>Horarios</h3>
+      <!-- cambio: agenda en el sidebar, tipo "Hoy / Próx. 7 días / Otra fecha" (como la imagen
+           de referencia). Se llena con JS usando las horas libres reales. -->
+      <section class="sidebar-card agd" id="agendaPublica">
+        <h3 class="agd-titulo"><i class="bi bi-calendar3"></i> Elige tu cita</h3>
+        <div class="agd-tabs" role="tablist">
+          <button type="button" class="agd-tab" data-agd-vista="hoy" role="tab">
+            <strong>Hoy</strong>
+            <small id="agdHoyTexto">—</small>
+          </button>
+          <button type="button" class="agd-tab activo" data-agd-vista="semana" role="tab">
+            <strong>Próx. 7 días</strong>
+          </button>
+          <button type="button" class="agd-tab" data-agd-vista="otra" role="tab">
+            <strong>Otra fecha</strong>
+          </button>
         </div>
 
-        <div class="horarios-publicos">
-          <div class="horarios-semana">
-            <h4>Atiende</h4>
-            {
-              horarioSemana.length ? (
-                <ul>
-                  {horarioSemana.map((d) => (
-                    <li>
-                      <strong>{d.dia}</strong>
-                      {d.rangos.map((r) => <span>{r}</span>)}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p class="horarios-vacio">Todavía no ha publicado su horario semanal.</p>
-              )
-            }
-          </div>
-
-          <div class="horarios-libres">
-            <h4>Próximos espacios libres</h4>
-            <div id="horariosLibres" class="horarios-dias">
-              <p class="horarios-vacio">Cargando horarios…</p>
-            </div>
-            <small class="horarios-nota">
-              {rol === "Paciente"
-                ? "Toca una hora para agendar tu cita."
-                : "Para agendar, inicia sesión con tu cuenta de paciente."}
-            </small>
-          </div>
+        <div class="agd-cabecera">
+          <button type="button" class="agd-flecha" id="agdAntes" aria-label="Anterior"><i class="bi bi-chevron-left"></i></button>
+          <h3 id="agdRango">Cargando…</h3>
+          <button type="button" class="agd-flecha" id="agdDespues" aria-label="Siguiente"><i class="bi bi-chevron-right"></i></button>
         </div>
+
+        <div class="agd-dias" id="agdDias"></div>
+        <div class="agd-horas" id="agdHoras">
+          <p class="horarios-vacio">Cargando horarios…</p>
+        </div>
+
+        <small class="agd-nota">
+          <i class="bi bi-info-circle"></i>
+          {rol === "Paciente"
+            ? "Toca una hora para agendar tu cita."
+            : "Para agendar, inicia sesión con tu cuenta de paciente."}
+        </small>
       </section>
 
     </aside>
@@ -1250,61 +1327,200 @@ const periodo = (desde: number | null, hasta: number | null, actual: boolean) =>
      abre el modal con ese día y esa hora ya elegidos.
   ========================================= */
 
-  const cajaLibres = document.getElementById("horariosLibres");
+  // cambio: agenda pública con 3 vistas (Hoy / Próx. 7 días / Otra fecha).
+  // Se piden los próximos 30 días (el máximo que permite el backend) una sola vez.
+  const agdDias = document.getElementById("agdDias");
+  const agdHoras = document.getElementById("agdHoras");
+  const agdRango = document.getElementById("agdRango");
+  const agdAntes = document.getElementById("agdAntes") as HTMLButtonElement | null;
+  const agdDespues = document.getElementById("agdDespues") as HTMLButtonElement | null;
+  const agdTabs = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-agd-vista]"));
 
-  async function cargarHorariosPublicos() {
-    if (!cajaLibres) return;
-    let libres: DiaDisponible[] = [];
-    try {
-      const res = await fetch(`${API_URL}/api/explorar/psicologos/${psicologoId}/disponibilidad?dias=14`);
-      const data = await res.json();
-      libres = res.ok ? (data.dias ?? []) : [];
-    } catch {
-      libres = [];
+  const NOMBRES_CORTOS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+  const MESES_LARGOS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+
+  // Fechas como texto "AAAA-MM-DD" (hora de Colombia) para no tener líos de zona horaria
+  const hoyCol = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(new Date());
+  const aFecha = (t: string) => new Date(Date.UTC(+t.slice(0, 4), +t.slice(5, 7) - 1, +t.slice(8, 10)));
+  const aTexto = (d: Date) => d.toISOString().slice(0, 10);
+  const sumar = (t: string, n: number) => { const d = aFecha(t); d.setUTCDate(d.getUTCDate() + n); return aTexto(d); };
+  const diaSem = (t: string) => (aFecha(t).getUTCDay() + 6) % 7; // 0 = lunes
+  const limite = sumar(hoyCol, 29);
+
+  let libres = new Map<string, string[]>();
+  let vista: "hoy" | "semana" | "otra" = "semana";
+  let inicioSemana = sumar(hoyCol, 1); // los 7 días después de hoy
+  let mesVisto = hoyCol.slice(0, 7) + "-01";
+  let diaElegido = "";
+
+  const hoyTexto = document.getElementById("agdHoyTexto");
+  if (hoyTexto) hoyTexto.textContent = `${+hoyCol.slice(8, 10)} de ${MESES[+hoyCol.slice(5, 7) - 1]} ${hoyCol.slice(0, 4)}`;
+
+  // Botón de un día (número dentro de un círculo)
+  const botonDia = (fecha: string, conNombre = false) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    // cambio: cada día es un cuadradito tipo "hojita" de calendario
+    b.className = "agd-num";
+    if (conNombre) {
+      const nom = document.createElement("small");
+      nom.textContent = NOMBRES_CORTOS[diaSem(fecha)];
+      b.append(nom);
     }
+    const num = document.createElement("strong");
+    num.textContent = String(+fecha.slice(8, 10));
+    b.append(num);
+    const horas = libres.get(fecha);
+    if (!horas?.length) {
+      b.disabled = true;
+      b.title = "Sin horas libres";
+    } else {
+      b.title = `${horas.length} ${horas.length === 1 ? "hora libre" : "horas libres"}`;
+      b.classList.add("con-horas");
+      b.addEventListener("click", () => { diaElegido = fecha; pintar(); });
+    }
+    if (fecha === diaElegido) b.classList.add("elegido");
+    if (fecha === hoyCol) b.classList.add("es-hoy");
+    return b;
+  };
 
-    cajaLibres.replaceChildren();
-    if (!libres.length) {
+  // Horas del día agrupadas en mañana, tarde y noche
+  const pintarHorasDia = () => {
+    if (!agdHoras) return;
+    agdHoras.replaceChildren();
+    const horas = libres.get(diaElegido) ?? [];
+    if (!horas.length) {
       const p = document.createElement("p");
-      p.className = "horarios-vacio";
-      p.textContent = "No hay espacios libres en las próximas dos semanas.";
-      cajaLibres.append(p);
+      p.className = "horarios-vacio agd-vacio";
+      const proximo = [...libres.keys()].find((f) => f > diaElegido);
+      p.innerHTML = '<i class="bi bi-calendar-x"></i> ';
+      p.append(vista === "hoy" ? "Hoy no quedan horas libres." : "Elige un día con horas libres.");
+      agdHoras.append(p);
+      if (proximo) {
+        const ir = document.createElement("button");
+        ir.type = "button";
+        ir.className = "agd-ir";
+        const d = aFecha(proximo);
+        ir.innerHTML = '<i class="bi bi-arrow-right-circle"></i> ';
+        ir.append(`Próximo disponible: ${NOMBRES_CORTOS[diaSem(proximo)]} ${d.getUTCDate()} de ${MESES[d.getUTCMonth()]}`);
+        ir.addEventListener("click", () => {
+          diaElegido = proximo;
+          vista = proximo < sumar(hoyCol, 8) ? "semana" : "otra";
+          if (vista === "otra") mesVisto = proximo.slice(0, 7) + "-01";
+          pintar();
+        });
+        agdHoras.append(ir);
+      }
       return;
     }
-
-    libres.slice(0, 4).forEach((d) => {
-      const fila = document.createElement("div");
-      fila.className = "horarios-dia";
-
-      const fecha = document.createElement("span");
-      fecha.className = "horarios-fecha";
-      fecha.textContent = `${textoFecha(d)} ${MESES[Number(d.fecha.slice(5, 7)) - 1]}`;
-
-      const horas = document.createElement("div");
-      horas.className = "horarios-horas";
-      d.horas.slice(0, 4).forEach((h) => {
+    const grupos = [
+      // cambio: mañana = sol, tarde = media luna con nube
+      { titulo: "En la mañana", icono: "bi-sun", desde: 0, hasta: 12 },
+      { titulo: "En la tarde", icono: "bi-cloud-moon", desde: 12, hasta: 18 },
+      { titulo: "En la noche", icono: "bi-moon-stars", desde: 18, hasta: 24 },
+    ];
+    grupos.forEach((g) => {
+      const delGrupo = horas.filter((h) => { const n = +h.slice(0, 2); return n >= g.desde && n < g.hasta; });
+      if (!delGrupo.length) return;
+      const bloque = document.createElement("div");
+      bloque.className = "agd-grupo";
+      const tit = document.createElement("h4");
+      tit.innerHTML = `<i class="bi ${g.icono}"></i>`;
+      tit.append(g.titulo);
+      const lista = document.createElement("div");
+      lista.className = "agd-chips";
+      delGrupo.forEach((h) => {
         const chip = document.createElement("button");
         chip.type = "button";
-        chip.className = "hora-chip";
+        chip.className = "agd-chip";
         chip.textContent = textoHora(h);
         chip.addEventListener("click", () => {
           if (!puedeElegir()) return;
-          seleccion.fecha = d.fecha;
+          seleccion.fecha = diaElegido;
           seleccion.hora = h;
           abrir();
         });
-        horas.append(chip);
+        lista.append(chip);
       });
-      if (d.horas.length > 4) {
-        const mas = document.createElement("small");
-        mas.className = "horarios-mas";
-        mas.textContent = `+${d.horas.length - 4} más`;
-        horas.append(mas);
-      }
-
-      fila.append(fecha, horas);
-      cajaLibres.append(fila);
+      bloque.append(tit, lista);
+      agdHoras.append(bloque);
     });
+  };
+
+  const pintar = () => {
+    if (!agdDias || !agdRango) return;
+    agdTabs.forEach((t) => t.classList.toggle("activo", t.dataset.agdVista === vista));
+    agdDias.replaceChildren();
+    agdDias.className = `agd-dias vista-${vista}`;
+
+    if (vista === "hoy") {
+      diaElegido = hoyCol;
+      const d = aFecha(hoyCol);
+      agdRango.textContent = `${["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"][diaSem(hoyCol)]} ${d.getUTCDate()} de ${MESES_LARGOS[d.getUTCMonth()]}`;
+      if (agdAntes) agdAntes.hidden = true;
+      if (agdDespues) agdDespues.hidden = true;
+    } else if (vista === "semana") {
+      const fin = sumar(inicioSemana, 6);
+      const a = aFecha(inicioSemana), z = aFecha(fin);
+      agdRango.textContent = `${MESES[a.getUTCMonth()]} ${a.getUTCDate()} - ${MESES[z.getUTCMonth()]} ${z.getUTCDate()} • ${z.getUTCFullYear()}`;
+      if (agdAntes) { agdAntes.hidden = false; agdAntes.disabled = inicioSemana <= sumar(hoyCol, 1); }
+      if (agdDespues) { agdDespues.hidden = false; agdDespues.disabled = sumar(inicioSemana, 7) > limite; }
+      for (let i = 0; i < 7; i++) {
+        const f = sumar(inicioSemana, i);
+        agdDias.append(botonDia(f, true));
+      }
+      // si el día elegido no está en esta semana, se elige el primero con horas
+      const semana = Array.from({ length: 7 }, (_, i) => sumar(inicioSemana, i));
+      if (!semana.includes(diaElegido)) diaElegido = semana.find((f) => libres.get(f)?.length) ?? "";
+      agdDias.querySelectorAll(".agd-num").forEach((b, i) => b.classList.toggle("elegido", semana[i] === diaElegido));
+    } else {
+      // Calendario del mes (solo se pueden elegir días dentro de los próximos 30)
+      const m = aFecha(mesVisto);
+      agdRango.textContent = `${MESES_LARGOS[m.getUTCMonth()].replace(/^./, (c) => c.toUpperCase())} ${m.getUTCFullYear()}`;
+      if (agdAntes) { agdAntes.hidden = false; agdAntes.disabled = mesVisto <= hoyCol.slice(0, 7) + "-01"; }
+      if (agdDespues) { agdDespues.hidden = false; agdDespues.disabled = sumar(mesVisto, 31).slice(0, 7) > limite.slice(0, 7); }
+      NOMBRES_CORTOS.forEach((n) => {
+        const s = document.createElement("span");
+        s.className = "agd-cab";
+        s.textContent = n;
+        agdDias.append(s);
+      });
+      for (let i = 0; i < diaSem(mesVisto); i++) agdDias.append(document.createElement("span"));
+      for (let f = mesVisto; f.slice(0, 7) === mesVisto.slice(0, 7); f = sumar(f, 1)) agdDias.append(botonDia(f));
+    }
+    pintarHorasDia();
+  };
+
+  agdTabs.forEach((t) => t.addEventListener("click", () => {
+    vista = (t.dataset.agdVista as typeof vista) || "semana";
+    if (vista === "semana") { inicioSemana = sumar(hoyCol, 1); diaElegido = ""; }
+    if (vista === "otra") { mesVisto = hoyCol.slice(0, 7) + "-01"; diaElegido = [...libres.keys()][0] ?? ""; }
+    pintar();
+  }));
+
+  agdAntes?.addEventListener("click", () => {
+    if (vista === "semana") inicioSemana = sumar(inicioSemana, -7);
+    else { const d = aFecha(mesVisto); d.setUTCMonth(d.getUTCMonth() - 1); mesVisto = aTexto(d); }
+    pintar();
+  });
+  agdDespues?.addEventListener("click", () => {
+    if (vista === "semana") inicioSemana = sumar(inicioSemana, 7);
+    else { const d = aFecha(mesVisto); d.setUTCMonth(d.getUTCMonth() + 1); mesVisto = aTexto(d); }
+    pintar();
+  });
+
+  async function cargarHorariosPublicos() {
+    try {
+      const res = await fetch(`${API_URL}/api/explorar/psicologos/${psicologoId}/disponibilidad?dias=30`);
+      const data = await res.json();
+      const lista: DiaDisponible[] = res.ok ? (data.dias ?? []) : [];
+      libres = new Map(lista.map((d) => [d.fecha, d.horas]));
+    } catch {
+      libres = new Map();
+    }
+    // Si hoy tiene horas libres arranca en "Hoy"; si no, en los próximos 7 días
+    vista = libres.get(hoyCol)?.length ? "hoy" : "semana";
+    pintar();
   }
 
   void cargarHorariosPublicos();

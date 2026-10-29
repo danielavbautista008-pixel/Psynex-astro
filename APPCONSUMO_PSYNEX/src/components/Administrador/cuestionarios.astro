@@ -1200,7 +1200,7 @@ import "./cuestionarios.css";
     let cuestionarios = [];
 
     // Dirección del backend (Deno)
-    const API = "http://localhost:8001";
+    const API = window.PSYNEX_API ?? "http://localhost:8001"; // cambio (túnel)
 
     // Cuestionario al que se le está cambiando la foto (modal Foto)
     let cuestionarioFoto = null;
@@ -1212,7 +1212,7 @@ import "./cuestionarios.css";
 
     async function cargarCuestionariosDesdeAPI() {
         try {
-            const res = await fetch("http://localhost:8001/cuestionarios", {
+            const res = await fetch(API + "/cuestionarios", {
                 credentials: "include"
             });
             const data = await res.json();
@@ -2399,7 +2399,7 @@ import "./cuestionarios.css";
             const res = await fetch(
 
 
-                "http://localhost:8001/cuestionarios/" + id + "/estado",
+                API + "/cuestionarios/" + id + "/estado",
 
 
                 {

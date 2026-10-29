@@ -1,0 +1,167 @@
+---
+// =====================================================================
+// cambio: ARCHIVO NUEVO — Resultado del pago con Wompi.
+// Wompi devuelve al paciente a /Paciente/PagoResultado?id=<transacción>.
+// Aquí se le pregunta al backend (que a su vez le pregunta a Wompi) si el
+// pago quedó aprobado. Si Wompi todavía lo tiene "pendiente" (pasa con
+// PSE), se vuelve a revisar cada pocos segundos.
+// =====================================================================
+import Menu from "./menuPac.astro";
+import "./pagos.css";
+---
+
+<Menu />
+
+<main class="pac-page">
+  <div class="pac-contenido">
+    <section class="pac-card pres-caja" id="pagoResultado" data-estado="cargando" aria-live="polite">
+      <span class="pres-icono"><i class="bi bi-hourglass-split" id="presIcono"></i></span>
+      <h1 id="presTitulo">Revisando tu pago…</h1>
+      <p id="presTexto">Estamos confirmando con Wompi. Esto tarda solo unos segundos.</p>
+
+      <dl class="pag-recibo pres-datos" id="presDatos" hidden>
+        <div><dt>Concepto</dt><dd id="presConcepto">—</dd></div>
+        <div><dt>Método</dt><dd id="presMetodo">—</dd></div>
+        <div><dt>Referencia</dt><dd id="presRef">—</dd></div>
+        <div class="total"><dt>Total</dt><dd id="presValor">—</dd></div>
+      </dl>
+
+      <div class="pres-acciones" id="presAcciones" hidden>
+        <a href="/Paciente/Citas" class="pac-btn pequeno" id="presIr">Ir a mis citas</a>
+        <a href="/Paciente/Pagos" class="pac-btn pequeno borde">Ver mis pagos</a>
+      </div>
+    </section>
+  </div>
+</main>
+
+<style is:global>
+  .pres-caja {
+    max-width: 520px;
+    margin: 30px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .pres-caja h1 {
+    margin: 0;
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 24px;
+    font-weight: 500;
+  }
+
+  .pres-caja p {
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  .pres-icono {
+    width: 64px;
+    height: 64px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 30px;
+  }
+
+  .pres-caja[data-estado="cargando"] .pres-icono i {
+    display: inline-block;
+    animation: presGirar 1.4s linear infinite;
+  }
+
+  .pres-caja[data-estado="ok"] .pres-icono { background: var(--success-bg); color: var(--success-fg); }
+  .pres-caja[data-estado="mal"] .pres-icono { background: var(--danger-bg); color: var(--danger-fg); }
+  .pres-caja[data-estado="espera"] .pres-icono { background: var(--warning-bg); color: var(--warning-fg); }
+
+  .pres-datos {
+    width: 100%;
+    text-align: left;
+  }
+
+  .pres-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  @keyframes presGirar {
+    to { transform: rotate(360deg); }
+  }
+</style>
+
+<script>
+  import { API_URL, pesos, textoError } from "../../lib/api";
+
+  const caja = document.getElementById("pagoResultado");
+  const $ = (id: string) => document.getElementById(id);
+  const poner = (id: string, t: string) => { const el = $(id); if (el) el.textContent = t; };
+
+  const mostrar = (estado: "ok" | "mal" | "espera", icono: string, titulo: string, texto: string) => {
+    if (caja) caja.dataset.estado = estado;
+    const i = $("presIcono");
+    if (i) i.className = `bi ${icono}`;
+    poner("presTitulo", titulo);
+    poner("presTexto", texto);
+    const acciones = $("presAcciones");
+    if (acciones) acciones.hidden = false;
+  };
+
+  const id = new URLSearchParams(window.location.search).get("id") ?? "";
+  let intentos = 0;
+
+  async function revisar() {
+    if (!id) {
+      mostrar("mal", "bi-question-circle", "No encontramos el pago", "Esta página se abre al volver de Wompi. Si ya pagaste, revisa tus pagos.");
+      return;
+    }
+    let data: any = {};
+    let ok = false;
+    try {
+      const res = await fetch(`${API_URL}/api/pagos/wompi/confirmar/${encodeURIComponent(id)}`, { credentials: "include" });
+      ok = res.ok;
+      data = await res.json().catch(() => ({}));
+    } catch {
+      data = { error: "No se pudo conectar con el servidor" };
+    }
+
+    if (!ok) {
+      mostrar("mal", "bi-exclamation-triangle", "No pudimos confirmar el pago", textoError(data));
+      return;
+    }
+
+    const p = data.pago;
+    poner("presConcepto", p.detalle);
+    poner("presMetodo", p.metodo || "Wompi");
+    poner("presRef", p.referencia);
+    poner("presValor", pesos(p.valor));
+    const datos = $("presDatos");
+    if (datos) datos.hidden = false;
+    const ir = $("presIr") as HTMLAnchorElement | null;
+    if (ir && p.tipo === "paquete") {
+      ir.href = "/Paciente/Paquetes";
+      ir.textContent = "Ver mis paquetes";
+    }
+
+    if (p.estado === "Aprobado") {
+      mostrar("ok", "bi-check-circle-fill", "¡Pago aprobado!",
+        p.tipo === "paquete" ? "Tu paquete ya está activo. Úsalo cuando el psicólogo acepte tus citas." : "Tu cita quedó pagada. Te esperamos en tu sesión.");
+    } else if (p.estado === "Pendiente" && intentos < 10) {
+      // PSE puede tardar un poco: se vuelve a revisar
+      intentos++;
+      mostrar("espera", "bi-hourglass-split", "Tu pago está en proceso", "Wompi todavía lo está confirmando. Esta página se actualiza sola.");
+      setTimeout(revisar, 4000);
+    } else if (p.estado === "Pendiente") {
+      mostrar("espera", "bi-hourglass-split", "Tu pago sigue en proceso", "Cuando Wompi lo confirme lo verás en tus pagos.");
+    } else {
+      mostrar("mal", "bi-x-circle-fill", "El pago no fue aprobado", "No se hizo ningún cobro. Puedes intentarlo de nuevo con otro medio de pago.");
+    }
+  }
+
+  void revisar();
+</script>

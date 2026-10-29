@@ -1,0 +1,238 @@
+/* cambio: estilos de la vista NUEVA Postulaciones (solo colores del tema) */
+
+.pos-resumen {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.pos-resumen div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.pos-resumen strong {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.pos-resumen span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.pos-filtros {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.pos-buscar {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.pos-buscar input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.pos-filtros select {
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.pos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pos-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.pos-item[hidden] {
+  display: none;
+}
+
+.pos-item:hover {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  transform: translateY(-2px);
+}
+
+.pos-foto {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 25%;
+  background: var(--primary-soft);
+}
+
+.pos-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pos-info > strong {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.pos-info > small {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.pos-ofertas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.pos-oferta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 4px 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 12px;
+  color: var(--text);
+}
+
+.pos-oferta .status-badge {
+  padding: 3px 10px;
+}
+
+.pos-acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pos-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.pos-btn.borde {
+  background: transparent;
+  color: var(--primary);
+}
+
+.pos-btn:hover {
+  filter: brightness(1.06);
+}
+
+.pos-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 44px 20px;
+  border: 1px dashed var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.pos-vacio i {
+  font-size: 30px;
+  color: var(--primary);
+}
+
+.pos-vacio h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.pos-vacio p,
+.pos-vacio-filtro {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.pos-vacio-filtro {
+  text-align: center;
+  padding: 20px;
+}
+
+@media (max-width: 760px) {
+  .pos-resumen {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pos-item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .pos-acciones {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+/* cambio: en celular los filtros ocupan todo el ancho */
+@media (max-width: 600px) {
+  .pos-buscar,
+  .pos-filtros select {
+    flex: 1 1 100%;
+    min-width: 0;
+    width: 100%;
+  }
+}

@@ -278,7 +278,7 @@ const yoId = String(Astro.locals.usuario?.UsuarioId ?? "");
 
   const pagina = document.getElementById("chatPagina");
   const YO = pagina?.dataset.yo || "";
-  const API = pagina?.dataset.api || "http://localhost:8001";
+  const API = pagina?.dataset.api ?? "http://localhost:8001"; // cambio (túnel): "" = misma dirección de la página
 
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T | null;
 
@@ -1076,7 +1076,7 @@ const yoId = String(Astro.locals.usuario?.UsuarioId ?? "");
   }
 
   function conectar() {
-    socket = new WebSocket(API.replace(/^http/, "ws") + "/api/chat/ws");
+    socket = new WebSocket((API || location.origin).replace(/^http/, "ws") + "/api/chat/ws");
 
     socket.addEventListener("open", () => {
       espera = 1000;

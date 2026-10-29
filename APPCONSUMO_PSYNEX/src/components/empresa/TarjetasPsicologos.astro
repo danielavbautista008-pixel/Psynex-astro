@@ -1,0 +1,345 @@
+---
+// =====================================================================
+// cambio: COMPONENTE NUEVO — tarjetas de psicólogos REALES para la empresa.
+// Lo usan "Profesionales" (BuscarPs) y "Favoritos".
+//   - Datos: GET /api/explorar/psicologos (los verificados)
+//   - Filtros: nombre/especialidad, especialidad, modalidad y precio
+//   - Corazón: guarda el favorito en este navegador (localStorage),
+//     porque todavía no hay ruta del backend para favoritos de empresa.
+//   - "Ver perfil": abre el perfil público y "Volver" regresa aquí.
+// Mismo diseño de tarjeta que ya tenía la vista (buscarPs.css).
+// =====================================================================
+import type { PsicologoCard } from "./datosEmpresa";
+import "./buscarPs.css";
+
+interface Props {
+  psicologos: PsicologoCard[];
+  especialidades?: string[];
+  modo?: "buscar" | "favoritos";
+}
+
+const { psicologos, especialidades = [], modo = "buscar" } = Astro.props;
+const volver = modo === "favoritos" ? "/Empresa/Favoritos" : "/Empresa/BuscarPs";
+---
+
+<div class="tp-raiz" data-modo={modo}>
+  {modo === "buscar" && (
+    <section class="search-filter-section">
+      <div class="main-search-bar">
+        <i class="bi bi-search"></i>
+        <input type="text" id="input-busqueda" placeholder="Buscar por nombre o especialidad..." autocomplete="off" />
+      </div>
+
+      <div class="filters-container">
+        <div class="filters-row">
+          <select class="filter-dropdown" id="filter-especialidad">
+            <option value="">Especialidad</option>
+            {especialidades.map((e) => <option value={e}>{e}</option>)}
+          </select>
+          <select class="filter-dropdown" id="filter-modalidad">
+            <option value="">Modalidad</option>
+            <option value="virtual">Virtual</option>
+            <option value="presencial">Presencial</option>
+          </select>
+          <select class="filter-dropdown" id="filter-precio">
+            <option value="">Precio</option>
+            <option value="0-100000">Hasta $100.000</option>
+            <option value="100000-150000">$100.000 – $150.000</option>
+            <option value="150000-99999999">Más de $150.000</option>
+          </select>
+          <button type="button" class="filter-dropdown tp-solo-fav" id="filter-favoritos" aria-pressed="false">
+            <i class="bi bi-heart"></i> Solo favoritos
+          </button>
+        </div>
+        <button type="button" id="btn-limpiar-filtros" class="clear-filters-link">
+          <i class="bi bi-trash3"></i> Limpiar filtros
+        </button>
+      </div>
+    </section>
+  )}
+
+  <p class="tp-contador" id="tp-contador"></p>
+
+  <section class="profile-grid" id="profile-grid">
+    {psicologos.map((p) => (
+      <article
+        class="profile-card"
+        data-id={p.id}
+        data-texto={`${p.nombre} ${p.titulo} ${p.especialidades.join(" ")}`.toLowerCase()}
+        data-especialidades={JSON.stringify(p.especialidades)}
+        data-modalidad={p.modalidadTexto.toLowerCase()}
+        data-precio={p.precio}
+      >
+        <div class="verified-badge">
+          <i class="bi bi-check-lg"></i> Verificado
+        </div>
+
+        <div class="avatar-holder">
+          <img src={p.foto} alt={p.nombre} class="profile-photo" loading="lazy" />
+        </div>
+
+        <h2>{p.nombre}</h2>
+
+        <p class="profile-specialties">
+          {p.especialidades.length ? p.especialidades.slice(0, 3).join(" • ") : p.titulo}
+        </p>
+
+        <div class="profile-meta">
+          {p.experienciaTexto && <span class="Subtitulo"><i class="bi bi-briefcase"></i> {p.experienciaTexto}</span>}
+          <span class="Subtitulo">{p.modalidadTexto}</span>
+          <span class="Subtitulo tp-estrellas">
+            <i class="bi bi-star-fill"></i>
+            {p.calificacion === null ? "Nuevo" : `${p.calificacion.toFixed(1)} (${p.totalResenas})`}
+          </span>
+        </div>
+
+        <p class="price">{p.precioTexto}</p>
+
+        <div class="card-actions">
+          <a class="view-profile-btn" href={`/Explorar/${p.id}?volver=${volver}`}>Ver perfil</a>
+          <button type="button" class="action-icon-btn tp-corazon" data-favorito={p.id} title="Guardar en favoritos" aria-pressed="false">
+            <i class="bi bi-heart"></i>
+          </button>
+        </div>
+      </article>
+    ))}
+  </section>
+
+  <div class="tp-vacio" id="tp-vacio" hidden>
+    <i class="bi bi-heart"></i>
+    <h2>{modo === "favoritos" ? "Aún no tienes favoritos" : "No encontramos psicólogos con esos filtros"}</h2>
+    <p>
+      {modo === "favoritos"
+        ? "En Profesionales toca el corazón de un psicólogo para guardarlo aquí."
+        : "Prueba quitando algún filtro."}
+    </p>
+    {modo === "favoritos" && <a href="/Empresa/BuscarPs" class="view-profile-btn">Buscar profesionales</a>}
+  </div>
+
+  <nav class="pagination-wrapper" id="pagination-wrapper"></nav>
+</div>
+
+<script>
+  const CLAVE = "psynex:favoritos-empresa";
+  const POR_PAGINA = 9;
+
+  const raiz = document.querySelector<HTMLElement>(".tp-raiz");
+  const modo = raiz?.dataset.modo || "buscar";
+  const tarjetas = Array.from(document.querySelectorAll<HTMLElement>(".profile-card[data-id]"));
+  const paginacion = document.getElementById("pagination-wrapper");
+  const contador = document.getElementById("tp-contador");
+  const vacio = document.getElementById("tp-vacio");
+
+  const busqueda = document.getElementById("input-busqueda") as HTMLInputElement | null;
+  const fEspecialidad = document.getElementById("filter-especialidad") as HTMLSelectElement | null;
+  const fModalidad = document.getElementById("filter-modalidad") as HTMLSelectElement | null;
+  const fPrecio = document.getElementById("filter-precio") as HTMLSelectElement | null;
+  const fFavoritos = document.getElementById("filter-favoritos");
+
+  let soloFavoritos = modo === "favoritos";
+  let pagina = 1;
+
+  const leerFavoritos = (): string[] => {
+    try {
+      const v = JSON.parse(localStorage.getItem(CLAVE) || "[]");
+      return Array.isArray(v) ? v : [];
+    } catch {
+      return [];
+    }
+  };
+  let favoritos = leerFavoritos();
+
+  const guardarFavoritos = () => {
+    try {
+      localStorage.setItem(CLAVE, JSON.stringify(favoritos));
+    } catch { /* sin almacenamiento: queda en memoria */ }
+  };
+
+  const pintarCorazones = () => {
+    document.querySelectorAll<HTMLButtonElement>("[data-favorito]").forEach((b) => {
+      const activo = favoritos.includes(b.dataset.favorito || "");
+      b.classList.toggle("activo", activo);
+      b.setAttribute("aria-pressed", String(activo));
+      b.title = activo ? "Quitar de favoritos" : "Guardar en favoritos";
+      const i = b.querySelector("i");
+      if (i) i.className = activo ? "bi bi-heart-fill" : "bi bi-heart";
+    });
+  };
+
+  const coincide = (t: HTMLElement) => {
+    if (soloFavoritos && !favoritos.includes(t.dataset.id || "")) return false;
+    const q = (busqueda?.value || "").trim().toLowerCase();
+    if (q && !(t.dataset.texto || "").includes(q)) return false;
+    const esp = fEspecialidad?.value || "";
+    if (esp && !JSON.parse(t.dataset.especialidades || "[]").includes(esp)) return false;
+    const mod = fModalidad?.value || "";
+    if (mod && !(t.dataset.modalidad || "").includes(mod)) return false;
+    const precio = fPrecio?.value || "";
+    if (precio) {
+      const [min, max] = precio.split("-").map(Number);
+      const p = Number(t.dataset.precio || 0);
+      if (p < min || p > max) return false;
+    }
+    return true;
+  };
+
+  function pintar() {
+    const visibles = tarjetas.filter(coincide);
+    const paginas = Math.max(1, Math.ceil(visibles.length / POR_PAGINA));
+    pagina = Math.min(pagina, paginas);
+
+    tarjetas.forEach((t) => (t.hidden = true));
+    visibles.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA).forEach((t) => (t.hidden = false));
+
+    if (contador) {
+      contador.textContent =
+        modo === "favoritos"
+          ? `${visibles.length} ${visibles.length === 1 ? "psicólogo guardado" : "psicólogos guardados"}`
+          : `${visibles.length} ${visibles.length === 1 ? "profesional encontrado" : "profesionales encontrados"}`;
+    }
+    if (vacio) vacio.hidden = visibles.length > 0;
+
+    // Paginación
+    if (!paginacion) return;
+    paginacion.replaceChildren();
+    if (paginas <= 1) return;
+    const boton = (texto: string, destino: number, activo = false, deshabilitado = false) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = texto === "‹" || texto === "›" ? "page-arrow" : `page-num${activo ? " active" : ""}`;
+      b.textContent = texto;
+      b.disabled = deshabilitado;
+      b.addEventListener("click", () => {
+        pagina = destino;
+        pintar();
+        raiz?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      return b;
+    };
+    paginacion.append(boton("‹", pagina - 1, false, pagina === 1));
+    for (let n = 1; n <= paginas; n++) paginacion.append(boton(String(n), n, n === pagina));
+    paginacion.append(boton("›", pagina + 1, false, pagina === paginas));
+  }
+
+  // Corazón
+  document.querySelectorAll<HTMLButtonElement>("[data-favorito]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const id = b.dataset.favorito || "";
+      favoritos = favoritos.includes(id) ? favoritos.filter((x) => x !== id) : [...favoritos, id];
+      guardarFavoritos();
+      pintarCorazones();
+      b.classList.remove("latido");
+      void b.offsetWidth;
+      b.classList.add("latido");
+      if (soloFavoritos) pintar();
+    })
+  );
+
+  // Filtros
+  [busqueda, fEspecialidad, fModalidad, fPrecio].forEach((el) =>
+    el?.addEventListener(el instanceof HTMLInputElement ? "input" : "change", () => {
+      pagina = 1;
+      pintar();
+    })
+  );
+  fFavoritos?.addEventListener("click", () => {
+    soloFavoritos = !soloFavoritos;
+    fFavoritos.classList.toggle("activo", soloFavoritos);
+    fFavoritos.setAttribute("aria-pressed", String(soloFavoritos));
+    pagina = 1;
+    pintar();
+  });
+  document.getElementById("btn-limpiar-filtros")?.addEventListener("click", () => {
+    if (busqueda) busqueda.value = "";
+    [fEspecialidad, fModalidad, fPrecio].forEach((s) => s && (s.value = ""));
+    soloFavoritos = false;
+    fFavoritos?.classList.remove("activo");
+    pagina = 1;
+    pintar();
+  });
+
+  pintarCorazones();
+  pintar();
+</script>
+
+<style>
+  /* cambio: detalles del componente con colores del tema */
+  .tp-contador {
+    margin: 0 0 14px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+
+  .profile-card[hidden] {
+    display: none !important;
+  }
+
+  .tp-estrellas i {
+    color: var(--primary);
+  }
+
+  .tp-solo-fav {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+
+  .tp-solo-fav.activo {
+    border-color: var(--primary) !important;
+    background: var(--primary) !important;
+    color: var(--on-primary) !important;
+  }
+
+  .tp-corazon.activo {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: var(--on-primary) !important;
+  }
+
+  .tp-corazon.latido {
+    animation: tp-latido 0.35s ease;
+  }
+
+  @keyframes tp-latido {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+  }
+
+  a.view-profile-btn {
+    text-decoration: none;
+  }
+
+  .tp-vacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 44px 20px;
+    border: 1px dashed var(--border);
+    border-radius: 18px;
+    background: var(--surface);
+    text-align: center;
+  }
+
+  .tp-vacio[hidden] {
+    display: none;
+  }
+
+  .tp-vacio i {
+    font-size: 28px;
+    color: var(--primary);
+  }
+
+  .tp-vacio h2 {
+    margin: 0;
+    font-size: 17px;
+  }
+
+  .tp-vacio p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+</style>
