@@ -442,6 +442,25 @@ import { API_URL } from "../../lib/api";
       }
     }
 
+    // CONEXIÓN (empresa.e): si la fila es una postulación real (data-postulacion),
+    // se guarda el estado en la base de datos y se le avisa al psicólogo.
+    const postulacionId = filaActual?.dataset.postulacion;
+    if (postulacionId) {
+      const estado = aceptar ? "Aceptado" : "Rechazado";
+      const r = await fetch(`${API}/api/empresa/postulaciones/${encodeURIComponent(postulacionId)}/estado`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ estado }),
+      }).catch(() => null);
+      if (!r || !r.ok) {
+        if (error) error.textContent = "No se pudo guardar la decisión. Intenta de nuevo.";
+        if (boton) boton.disabled = false;
+        return;
+      }
+      window.dispatchEvent(new CustomEvent("empresa:postulacion", { detail: { id: postulacionId, estado } }));
+    }
+
     // La fila muestra el nuevo estado
     const grupo = filaActual?.querySelector(".action-buttons-group");
     if (grupo) {

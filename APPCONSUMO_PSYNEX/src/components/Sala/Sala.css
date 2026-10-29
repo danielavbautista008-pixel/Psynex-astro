@@ -1082,3 +1082,50 @@ body:has(.sala-pagina) .theme-container {
     height: 100%;
   }
 }
+
+
+/* =====================================================
+   cambio: SOLO EN COMPUTADOR (el celular queda como estaba)
+   - la llamada no pasa del alto de la pantalla
+   - en grupo, recuadros medianos (4:3) centrados, máximo 300px de alto
+   - cada video llena su recuadro enfocando la parte de arriba
+     (la cara), sin franjas vacías a los lados
+===================================================== */
+@media (min-width: 901px) {
+  .escenario {
+    min-height: 0;
+    height: calc(100vh - 230px);
+    max-height: 640px;
+  }
+
+  /* Recuadros medianos 4:3, centrados (sirven para cámara de celular y de computador) */
+  .escenario.grupo:not(.compartiendo) .mosaicos {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .escenario.grupo:not(.compartiendo) .mosaico,
+  .escenario.grupo:not(.compartiendo)[data-personas="3"] .mosaico:last-child {
+    flex: none;
+    height: min(calc(50% - 12px), 300px);
+    width: auto;
+    max-width: 46%;
+    aspect-ratio: 4 / 3;
+    justify-self: auto;
+  }
+
+  .escenario.grupo:not(.compartiendo)[data-personas="5"] .mosaico,
+  .escenario.grupo:not(.compartiendo)[data-personas="6"] .mosaico {
+    max-width: 31%;
+  }
+
+  .escenario.grupo .mosaico video,
+  .escenario.compartiendo .mosaico video {
+    object-fit: cover;
+    object-position: 50% 25%;
+  }
+}

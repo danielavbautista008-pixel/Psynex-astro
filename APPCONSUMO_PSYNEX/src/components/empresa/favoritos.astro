@@ -39,8 +39,115 @@ import "./favoritos.css";
      
 
     <!-- Grid de Tarjetas de Perfiles -->
+    <!-- CONEXIÓN (empresa.e): las tarjetas las llena el script con los favoritos reales
+         (GET /api/empresa/favoritos). Se usa el mismo diseño de tarjeta de abajo. -->
     <section class="profile-grid" id="profile-grid">
-      <!-- Ejemplo de Tarjeta Dinámica -->
+      <p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">Cargando tus favoritos...</p>
+    </section>
+
+    <!-- Paginación con estilo unificado -->
+    <nav class="pagination-wrapper" id="pagination-wrapper" style="display: none;"></nav>
+  </main>
+</div>
+
+
+<script>
+  // CONEXIÓN (empresa.e): Mis favoritos
+  //   GET    /api/empresa/favoritos             lista
+  //   DELETE /api/empresa/favoritos/:perfilId   quitar (corazón)
+  // "Ver perfil" y "Enviar mensaje" los maneja VentanasEmpresa.astro.
+  const BASE = (window as any).PSYNEX_API ?? "http://localhost:8001";
+  const API = `${BASE}/api`;
+  type Favorito = { id: string; nombre: string; titulo: string; especialidades: string[]; modalidad: string; precio: number; tieneFoto: boolean; fotoVersion: string };
+
+  const escapar = (t: string) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
+  const grid = document.getElementById("profile-grid");
+  const paginacion = document.getElementById("pagination-wrapper");
+  let favoritos: Favorito[] = [];
+  let pagina = 1;
+  const POR_PAGINA = 6;
+
+  const modalidad = (m: string) => (m === "Ambas" ? "Virtual / Presencial" : m || "Por definir");
+
+  function pintar() {
+    if (!grid) return;
+    if (favoritos.length === 0) {
+      grid.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">
+        Todavía no tienes psicólogos favoritos. Toca el corazón en <a href="/Empresa/BuscarPs">Buscar psicólogos</a> para guardarlos aquí.</p>`;
+      if (paginacion) paginacion.style.display = "none";
+      return;
+    }
+    const total = Math.max(1, Math.ceil(favoritos.length / POR_PAGINA));
+    pagina = Math.min(Math.max(1, pagina), total);
+    grid.innerHTML = favoritos.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA).map((p) => `
+      <article class="profile-card">
+        <div class="verified-badge"><i class="bi bi-check-lg"></i> Verificado</div>
+        <div class="avatar-holder">
+          <img src="${p.tieneFoto ? `${API}/explorar/psicologos/${p.id}/foto?v=${p.fotoVersion}` : "/Imagenes/logo.png"}" alt="${escapar(p.nombre)}" class="profile-photo" />
+        </div>
+        <h2>${escapar(p.nombre)}</h2>
+        <p class="profile-specialties">${escapar(p.especialidades.slice(0, 3).join(" • ") || p.titulo)}</p>
+        <div class="profile-meta">
+          <span class="Subtitulo"><i class="bi bi-mortarboard"></i> ${escapar(p.titulo)}</span>
+          <span class="Subtitulo">${escapar(modalidad(p.modalidad))}</span>
+        </div>
+        <p class="price">Desde $${Number(p.precio || 0).toLocaleString("es-CO")} / sesión</p>
+        <div class="card-actions">
+          <button class="view-profile-btn">Ver perfil</button>
+          <button class="action-icon-btn" title="Enviar mensaje"><i class="bi bi-chat-left"></i></button>
+          <button class="action-icon-btn" title="Quitar de favoritos" data-quitar-favorito="${p.id}"><i class="bi bi-heart-fill" style="color: var(--primary)"></i></button>
+        </div>
+      </article>`).join("");
+
+    if (paginacion) {
+      paginacion.style.display = total > 1 ? "flex" : "none";
+      paginacion.innerHTML = Array.from({ length: total }, (_, i) =>
+        `<button class="page-num ${i + 1 === pagina ? "active" : ""}" data-pagina="${i + 1}">${i + 1}</button>`).join("");
+    }
+  }
+
+  async function cargar() {
+    try {
+      const res = await fetch(`${API}/empresa/favoritos`, { credentials: "include" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error();
+      favoritos = data.favoritos ?? [];
+      pintar();
+    } catch {
+      if (grid) grid.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">No se pudieron cargar tus favoritos. Revisa que el servidor esté encendido.</p>`;
+    }
+  }
+
+  document.addEventListener("click", async (e) => {
+    const el = e.target as HTMLElement;
+    const quitar = el.closest<HTMLElement>("[data-quitar-favorito]");
+    if (quitar) {
+      const id = quitar.dataset.quitarFavorito || "";
+      const r = await fetch(`${API}/empresa/favoritos/${encodeURIComponent(id)}`, { method: "DELETE", credentials: "include" }).catch(() => null);
+      if (r?.ok) {
+        favoritos = favoritos.filter((f) => f.id !== id);
+        pintar();
+      }
+      return;
+    }
+    const num = el.closest<HTMLElement>("[data-pagina]");
+    if (num) {
+      pagina = Number(num.dataset.pagina);
+      pintar();
+    }
+  });
+
+  cargar();
+</script>
+
+<!-- =====================================================================
+     CÓDIGO ORIGINAL (amiga) — se deja tal cual, solo comentado, para no borrar su trabajo.
+     Tarjeta de ejemplo y paginación fijas (datos de muestra).
+     La versión activa (arriba) es la CONEXIÓN (empresa.e).
+     =====================================================================
+    <!~~ Grid de Tarjetas de Perfiles ~~>
+    <section class="profile-grid" id="profile-grid">
+      <!~~ Ejemplo de Tarjeta Dinámica ~~>
       <article class="profile-card">
         <div class="verified-badge">
           <i class="bi bi-check-lg"></i> Verificado
@@ -57,7 +164,7 @@ import "./favoritos.css";
 
         <h2>Dra. Ana María Gómez</h2>
 
-        <!-- Especialidades con tamaño de texto reducido -->
+        <!~~ Especialidades con tamaño de texto reducido ~~>
         <p class="profile-specialties">
           Psicología Clínica • Terapia Cognitivo Conductual
         </p>
@@ -66,7 +173,7 @@ import "./favoritos.css";
           <span class="Subtitulo"
             ><i class="bi bi-briefcase"></i> 8 años de experiencia</span
           >
-          <!-- Modalidad sola en su propia línea -->
+          <!~~ Modalidad sola en su propia línea ~~>
           <span class="Subtitulo"> Virtual / Presencial</span>
         </div>
 
@@ -86,7 +193,7 @@ import "./favoritos.css";
       
     </section>
 
-    <!-- Paginación con estilo unificado -->
+    <!~~ Paginación con estilo unificado ~~>
     <nav class="pagination-wrapper" id="pagination-wrapper">
       <button class="page-arrow" disabled>
         <i class="bi bi-chevron-left"></i>
@@ -98,5 +205,5 @@ import "./favoritos.css";
         <i class="bi bi-chevron-right"></i>
       </button>
     </nav>
-  </main>
-</div>
+  
+-->

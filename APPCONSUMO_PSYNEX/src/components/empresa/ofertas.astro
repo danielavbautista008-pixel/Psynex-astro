@@ -85,6 +85,7 @@ import "./ofertas.css";
                   <th class="text-center">Acciones</th>
                 </tr>
               </thead>
+              <!-- CONEXIÓN (empresa.e): las ofertas las llena el script (GET /api/empresa/ofertas) -->
               <tbody id="tabla-ofertas-body">
                 <tr>
                   <td colspan="5" style="text-align: center;">Cargando ofertas...</td>
@@ -107,7 +108,9 @@ import "./ofertas.css";
 
         <!-- Tabla: Postulantes -->
         <div class="data-card">
-          <h2>Postulantes - Psicólogo Organizacional</h2>
+          <!-- CONEXIÓN (empresa.e): el título y las filas los llena el script con las
+               postulaciones reales de la oferta elegida (GET /api/empresa/postulaciones) -->
+          <h2 id="titulo-postulantes">Postulantes - Psicólogo Organizacional</h2>
           <div class="responsive-table-holder">
             <table class="custom-table v-align-middle">
               <thead>
@@ -117,7 +120,7 @@ import "./ofertas.css";
                   <th>Acciones</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="tabla-postulantes-body">
                 <tr>
                   <td>
                     <div class="user-profile-cell">
@@ -238,3 +241,281 @@ import "./ofertas.css";
     </div>
   </div>
 </div>
+
+<script>
+  // =====================================================================
+  // CONEXIÓN (empresa.e): Gestión de ofertas con el backend (rutas con la sesión de la empresa)
+  //   GET   /api/empresa/ofertas               mis ofertas (tabla + paginación)
+  //   POST  /api/empresa/ofertas               "Publicar Oferta"
+  //   PUT   /api/empresa/ofertas/:id           ventana "Editar Oferta Laboral"
+  //   PATCH /api/empresa/ofertas/:id/estado    cerrar / volver a abrir
+  //   GET   /api/empresa/postulaciones         tabla "Postulantes" de la oferta elegida
+  // Aceptar / Rechazar postulantes lo maneja VentanasEmpresa.astro (con el id de la fila).
+  // =====================================================================
+  const BASE = (window as any).PSYNEX_API ?? "http://localhost:8001";
+  const API = `${BASE}/api`;
+
+  type Oferta = { id: string; titulo: string; descripcion: string; requisitos: string; salario: number | null; modalidad: string; estado: string; fecha: string; postulaciones: number };
+  type Postulacion = { id: string; estado: string; fecha: string; oferta: { id?: string; titulo: string }; psicologo: { nombre: string; perfilId: string | null; tieneFoto: boolean; fotoVersion: string } };
+
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T | null;
+  const escapar = (t: string) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
+  const iniciales = (n: string) => n.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+  const fechaCorta = (f: string) => {
+    const d = new Date(f);
+    return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("es-CO", { day: "2-digit", month: "2-digit", year: "numeric" });
+  };
+  const textoModalidad = (m: string) => (m === "Hibrido" ? "Híbrido" : m);
+
+  let ofertas: Oferta[] = [];
+  let postulaciones: Postulacion[] = [];
+  let pagina = 1;
+  const POR_PAGINA = 5;
+  let ofertaPostulantes = "";
+
+  function alerta(id: string, texto: string) {
+    const el = $(id);
+    if (!el) return;
+    el.textContent = texto;
+    el.style.display = texto ? "block" : "none";
+  }
+
+  async function pedir(metodo: string, ruta: string, cuerpo?: unknown) {
+    const res = await fetch(`${API}${ruta}`, {
+      method: metodo,
+      credentials: "include",
+      headers: cuerpo ? { "Content-Type": "application/json" } : {},
+      body: cuerpo ? JSON.stringify(cuerpo) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.ok === false) {
+      throw new Error(Array.isArray(data.error) ? data.error.join(". ") : (data.error || "Ocurrió un error, intenta de nuevo"));
+    }
+    return data;
+  }
+
+  // ---------- Tabla "Mis ofertas publicadas" ----------
+  function pintarOfertas() {
+    const tbody = $("tabla-ofertas-body");
+    if (!tbody) return;
+    if (ofertas.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Todavía no has publicado ofertas.</td></tr>`;
+      $("pagination-container")!.style.display = "none";
+      return;
+    }
+    const total = Math.max(1, Math.ceil(ofertas.length / POR_PAGINA));
+    pagina = Math.min(Math.max(1, pagina), total);
+    const visibles = ofertas.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
+    tbody.innerHTML = visibles.map((o) => `
+      <tr>
+        <td class="font-semibold">${escapar(o.titulo)}</td>
+        <td>${escapar(textoModalidad(o.modalidad))}</td>
+        <td><span class="badge ${o.estado === "Activa" ? "status-activa" : ""}" style="${o.estado === "Activa" ? "background:var(--success-bg);color:var(--success-fg)" : "background:var(--bg);color:var(--text-muted)"}">${escapar(o.estado)}</span></td>
+        <td>
+          <button type="button" class="btn-actions" data-postulantes="${o.id}" title="Ver postulantes">
+            ${o.postulaciones} <i class="bi bi-people"></i>
+          </button>
+        </td>
+        <td class="text-center">
+          <div class="action-buttons-container">
+            <button type="button" class="btn-actions" data-editar="${o.id}" title="Editar oferta"><i class="bi bi-pencil-square"></i></button>
+            <button type="button" class="btn-actions" data-estado-oferta="${o.id}" title="${o.estado === "Activa" ? "Cerrar oferta" : "Volver a publicar"}">
+              <i class="bi ${o.estado === "Activa" ? "bi-x-circle" : "bi-arrow-counterclockwise"}"></i>
+            </button>
+          </div>
+        </td>
+      </tr>`).join("");
+
+    const pag = $("pagination-container");
+    if (pag) pag.style.display = total > 1 ? "flex" : "none";
+    const nums = $("page-numbers");
+    if (nums) {
+      nums.innerHTML = Array.from({ length: total }, (_, i) =>
+        `<button type="button" class="page-num ${i + 1 === pagina ? "active" : ""}" data-pagina="${i + 1}">${i + 1}</button>`).join("");
+    }
+    ($("btn-page-prev") as HTMLButtonElement | null)!.disabled = pagina === 1;
+    ($("btn-page-next") as HTMLButtonElement | null)!.disabled = pagina === total;
+  }
+
+  async function cargarOfertas() {
+    try {
+      const data = await pedir("GET", "/empresa/ofertas");
+      ofertas = data.ofertas ?? [];
+    } catch (e) {
+      const tbody = $("tabla-ofertas-body");
+      if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">${escapar((e as Error).message)}</td></tr>`;
+      return;
+    }
+    pintarOfertas();
+  }
+
+  // ---------- Tabla "Postulantes" de una oferta ----------
+  function pintarPostulantes() {
+    const tbody = $("tabla-postulantes-body");
+    const titulo = $("titulo-postulantes");
+    const oferta = ofertas.find((o) => o.id === ofertaPostulantes);
+    if (titulo) titulo.textContent = oferta ? `Postulantes - ${oferta.titulo}` : "Postulantes";
+    if (!tbody) return;
+    const lista = postulaciones.filter((p) => !oferta || p.oferta.id === oferta.id);
+    if (lista.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="3" style="text-align: center;">${oferta ? "Esta oferta todavía no tiene postulantes." : "Todavía no tienes postulantes."}</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = lista.map((p) => {
+      const foto = p.psicologo.perfilId && p.psicologo.tieneFoto
+        ? `<img src="${API}/explorar/psicologos/${p.psicologo.perfilId}/foto?v=${p.psicologo.fotoVersion}" alt="${escapar(p.psicologo.nombre)}" />`
+        : `<div style="width:36px;height:36px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;background:var(--primary-soft);color:var(--primary);font-weight:700;font-size:12px">${escapar(iniciales(p.psicologo.nombre))}</div>`;
+      const decidido = p.estado === "Aceptado" || p.estado === "Rechazado";
+      return `
+        <tr data-postulacion="${p.id}">
+          <td>
+            <div class="user-profile-cell">
+              ${foto}
+              <span>${escapar(p.psicologo.nombre)}</span>
+            </div>
+          </td>
+          <td>${fechaCorta(p.fecha)}</td>
+          <td>
+            <div class="action-buttons-group">
+              ${decidido
+                ? `<span class="ve-estado ${p.estado === "Aceptado" ? "ok" : "mal"}">${escapar(p.estado)}</span>`
+                : `<button class="btn-table btn-accept">Aceptar</button><button class="btn-table btn-reject">Rechazar</button>`}
+            </div>
+          </td>
+        </tr>`;
+    }).join("");
+  }
+
+  async function cargarPostulaciones() {
+    try {
+      const data = await pedir("GET", "/empresa/postulaciones");
+      postulaciones = data.postulaciones ?? [];
+    } catch {
+      postulaciones = [];
+    }
+    // Por defecto: la oferta más reciente que tenga postulantes
+    if (!ofertaPostulantes) ofertaPostulantes = ofertas.find((o) => o.postulaciones > 0)?.id ?? ofertas[0]?.id ?? "";
+    pintarPostulantes();
+  }
+
+  // ---------- Publicar oferta ----------
+  const leerModalidad = (nombre: string) =>
+    (document.querySelector<HTMLInputElement>(`input[name="${nombre}"]:checked`)?.value) || "Virtual";
+
+  $("form-crear-oferta")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    alerta("alert-exito", "");
+    alerta("alert-error", "");
+    const form = e.currentTarget as HTMLFormElement;
+    const boton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    if (boton) boton.disabled = true;
+    try {
+      await pedir("POST", "/empresa/ofertas", {
+        titulo: ($("titulo") as HTMLInputElement).value,
+        descripcion: ($("descripcion") as HTMLTextAreaElement).value,
+        requisitos: ($("requisitos") as HTMLTextAreaElement).value,
+        salario: ($("salario") as HTMLInputElement).value,
+        modalidad: leerModalidad("modalidad"),
+      });
+      form.reset();
+      alerta("alert-exito", "¡Oferta publicada! Ya la pueden ver los psicólogos.");
+      pagina = 1;
+      await cargarOfertas();
+    } catch (err) {
+      alerta("alert-error", (err as Error).message);
+    } finally {
+      if (boton) boton.disabled = false;
+    }
+  });
+
+  // ---------- Editar oferta (ventana) ----------
+  let editando = "";
+  const modal = $("modal-editar");
+  const cerrarModal = () => { if (modal) modal.style.display = "none"; };
+  $("btn-cerrar-modal")?.addEventListener("click", cerrarModal);
+  $("btn-cancelar-modal")?.addEventListener("click", cerrarModal);
+
+  function abrirEditar(id: string) {
+    const o = ofertas.find((x) => x.id === id);
+    if (!o || !modal) return;
+    editando = id;
+    ($("edit-titulo") as HTMLInputElement).value = o.titulo;
+    ($("edit-descripcion") as HTMLTextAreaElement).value = o.descripcion;
+    ($("edit-requisitos") as HTMLTextAreaElement).value = o.requisitos;
+    ($("edit-salario") as HTMLInputElement).value = o.salario === null ? "" : String(o.salario);
+    document.querySelectorAll<HTMLInputElement>('input[name="edit-modalidad"]').forEach((r) => (r.checked = r.value === o.modalidad));
+    alerta("modal-alert-exito", "");
+    alerta("modal-alert-error", "");
+    modal.style.display = "flex";
+  }
+
+  $("form-editar-oferta")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    alerta("modal-alert-error", "");
+    try {
+      await pedir("PUT", `/empresa/ofertas/${editando}`, {
+        titulo: ($("edit-titulo") as HTMLInputElement).value,
+        descripcion: ($("edit-descripcion") as HTMLTextAreaElement).value,
+        requisitos: ($("edit-requisitos") as HTMLTextAreaElement).value,
+        salario: ($("edit-salario") as HTMLInputElement).value,
+        modalidad: leerModalidad("edit-modalidad"),
+      });
+      alerta("modal-alert-exito", "Cambios guardados.");
+      await cargarOfertas();
+      pintarPostulantes();
+      setTimeout(cerrarModal, 700);
+    } catch (err) {
+      alerta("modal-alert-error", (err as Error).message);
+    }
+  });
+
+  // ---------- Botones de la tabla y paginación ----------
+  document.addEventListener("click", async (e) => {
+    const el = e.target as HTMLElement;
+    const editar = el.closest<HTMLElement>("[data-editar]");
+    if (editar) return abrirEditar(editar.dataset.editar || "");
+
+    const cambiar = el.closest<HTMLElement>("[data-estado-oferta]");
+    if (cambiar) {
+      const o = ofertas.find((x) => x.id === cambiar.dataset.estadoOferta);
+      if (!o) return;
+      const nuevo = o.estado === "Activa" ? "Cerrada" : "Activa";
+      if (nuevo === "Cerrada" && !confirm(`¿Cerrar la oferta "${o.titulo}"? Ya no recibirá postulaciones.`)) return;
+      try {
+        await pedir("PATCH", `/empresa/ofertas/${o.id}/estado`, { estado: nuevo });
+        await cargarOfertas();
+      } catch (err) {
+        alerta("alert-error", (err as Error).message);
+      }
+      return;
+    }
+
+    const ver = el.closest<HTMLElement>("[data-postulantes]");
+    if (ver) {
+      ofertaPostulantes = ver.dataset.postulantes || "";
+      pintarPostulantes();
+      $("titulo-postulantes")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    const num = el.closest<HTMLElement>("[data-pagina]");
+    if (num) {
+      pagina = Number(num.dataset.pagina);
+      pintarOfertas();
+    }
+  });
+  $("btn-page-prev")?.addEventListener("click", () => { pagina--; pintarOfertas(); });
+  $("btn-page-next")?.addEventListener("click", () => { pagina++; pintarOfertas(); });
+
+  // Cuando VentanasEmpresa acepta o rechaza a alguien, se actualiza la lista
+  window.addEventListener("empresa:postulacion", (ev) => {
+    const d = (ev as CustomEvent).detail as { id: string; estado: string };
+    const p = postulaciones.find((x) => x.id === d.id);
+    if (p) p.estado = d.estado;
+  });
+
+  (async () => {
+    await cargarOfertas();
+    await cargarPostulaciones();
+  })();
+</script>

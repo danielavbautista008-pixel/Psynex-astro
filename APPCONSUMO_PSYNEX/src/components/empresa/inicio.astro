@@ -23,6 +23,7 @@ const nombreEmpresa = Astro.locals.usuario?.NombreCompleto ?? "";
           <i class="bi bi-briefcase-fill"></i>
         </div>
         <div class="ofertas">
+          <!-- CONEXIÓN (empresa.e): este número lo llena el script con GET /api/empresa/resumen -->
           <span class="metric-number" id="cant-ofertas">--</span>
           <span class="metric-label">Ofertas activas</span>
           <a href="/Empresa/Ofertas" class="metric-link">Ver ofertas &rarr;</a>
@@ -34,7 +35,8 @@ const nombreEmpresa = Astro.locals.usuario?.NombreCompleto ?? "";
           <i class="bi bi-people-fill"></i>
         </div>
         <div class="ofertas">
-          <span class="metric-number" id="cant-postulaciones">48</span>
+          <!-- CONEXIÓN (empresa.e): antes decía 48 fijo; ahora lo llena el script -->
+          <span class="metric-number" id="cant-postulaciones">--</span>
           <span class="metric-label">Postulaciones recibidas</span>
           <a href="/Empresa/Postulaciones" class="metric-link">Ver postulaciones &rarr;</a>
         </div>
@@ -45,7 +47,8 @@ const nombreEmpresa = Astro.locals.usuario?.NombreCompleto ?? "";
           <i class="bi bi-star-fill"></i>
         </div>
         <div class="ofertas">
-          <span class="metric-number" id="cant-favoritos">7</span>
+          <!-- CONEXIÓN (empresa.e): antes decía 7 fijo; ahora lo llena el script -->
+          <span class="metric-number" id="cant-favoritos">--</span>
           <span class="metric-label">Psicólogos favoritos</span>
           <a href="/Empresa/Favoritos" class="metric-link">Ver favoritos &rarr;</a>
         </div>
@@ -85,6 +88,8 @@ const nombreEmpresa = Astro.locals.usuario?.NombreCompleto ?? "";
     <section class="table-card-container">
       <h2>Últimas postulaciones recibidas</h2>
 
+      <!-- CONEXIÓN (empresa.e): las filas de ejemplo se reemplazan con las últimas 5
+           postulaciones reales (GET /api/empresa/resumen) -->
       <div class="responsive-table-holder">
         <table class="custom-table">
           <thead>
@@ -149,8 +154,112 @@ const nombreEmpresa = Astro.locals.usuario?.NombreCompleto ?? "";
 
 <!-- Script para consumo de Backend Deno.js y manejo del DOM -->
 <script>
-  // cambio (túnel): dirección del backend; en modo túnel es la misma de la página
-  const API_URL = `${(window as any).PSYNEX_API ?? "http://localhost:8001"}/api`;
+  // CONEXIÓN (empresa.e): los datos salen de GET /api/empresa/resumen con la sesión de la empresa
+  // (antes se usaba un usuario guardado en localStorage y rutas que no existían en Deno).
+  // Se mantiene la idea original: el script llena las tarjetas y la tabla.
+  const BASE = (window as any).PSYNEX_API ?? "http://localhost:8001";
+  const API_URL = `${BASE}/api`;
+
+  type Ultima = { id: string; estado: string; fecha: string; oferta: string; nombre: string; perfilId: string | null; tieneFoto: boolean; fotoVersion: string };
+
+  const escapar = (t: string) => t.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
+  const iniciales = (n: string) => n.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+  const fechaCorta = (f: string) => (f ? `${f.slice(8, 10)}/${f.slice(5, 7)}/${f.slice(0, 4)}` : "N/A");
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const cantOfertasEl = document.getElementById("cant-ofertas");
+    const cantPostEl = document.getElementById("cant-postulaciones");
+    const cantFavEl = document.getElementById("cant-favoritos");
+    const tbody = document.querySelector(".custom-table tbody");
+
+    try {
+      const res = await fetch(`${API_URL}/empresa/resumen`, { credentials: "include" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "No se pudo cargar el resumen");
+
+      if (cantOfertasEl) cantOfertasEl.textContent = String(data.ofertasActivas ?? 0);
+      if (cantPostEl) cantPostEl.textContent = String(data.postulaciones ?? 0);
+      if (cantFavEl) cantFavEl.textContent = String(data.favoritos ?? 0);
+
+      const lista: Ultima[] = data.ultimas ?? [];
+      if (tbody) {
+        tbody.innerHTML = ""; // Limpiar filas estáticas de ejemplo
+        if (lista.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:18px">Todavía no has recibido postulaciones.</td></tr>`;
+        }
+        lista.forEach((post) => {
+          const aceptado = post.estado === "Aceptado";
+          const foto = post.perfilId && post.tieneFoto
+            ? `<img src="${API_URL}/explorar/psicologos/${post.perfilId}/foto?v=${post.fotoVersion}" alt="${escapar(post.nombre)}" />`
+            : `<div class="table-user-ini" style="width:40px;height:40px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;background:var(--primary-soft);color:var(--primary);font-weight:700;font-size:13px">${escapar(iniciales(post.nombre))}</div>`;
+          tbody.insertAdjacentHTML("beforeend", `
+            <tr>
+              <td>
+                <div class="table-user">
+                  ${foto}
+                  <span>${escapar(post.nombre)}</span>
+                </div>
+              </td>
+              <td>${escapar(post.oferta || "Oferta laboral")}</td>
+              <td>${fechaCorta(post.fecha)}</td>
+              <td>
+                <button class="status-badge ${aceptado ? "reviewed" : "pending"}" data-id="${post.id}" data-estado="${escapar(post.estado)}" title="Tocar para cambiar el estado">
+                  ${escapar(post.estado)}
+                </button>
+              </td>
+            </tr>`);
+        });
+        activarBotonesEstado();
+      }
+    } catch (err) {
+      console.error("Error cargando datos del dashboard:", err);
+      if (cantOfertasEl) cantOfertasEl.textContent = "0";
+      if (cantPostEl) cantPostEl.textContent = "0";
+      if (cantFavEl) cantFavEl.textContent = "0";
+      if (tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:18px">No se pudo cargar la información. Revisa que el servidor esté encendido.</td></tr>`;
+    }
+  });
+
+  // Cambia el estado al tocar la etiqueta (Pendiente <-> Aceptado), como en el diseño original.
+  // CONEXIÓN (empresa.e): se guarda con PATCH /api/empresa/postulaciones/:id/estado
+  function activarBotonesEstado() {
+    document.querySelectorAll<HTMLButtonElement>(".status-badge[data-id]").forEach((boton) => {
+      boton.addEventListener("click", async () => {
+        const postulacionId = boton.dataset.id;
+        const nuevoEstado = boton.dataset.estado === "Aceptado" ? "Pendiente" : "Aceptado";
+        boton.disabled = true;
+        try {
+          const response = await fetch(`${API_URL}/empresa/postulaciones/${postulacionId}/estado`, {
+            method: "PATCH",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ estado: nuevoEstado }),
+          });
+          if (response.ok) {
+            boton.dataset.estado = nuevoEstado;
+            boton.classList.toggle("reviewed", nuevoEstado === "Aceptado");
+            boton.classList.toggle("pending", nuevoEstado !== "Aceptado");
+            boton.textContent = nuevoEstado;
+          } else {
+            console.error("El servidor no pudo actualizar el estado");
+          }
+        } catch (error) {
+          console.error("Error de red al actualizar la postulación:", error);
+        } finally {
+          boton.disabled = false;
+        }
+      });
+    });
+  }
+</script>
+
+<!-- =====================================================================
+     CÓDIGO ORIGINAL (amiga) — se deja tal cual, solo comentado, para no borrar su trabajo.
+     Usaba el usuario guardado en localStorage ("sesionPrueba") y las rutas /api/perfilempresa, /api/ofertas y /api/postulaciones, que no existen en Deno.
+     La versión activa (arriba) es la CONEXIÓN (empresa.e).
+     =====================================================================
+<script>
+  const API_URL = "http://localhost:8001/api";
 
   const itemGuardado = localStorage.getItem("sesionPrueba");
   let usuario = null;
@@ -170,7 +279,7 @@ const nombreEmpresa = Astro.locals.usuario?.NombreCompleto ?? "";
     const tbody = document.querySelector(".custom-table tbody");
 
     if (!usuario || !usuario.usuario || !usuario.usuario.UsuarioId) {
-      // cambio: el saludo ya viene con el nombre de la sesión; no se reemplaza por un error
+      if (titulo) titulo.textContent = "No se detectó una sesión activa.";
       return;
     }
 
@@ -292,3 +401,4 @@ const nombreEmpresa = Astro.locals.usuario?.NombreCompleto ?? "";
     });
   }
 </script>
+-->

@@ -55,7 +55,8 @@ const tituloSesion = !esGrupo
 const listaNombres = otros.map((o) => primerNombre(o.nombre)).join(", ");
 const inicio = sala ? hora(sala.fechaHora) : "";
 const fin = sala ? hora(new Date(new Date(sala.fechaHora).getTime() + sala.duracionMinutos * 60000).toISOString()) : "";
-const volverHref = soyPsicologo ? "/Psicologos/Citas" : "/";
+// cambio: el paciente vuelve a su panel (antes iba a la página pública)
+const volverHref = soyPsicologo ? "/Psicologos/Citas" : "/Paciente/Inicio";
 
 // Mensaje cuando todavía no se puede entrar
 const AVISOS: Record<string, { titulo: string; texto: string }> = {
@@ -145,7 +146,7 @@ const datosJson = JSON.stringify({ sala, api: API_URL, iconos: ICONOS }).replace
         <p class="sala-cuenta">Faltan <strong id="cuentaRegresiva">--:--</strong></p>
       )}
       <a href={volverHref} class="sala-boton secundario">
-        {soyPsicologo ? "Ir a mis citas" : "Volver al inicio"}
+        {soyPsicologo ? "Ir a mis citas" : "Volver a mi panel"}
       </a>
     </section>
   )}
@@ -294,7 +295,8 @@ const datosJson = JSON.stringify({ sala, api: API_URL, iconos: ICONOS }).replace
           {soyPsicologo && (
             <button type="button" class="sala-boton secundario" id="btnCompletar">Marcar la cita como realizada</button>
           )}
-          <a href={volverHref} class="sala-enlace">{soyPsicologo ? "Ir a mis citas" : "Ir al inicio"}</a>
+          <!-- cambio: ahora es un botón visible para volver al panel -->
+          <a href={volverHref} class="sala-boton secundario">{soyPsicologo ? "Ir a mis citas" : "Volver a mi panel"}</a>
         </div>
       </section>
     </>
